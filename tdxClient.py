@@ -80,7 +80,7 @@ class TdxClient(BaseStockClient):
         MAX_KLINE_COUNT = 800
         bars = []
         while len(bars) < count:
-            part = self.call(stock.Bars(market, code, kline_type, start, min(count - len(bars), MAX_KLINE_COUNT)))
+            part = self.call(stock.K_Line(market, code, kline_type, start, min(count - len(bars), MAX_KLINE_COUNT)))
             if not part:
                 break
             bars = [*part, *bars]
@@ -283,7 +283,7 @@ if __name__ == "__main__":
         pprint.pprint(to_df(data))
 
     client = TdxClient()
-    if client.connect("122.51.232.182").login():
+    if client.connect().login():
         log.info("心跳包")
         print_df(client.call(server.HeartBeat()))
         log.info("获取服务器公告")
@@ -331,24 +331,53 @@ if __name__ == "__main__":
 
 
         log.info("获取简略行情")
-        print_df(client.get_security_quotes([(MARKET.SZ, '000001'), (MARKET.SH, '600519')]))
+        print_df(client.get_security_quotes([(MARKET.SZ, '000001'), (MARKET.SZ, '000002'), (MARKET.SZ, '000004'), (MARKET.SZ, '000006'), (MARKET.SZ, '000007'), (MARKET.SZ, '000008'), (MARKET.SZ, '000009')
+        , (MARKET.SZ, '000010'), (MARKET.SZ, '000011'), (MARKET.SZ, '000012'), (MARKET.SZ, '000014'), (MARKET.SZ, '000016'), (MARKET.SZ, '000017')]))
         log.info("获取详细行情")
-        print_df(client.call(stock.QuotesDetail([(MARKET.SH, '600000'), (MARKET.SH, '600004')])))
+        print_df(client.call(stock.QuotesDetail([(MARKET.SZ, '000001'), (MARKET.SZ, '000002'), (MARKET.SZ, '000004'), (MARKET.SZ, '000006'), (MARKET.SZ, '000007'), (MARKET.SZ, '000008'), (MARKET.SZ, '000009')
+        , (MARKET.SZ, '000010'), (MARKET.SZ, '000011'), (MARKET.SZ, '000012'), (MARKET.SZ, '000014'), (MARKET.SZ, '000016'), (MARKET.SZ, '000017')])))
         log.info("获取行情列表")
         print_df(client.call(stock.QuotesList(CATEGORY.SZ, 0)))
-        print_df(client.call(stock.TODO547([(MARKET.SH, '600009')])))
-        print_df(client.call(stock.TODO547([(MARKET.SH, '600009'), (MARKET.SH, '600009')])))
-        print_df(client.call(stock.TODO547([(MARKET.SZ, '399002'), (MARKET.SZ, '399003'), (MARKET.SH, '999998'), (MARKET.SH, '999997')])))
+        log.info("获取行情全景")
+        print_df(client.call(stock.TopStocksBoard(CATEGORY.A)))
+
+        # print_df(client.call(stock.TODO547([(MARKET.SZ, '000001')])))
+        # print_df(client.call(stock.TODO547([(MARKET.SZ, '000001'), (MARKET.SZ, '000002')])))
+        # print_df(client.call(stock.TODO547([(MARKET.SH, '600009'), (MARKET.SH, '600009')])))
+        # print_df(client.call(stock.TODO547([(MARKET.SZ, '000001'), (MARKET.SZ, '000002'), (MARKET.SH, '999998'), (MARKET.SH, '999997')])))
         
+        
+        log.info("获取指数概况")
+        print_df(client.call(stock.IndexInfo(MARKET.SH, '999999')))
+        # print_df(client.call(stock.IndexInfo(MARKET.SZ, '399001')))
+        # print_df(client.call(stock.IndexInfo(MARKET.BJ, '899050')))
+        # print_df(client.call(stock.IndexInfo(MARKET.SZ, '399006')))
+        # print_df(client.call(stock.IndexInfo(MARKET.SH, '000688')))
+        # print_df(client.call(stock.IndexInfo(MARKET.SH, '880008')))
+        # print_df(client.call(stock.IndexInfo(MARKET.SH, '000888')))
+        # print_df(client.call(stock.IndexInfo(MARKET.SH, '000680')))
+        # print_df(client.call(stock.IndexInfo(MARKET.SZ, '399330')))
+        # print_df(client.call(stock.IndexInfo(MARKET.SZ, '399673')))
+        # print_df(client.call(stock.IndexInfo(MARKET.SZ, '399106')))
+        # print_df(client.call(stock.IndexInfo(MARKET.SZ, '399102')))
+
+        log.info("获取指数k线")
+        data = client.call(stock.IndexChartSampling(MARKET.SZ, '399006'))
+        import matplotlib.pyplot as plt
+        df = pd.DataFrame(data)
+        print(df)
+        fig, ax1 = plt.subplots(figsize=(14, 7))
+        ax2 = ax1.twinx()
+        # 绘制price曲线
+        ax1.plot(df.index, df['price'])
+        # 绘制fast曲线（等于price的100倍）
+        ax1.plot(df.index, df['fast'] / 100)
+        # 绘制amount柱状图
+        ax2.bar(df.index, df['amount'])
+        plt.show()
 
         log.info("获取异动")
         print_df(client.call(stock.Unusual(MARKET.SZ, 3000, 400)))
         print_df(client.call(stock.Unusual(MARKET.SH, 5750)))
 
         client.disconnect()
-        
-    # for host in tdx_hosts:
-    #     if client.connect(host[1], host[2]).login():
-    #         print(host[0])
-    #         print_df(client.call(server.Info()))
-    #         client.disconnect()
