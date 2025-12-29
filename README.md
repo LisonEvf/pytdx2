@@ -39,3 +39,8 @@ if __name__ == "__main__":
 
 
 #量化交易 #TDX接口 #Python金融 #行情获取 #量化策略开发
+
+
+---
+
+[![Star History Chart](https://api.star-history.com/svg?repos=LisonEvf/pytdx2&type=Date)](https://star-history.com/#LisonEvf/pytdx2&Date)
