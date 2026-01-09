@@ -165,34 +165,21 @@ class CATEGORY(Enum):
     CYB = 14    # 创业板
 
 class KLINE_TYPE(Enum):
-    # 0 -   5 分钟K 线
-    # 1 -   15 分钟K 线
-    # 2 -   30 分钟K 线
-    # 3 -   1 小时K 线
-    # 4 -   日K 线
-    # 5 -   周K 线
-    # 6 -   月K 线
-    # 7 -   1 分钟
-    # 8 -   1 分钟K 线
-    # 9 -   日K 线
-    # 10 -  季K 线
-    # 11 -  年K 线
-    FIVE_MIN = 0
-    FIFTEEN_MIN = 1
-    THIRTY_MIN = 2
-    ONE_HOUR = 3
-    DAILY = 4
-    WEEKLY = 5
-    MONTHLY = 6
-    EXHQ_1_MIN = 7
-    ONE_MIN = 8
-    DAY_K = 9
-    THREE_MONTH = 10
-    YEARLY = 11
+    MIN_5 = 0      # 5 分钟K 线
+    MIN_15 = 1     # 15分钟K 线
+    MIN_30 = 2     # 30分钟K 线
+    MIN_60 = 3     # 1 小时K 线
+    DAILY = 4      # 日K 线
+    WEEKLY = 5     # 周K 线
+    MONTHLY = 6    # 月K 线
+    MIN_1 = 7      # 1 分钟
+    MINUTELY = 8   # 1 分钟K 线
+    DAY = 9        # 日K 线
+    QUARTERLY = 10 # 季K 线
+    YEARLY = 11    # 年K 线
 
 class BLOCK_FILE_TYPE(Enum):
     DEFAULT = 'block.dat'   # 一般板块
     ZS = 'block_zs.dat'     # 指数板块
     FG = 'block_fg.dat'     # 风格板块
     GN = 'block_gn.dat'     # 概念板块
-    TDXHY = 'tdxhy.cfg'     # 通信达行业和申万行业对照表

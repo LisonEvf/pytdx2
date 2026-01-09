@@ -7,68 +7,6 @@ from typing import override
 import six
 from utils.help import to_datetime, get_price, get_time, format_time
 
-
-@register_parser(0x523)
-class K_Line(BaseParser):
-    def __init__(self, market: MARKET, code: str, kline_type: KLINE_TYPE, start: int = 0, count: int = 800):
-        if type(code) is six.text_type:
-            code = code.encode("utf-8")
-        self.body = struct.pack(u'<H6sHHHH10s', market.value, code, kline_type.value, 1, start, count, b'')
-        
-        self.kline_type = kline_type
-        
-    @override
-    def deserialize(self, data):
-        (count,) = struct.unpack('<H', data[:2])
-        pos = 2
-
-        minute_category = self.kline_type.value < 4 or self.kline_type.value == 7 or self.kline_type.value == 8
-
-        bars = []
-        for i in range(count):
-            (date,) = struct.unpack("<I", data[pos: pos + 4])
-            pos += 4
-            datetime = to_datetime(date, minute_category)
-            
-            open, pos = get_price(data, pos)
-            close, pos = get_price(data, pos)
-            high, pos = get_price(data, pos)
-            low, pos = get_price(data, pos)
-            
-            (vol, amount) = struct.unpack("<ff", data[pos: pos + 8])
-            pos += 8
-
-            upCount = 0
-            downCount = 0
-            if i < count - 1:
-                try:
-                    try_date = to_datetime(struct.unpack("<I", data[pos: pos + 4])[0], minute_category)
-                    if len(bars) > 0 and try_date.year < bars[-1]['datetime'].year:
-                        raise ValueError()
-                except ValueError:
-                    (upCount, downCount) = struct.unpack("<HH", data[pos: pos + 4])
-                    pos += 4
-            
-            bar = {
-                'datetime': datetime,
-                'open': open,
-                'close': close,
-                'high': high,
-                'low': low,
-                'vol': vol,
-                'amount': amount,
-            }
-            if upCount != 0 or downCount != 0:
-                bar['upCount'] = upCount
-                bar['downCount'] = downCount
-            bars.append(bar)
-            
-        return bars
-
-@register_parser(0x52d)
-class K_Line_Offset(K_Line):
-    pass
-
 @register_parser(0x44e)
 class Count(BaseParser):
     def __init__(self, market: MARKET):
@@ -77,14 +15,12 @@ class Count(BaseParser):
 
     @override
     def deserialize(self, data):
-        return {
-            'count': struct.unpack('<H', data[:2])[0]
-        }
+        return struct.unpack('<H', data)[0]
         
 @register_parser(0x44d) # TODO: 2Unknown
 class List(BaseParser):
     def __init__(self, market: MARKET, start: int = 0, count: int = 1600):
-        self.body = struct.pack(u'<HIII', market.value, start, count, 0)
+        self.body = struct.pack(u'<H3I', market.value, start, count, 0)
 
     @override
     def deserialize(self, data):
@@ -93,18 +29,15 @@ class List(BaseParser):
         stocks = []
         for i in range(count):
             pos = 2 + i * 37
-            (code, vol, name, _, unknown1, decimal_point, pre_close, unknown2, unknown3) = struct.unpack("<6sH8s8s4sBfHH", data[pos: pos + 37])
-            code = code.decode('gbk', errors='ignore').rstrip('\x00')
-            name = name.decode('gbk', errors='ignore').rstrip('\x00')
+            (code, vol, name, _, unknown1, decimal_point, pre_close, unknown2, unknown3) = struct.unpack("<6sH8s8sfBfHH", data[pos: pos + 37])
 
-            # print(data[pos: pos + 37].hex())
             stocks.append({
-                'code': code,
+                'code': code.decode('gbk', errors='ignore').rstrip('\x00'),
                 'vol': vol,
-                'name': name,
+                'name': name.decode('gbk', errors='ignore').rstrip('\x00'),
                 'decimal_point': decimal_point,
                 'pre_close': pre_close,
-                'unknown1': [unknown1.hex(), unknown2, unknown3],
+                'unknown1': [unknown1, unknown2, unknown3],
             })
 
         return stocks
@@ -121,17 +54,15 @@ class ListB(BaseParser):
         stocks = []
         for i in range(count):
             pos = 2 + i * 29
-            (code, vol, name, unknown1, decimal_point, pre_close, unknown2) = struct.unpack("<6sH8s4sBfI", data[pos: pos + 29])
-            code = code.decode('gbk', errors='ignore').rstrip('\x00')
-            name = name.decode('gbk', errors='ignore').rstrip('\x00')
-            
+            (code, vol, name, unknown1, _, decimal_point, pre_close, unknown2, unknown3) = struct.unpack("<6sH8sHHBfHH", data[pos: pos + 29])
+
             stocks.append({
-                'code': code,
+                'code': code.decode('gbk', errors='ignore').rstrip('\x00'),
                 'vol': vol,
-                'name': name,
+                'name': name.decode('gbk', errors='ignore').rstrip('\x00'),
                 'decimal_point': decimal_point,
                 'pre_close': pre_close,
-                'unknown1': [unknown1.hex(), unknown2],
+                'unknown1': [unknown1, unknown2, unknown3],
             })
 
         return stocks
@@ -148,9 +79,9 @@ class IndexInfo(BaseParser):
         (count, market, code, active) = struct.unpack('<IB6sH', data[:13])
         pos = 13
 
-        point, pos = get_price(data, pos)
-        last_diff, pos = get_price(data, pos)
-        start_diff, pos = get_price(data, pos)
+        close, pos = get_price(data, pos)
+        pre_close_diff, pos = get_price(data, pos)
+        open_diff, pos = get_price(data, pos)
         high_diff, pos = get_price(data, pos)
         low_diff, pos = get_price(data, pos)
         maybe_server_time, pos = get_price(data, pos)
@@ -180,8 +111,7 @@ class IndexInfo(BaseParser):
         o, pos = get_price(data, pos)
         p, pos = get_price(data, pos)
 
-        print(format_time(maybe_server_time), maybe_after_hour, maybe_cur_vol)
-        print(a, b, open_amount, d, e, f, '|', g, h, i, j, k, l, m, n, o, p)
+        print(code.decode('utf-8'),format_time(maybe_server_time), "{:2}".format(maybe_after_hour), "{:8}".format(maybe_cur_vol), '|',"{:9}".format(a), "{:9}".format(b), "{:9}".format(open_amount), "{:7}".format(d), "{:9}".format(e), "{:9}".format(f), '|', g, h, i, j, k, l, m, n, o, p)
         
         orders = []
         for _ in range(count):
@@ -196,148 +126,86 @@ class IndexInfo(BaseParser):
             })
             
         return {
-            'market': market,
-            'code': code,
+            'market': MARKET(market),
+            'code': code.decode('utf-8'),
             'active': active,
-            'point': point,
-            'last_diff': last_diff,
-            'start_diff': start_diff,
-            'high_diff': high_diff,
-            'low_diff': low_diff,
+            'pre_close': close + pre_close_diff,
+            'diff': -pre_close_diff,
+            'close': close,
+            'open': close + open_diff,
+            'high': close + high_diff,
+            'low': close + low_diff,
             'vol': vol,
             'amount': amount,
             'up_count': up_count,
             'down_count': down_count
         }
-
-@register_parser(0xfb4)
-class HistoryOrders(BaseParser):
-    def __init__(self, market: MARKET, code: str, date: date):
+    
+@register_parser(0x523)
+class K_Line(BaseParser):
+    def __init__(self, market: MARKET, code: str, kline_type: KLINE_TYPE, start: int = 0, count: int = 800):
         if type(code) is six.text_type:
             code = code.encode("utf-8")
-        date = date.year * 10000 + date.month * 100 + date.day
-        self.body = struct.pack(u'<IB6s', date, market.value, code)
-
+        self.body = struct.pack(u'<H6sHHHH10s', market.value, code, kline_type.value, 1, start, count, b'')
+        
+        self.kline_type = kline_type
+        
     @override
     def deserialize(self, data):
-        count, unknown = struct.unpack('<HI', data[:6])
-        pos = 2
-
-        orders = []
-        last_price = 0
-        for _ in range(count):
-            price, pos = get_price(data, pos)
-            unknown, pos = get_price(data, pos)
-            vol, pos = get_price(data, pos)
-
-            last_price += price
-
-            orders.append({
-                'price': last_price,
-                'unknown': unknown,
-                'vol': vol,
-            })
-
-        return orders
-
-@register_parser(0xfb5)
-class HistoryTransaction(BaseParser):
-    def __init__(self, market: MARKET, code: str, date: date, start: int, count: int):
-        if type(code) is six.text_type:
-            code = code.encode("utf-8")
-        date = date.year * 10000 + date.month * 100 + date.day
-        self.body = struct.pack(u'<IH6sHH', date, market.value, code, start, count)
-
-    @override
-    def deserialize(self, data):
-        (count, _) = struct.unpack('<H4s', data[:6])
-        pos = 6
-
-        last_price = 0
-        transactions = []
-        for _ in range(count):
-            hour, minute, pos = get_time(data, pos)
-
-            price, pos = get_price(data, pos)
-            vol, pos = get_price(data, pos)
-            buyorsell, pos = get_price(data, pos)
-            unknown, pos = get_price(data, pos)
-
-            last_price += price
-            transactions.append({
-                "time": "%02d:%02d" % (hour, minute),
-                'price': last_price,
-                'vol': vol,
-                'action': 'SELL' if buyorsell == 1 else 'BUY',
-                'unknown': unknown,
-            })
-
-        return transactions
-
-@register_parser(0xfc5)
-class Transaction(BaseParser):
-    def __init__(self, market: MARKET, code: str, start: int, count: int):
-        if type(code) is six.text_type:
-            code = code.encode("utf-8")
-        self.body = struct.pack(u'<H6sHH', market.value, code, start, count)
-
-    @override
-    def deserialize(self, data):
+        data_len = len(data)
         count, = struct.unpack('<H', data[:2])
         pos = 2
 
-        last_price = 0
-        transactions = []
-        for _ in range(count):
-            hour, minute, pos = get_time(data, pos)
+        minute_category = self.kline_type.value < 4 or self.kline_type.value == 7 or self.kline_type.value == 8
 
-            price, pos = get_price(data, pos)
-            vol, pos = get_price(data, pos)
-            trans, pos = get_price(data, pos)
-            buyorsell, pos = get_price(data, pos)
-            unknown, pos = get_price(data, pos)
-
-            last_price += price
-            transactions.append({
-                "time": "%02d:%02d" % (hour, minute),
-                'price': last_price,
-                'vol': vol,
-                'trans': trans,
-                'action': 'SELL' if buyorsell == 1 else 'BUY',
-                'unknown': unknown,
-            })
-
-        return transactions
-
-@register_parser(0xfd1)
-class ChartSampling(BaseParser):
-    def __init__(self, market: MARKET, code: str):
-        if type(code) is six.text_type:
-            code = code.encode("gbk")
-        self.body = bytearray(struct.pack('<H6s', market.value, code))
-        
-        self.body.extend(bytearray().fromhex('0000000000000000000000000000000001001400000000010000000000'))
-    @override
-    def deserialize(self, data):
-        market, code = struct.unpack('<H6s', data[:8])
-        num, price, _ = struct.unpack('<HfH', data[34:42])
-
-        print(num)
-        prices = []
-        for i in range(num):
-            p, = struct.unpack('<f', data[42 + i * 4: 42 + (i + 1) * 4])
-            prices.append(p)
+        bars = []
+        for i in range(count):
+            date, = struct.unpack("<I", data[pos: pos + 4])
+            pos += 4
+            datetime = to_datetime(date, minute_category)
             
-        return {
-            'market': market,
-            'code': code.decode('gbk'),
-            'price': price,
-            'prices': prices
-        }
+            open, pos = get_price(data, pos)
+            close, pos = get_price(data, pos)
+            high, pos = get_price(data, pos)
+            low, pos = get_price(data, pos)
+            
+            vol, amount = struct.unpack("<ff", data[pos: pos + 8])
+            pos += 8
 
+            upCount = 0
+            downCount = 0
+            if pos < data_len:
+                try:
+                    try_date, = struct.unpack("<I", data[pos: pos + 4])
+                    try_date_time = to_datetime(try_date, minute_category)
+                    if try_date_time.year < datetime.year:
+                        raise ValueError()
+                except ValueError:
+                    upCount, downCount = struct.unpack("<HH", data[pos: pos + 4])
+                    pos += 4
+            
+            bar = {
+                'datetime': datetime,
+                'open': open,
+                'close': close,
+                'high': high,
+                'low': low,
+                'vol': vol,
+                'amount': amount,
+            }
+            if upCount != 0 or downCount != 0:
+                bar['upCount'] = upCount
+                bar['downCount'] = downCount
+            bars.append(bar)
+            
+        return bars
+
+@register_parser(0x52d)
+class K_Line_Offset(K_Line):
+    pass
 
 @register_parser(0x537)
-class IndexChartSampling(BaseParser):
+class IndexChart(BaseParser):
     def __init__(self, market: MARKET, code: str, start: int = 0, count: int = 0xba00):
         if type(code) is six.text_type:
             code = code.encode("gbk")
@@ -351,7 +219,7 @@ class IndexChartSampling(BaseParser):
         pos = 4
         start_price = 0
         start_fast = 0
-        for i in range(num):
+        for _ in range(num):
             price, pos = get_price(data, pos)
             fast, pos = get_price(data, pos)
             amount, pos = get_price(data, pos)
@@ -368,7 +236,7 @@ class IndexChartSampling(BaseParser):
         return result
         
 
-@register_parser(0x53e)
+@register_parser(0x53e) # TODO: 
 class QuotesDetail(BaseParser):
     def __init__(self, stocks: list[MARKET, str]):
         count = len(stocks)
@@ -389,38 +257,29 @@ class QuotesDetail(BaseParser):
 
         quotes = []
         for _ in range(count):
-            (market, code, active1) = struct.unpack('<B6sH', data[pos: pos + 9])
+            market, code, active1 = struct.unpack('<B6sH', data[pos: pos + 9])
             pos += 9
-            code = code.decode('utf-8')
             
             price, pos = get_price(data, pos)
-            last_close, pos = get_price(data, pos)
+            pre_close, pos = get_price(data, pos)
             open, pos = get_price(data, pos)
             high, pos = get_price(data, pos)
             low, pos = get_price(data, pos)
             server_time, pos = get_price(data, pos)
-            after_hour, pos = get_price(data, pos)
+            neg_price, pos = get_price(data, pos)
             vol, pos = get_price(data, pos)
             cur_vol, pos = get_price(data, pos)
-            
-            last_close += price
-            open += price
-            high += price
-            low += price
-            server_time = format_time(server_time)
 
-            (amount,) = struct.unpack('<f', data[pos: pos + 4])
+            amount, = struct.unpack('<f', data[pos: pos + 4])
             pos += 4
 
             s_vol, pos = get_price(data, pos)
             b_vol, pos = get_price(data, pos)
-            s_amount, pos = get_price(data, pos) #reversed_bytes2
-            b_amount, pos = get_price(data, pos) #reversed_bytes3
+            s_amount, pos = get_price(data, pos)
+            open_amount, pos = get_price(data, pos)
 
-            handi_cap = {
-                'bid': [],
-                'ask': [],
-            }
+            bids = []
+            asks = []
             for _ in range(5): # 5个
                 bid, pos = get_price(data, pos)
                 ask, pos = get_price(data, pos)
@@ -430,38 +289,40 @@ class QuotesDetail(BaseParser):
                 bid += price
                 ask += price
 
-                handi_cap['bid'].append({
+                bids.append({
                     'price': bid,
                     'vol': bid_vol,
                 })
-                handi_cap['ask'].append({
+                asks.append({
                     'price': ask,
                     'vol': ask_vol,
                 })
 
-            (v1, unknown, rise_speed, active2) = struct.unpack('<h4shH', data[pos: pos + 10])
+            (unknown, _, rise_speed, active2) = struct.unpack('<h4shH', data[pos: pos + 10])
             pos += 10
 
             quotes.append({
                 'market': MARKET(market),
-                'code': code,
+                'code': code.decode('utf-8'),
                 'price': price,
-                'open': open,
-                'high': high,
-                'low': low,
-                'last_close': last_close,
-                'server_time': server_time,
-                'after_hour': after_hour,
+                'open': open + price,
+                'high': high + price,
+                'low': low + price,
+                'pre_close': pre_close + price,
+                'server_time': format_time(server_time),
+                'neg_price': neg_price,
                 'vol': vol,
                 'cur_vol': cur_vol,
                 'amount': amount,
                 's_vol': s_vol,
-                'b_vol': b_vol,
+                'b_vol': b_vol, # 外盘
                 's_amount': s_amount,
-                'b_amount': b_amount,# 开盘金额
-                'handi_cap': handi_cap,
-                'v1': format(v1, '016b'),
-                'unknown': unknown.hex(),
+                'open_amount': open_amount,# 开盘金额
+                'handicap': {
+                    'bid': bids,
+                    'ask': asks,
+                },
+                'unknown': format(unknown, '016b'),
                 'rise_speed': rise_speed, # 涨速
                 'active1': active1,
                 'active2': active2,
@@ -565,29 +426,31 @@ class TopStocksBoard(BaseParser):
 @register_parser(0x547) # TODO: 怪异编码
 class TODO547(BaseParser):
     def __init__(self, stocks: list[MARKET, str]):
-        # count = len(stocks)
-        # if count <= 0:
-        #     raise Exception("stocks count must > 0")
-        # self.body = bytearray(struct.pack('<H', count))
+        count = len(stocks)
+        if count <= 0:
+            raise Exception("stocks count must > 0")
+        self.body = bytearray(struct.pack('<H', count))
         
-        # for (market, code) in stocks:
-        #     if type(code) is six.text_type:
-        #         code = code.encode("gbk")
-        #     self.body.extend(struct.pack('<B6sI', market.value, code, 0))
-        self.body = bytearray.fromhex('070001393939393939c437020000333939303031c437020002383939303530bf37020000333939303036c437020001303030363838c437020001303030333030c437020001383830303035c3370200')
+        for (market, code) in stocks:
+            if type(code) is six.text_type:
+                code = code.encode("gbk")
+            self.body.extend(struct.pack('<B6sI', market.value, code, 0))
+        print("body: ", self.body.hex())
+        # self.body = bytearray.fromhex('070001393939393939c437020000333939303031c437020002383939303530bf37020000333939303036c437020001303030363838c437020001303030333030c437020001383830303035c3370200')
     @override
     def deserialize(self, data):
-        print("data: ", data.hex())
+        print(struct.unpack('<H', data[:2]))
+        # print("data: ", data.hex())
             
         return data
 
-@register_parser(0x54b)
+@register_parser(0x54b) # TODO: 
 class QuotesList(BaseParser):
     def __init__(self, category: CATEGORY, start: int = 0, count: int = 0x50):
-        self.body = struct.pack('<HHHHHHHHH', category.value, 0, start, count, 0 ,5, 0, 1, 0)
+        self.body = struct.pack('<9H', category.value, 0, start, count, 0 ,5, 0, 1, 0)
     @override
     def deserialize(self, data):
-        (block, count) = struct.unpack('<HH', data[:4])
+        block, count = struct.unpack('<HH', data[:4])
         pos = 4
 
         stocks = []
@@ -595,34 +458,26 @@ class QuotesList(BaseParser):
             (market, code, active1 ) = struct.unpack('<B6sH', data[pos: pos + 9])
             pos += 9
             price, pos = get_price(data, pos)
-            last_close, pos = get_price(data, pos)
+            pre_close, pos = get_price(data, pos)
             open, pos = get_price(data, pos)
             high, pos = get_price(data, pos)
             low, pos = get_price(data, pos)
             server_time, pos = get_price(data, pos)
-            after_hour, pos = get_price(data, pos) # 盘后交易量
+            neg_price, pos = get_price(data, pos) # 盘后交易量
             vol, pos = get_price(data, pos)
             cur_vol, pos = get_price(data, pos)
 
-            last_close += price
-            open += price
-            high += price
-            low += price
-            server_time = format_time(server_time)
-
-            (amount,) = struct.unpack('<f', data[pos: pos + 4])
+            amount, = struct.unpack('<f', data[pos: pos + 4])
             pos += 4
 
             s_vol, pos = get_price(data, pos)
             b_vol, pos = get_price(data, pos)
             s_amount, pos = get_price(data, pos) #reversed_bytes2
-            b_amount, pos = get_price(data, pos) #reversed_bytes3
+            open_amount, pos = get_price(data, pos) #reversed_bytes3
 
-            handi_cap = {
-                'bid': [],
-                'ask': [],
-            }
-            for _ in range(1): # 5个
+            bids = []
+            asks = []
+            for _ in range(1):
                 bid, pos = get_price(data, pos)
                 ask, pos = get_price(data, pos)
                 bid_vol, pos = get_price(data, pos)
@@ -631,40 +486,43 @@ class QuotesList(BaseParser):
                 bid += price
                 ask += price
 
-                handi_cap['bid'].append({
+                bids.append({
                     'price': bid,
                     'vol': bid_vol,
                 })
-                handi_cap['ask'].append({
+                asks.append({
                     'price': ask,
                     'vol': ask_vol,
                 })
 
-            (unknown, rise_speed, short_turnover, twomin_amount, opening_rush, _, vol_rise_speed, depth, _, active2) = struct.unpack('<Hhhfh10sff24sH', data[pos: pos + 56])
+            unknown, rise_speed, short_turnover, min2_amount, opening_rush, _, vol_rise_speed, depth, _, active2 = struct.unpack('<Hhhfh10sff24sH', data[pos: pos + 56])
             pos += 56
 
             stocks.append({
                 'market': MARKET(market),
                 'code': code.decode('gbk'),
                 'price': price,
-                'open': open,
-                'high': high,
-                'low': low,
-                'last_close': last_close,
-                'server_time': server_time,
-                'after_hour': after_hour,
+                'open': open + price,
+                'high': high + price,
+                'low': low + price,
+                'pre_close': pre_close + price,
+                'server_time': format_time(server_time),
+                'neg_price': neg_price,
                 'vol': vol,
                 'cur_vol': cur_vol,
                 'amount': amount,
-                's_vol': s_vol,
-                'b_vol': b_vol,
+                's_vol': s_vol, # 内盘
+                'b_vol': b_vol, # 外盘
                 's_amount': s_amount,
-                'b_amount': b_amount,
-                'handi_cap': handi_cap,
+                'open_amount': open_amount,
+                'handicap': {
+                    'bid': bids,
+                    'ask': asks,
+                },
                 'unknown': format(unknown, '016b'),
                 'rise_speed': rise_speed, # 涨速
                 'short_turnover': short_turnover, # 短换手
-                'twomin_amount': twomin_amount, # 2分钟金额
+                'min2_amount': min2_amount, # 2分钟金额
                 'opening_rush': opening_rush, # 开盘抢筹
                 'vol_rise_speed': vol_rise_speed, # 量涨速
                 'depth': depth, # 委比
@@ -679,8 +537,8 @@ class Quotes(QuotesList):
         count = len(stocks)
         if count <= 0:
             raise Exception("stocks count must > 0")
-        self.body = bytearray(struct.pack('<HIHH', 5, 0, 0, count))
-        for (market, code) in stocks:
+        self.body = bytearray(struct.pack('<H6sH', 5, b'', count))
+        for market, code in stocks:
             self.body.extend(struct.pack('<B6s', market.value, code.encode('gbk')))
 
 
@@ -690,6 +548,81 @@ class Unusual(BaseParser): # 主力监控
         self.body = struct.pack('<HII', market.value, start, count)
     @override
     def deserialize(self, data):
+        def unpack_by_type(type: int, data: bytearray):
+            v1, v2, v3, v4 = struct.unpack('<B3f', data)
+            desc = ''
+            val = ''
+            if type == 0x03: 
+                desc = f"主力{"买入" if v1 == 0x00 else "卖出"}" 
+                val = f"{v2:.2f}/{v3:.2f}"
+            elif type == 0x04: 
+                desc = "加速拉升"
+                val = f"{v2*100:.2f}%"
+            elif type == 0x05: 
+                desc = "加速下跌"
+            elif type == 0x06:
+                desc = "低位反弹"
+                val = f"{v2*100:.2f}%"
+            elif type == 0x07: 
+                desc = "高位回落"
+                val = f"{v2*100:.2f}%"
+            elif type == 0x08: 
+                desc = "撑杆跳高"
+                val = f"{v2*100:.2f}%"
+            elif type == 0x09: 
+                desc = "平台跳水"
+                val = f"{v2*100:.2f}%"
+            elif type == 0x0a: 
+                desc = "单笔冲" + ("跌" if v2 < 0x00 else "涨")
+                val = f"{v2*100:.2f}%"
+            elif type == 0x0b:
+                desc = f"区间放量{"平" if v3 == 0 else "跌" if v3 < 0 else "涨"}"
+                val = f"{v2:.1f}倍{"" if v3 == 0 else f"{v3*100:.2f}%"}"
+            elif type == 0x0c: 
+                desc = "区间缩量"
+            elif type == 0x10: 
+                desc = "大单托盘"
+                val = f"{v4:.2f}/{v3:.2f}"
+            elif type == 0x11: 
+                desc = "大单压盘"
+                val = f"{v2:.2f}/{v3:.2f}"
+            elif type == 0x12: 
+                desc = "大单锁盘"
+            elif type == 0x13: 
+                desc = "竞价试买"
+                val = f"{v2:.2f}/{v3:.2f}"
+            elif type == 0x14: 
+                sub_type, v2, v3 = struct.unpack('<Bff', data[1:10])
+                direction = "涨" if v1 == 0x00 else "跌"
+                if sub_type == 0x01:
+                    desc = f"逼近{direction}停"
+                elif sub_type == 0x02:
+                    desc = f"封{direction}停板"
+                elif sub_type == 0x04:
+                    desc = f"封{direction}大减"
+                elif sub_type == 0x05:
+                    desc = f"打开{direction}停"
+                val = f"{v2:.2f}/{v3:.2f}"
+            elif type == 0x15:
+                if v1 == 0x00:
+                    desc = "尾盘??"
+                elif v1 == 0x01:
+                    desc = "尾盘对倒"
+                elif v1 == 0x02:
+                    desc = "尾盘拉升"
+                else:
+                    desc = "尾盘打压"
+                val = f"{v2*100:.2f}%/{v3:.2f}"
+            elif type == 0x16:
+                desc = f"盘中{"弱" if v2 < 0x00 else "强"}势"
+                val = f"{v2*100:.2f}%"
+            elif type == 0x1d:
+                desc = "急速拉升"
+                val = f"{v2*100:.2f}%"
+            elif type == 0x1e:
+                desc = "急速下跌" 
+                val = f"{v2*100:.2f}%"
+            return desc, val
         (count, ) = struct.unpack('<H', data[:2])
 
         stocks = []
@@ -699,114 +632,142 @@ class Unusual(BaseParser): # 主力监控
             market, code, _, type, _, index, z = struct.unpack('<H6sBBBHH', pice_data[:15])
             hour, minute_sec = struct.unpack('<BH', pice_data[29: 32])
 
-            type, val = self.unpack_by_type(type, pice_data[15: 28])
+            desc, value = unpack_by_type(type, pice_data[15: 28])
 
-            # print(pice_data.hex())
             stocks.append({
                 "index": index,
                 "market": MARKET(market),
                 "code": code.decode('gbk').replace('\x00', ''),
                 "time": f"{hour:02d}:{minute_sec // 100:02d}:{minute_sec % 100:02d}",
-                "type": type,
-                "val": val,
+                "desc": desc,
+                "value": value,
             })
         return stocks
     
-    def unpack_by_type(self, type: int, data: bytearray):
-        v1, v2, v3, v4 = struct.unpack('<Bfff', data)
-        desc = ''
-        val = ''
-        match type:
-            case 0x03: # 主力买入、卖出
-                if v1 == 0x00:
-                    desc = "主力买入"
-                else:
-                    desc = "主力卖出"
-                val = f"{v2:.2f}/{v3:.2f}"
-            case 0x04: # 加速拉升
-                desc = "加速拉升"
-                val = f"{v2*100:.2f}%"
-            case 0x05: # 加速下跌
-                desc = "加速下跌"
-            case 0x06: # 低位反弹
-                desc = "低位反弹"
-                val = f"{v2*100:.2f}%"
-            case 0x07: # 高位回落
-                desc = "高位回落"
-                val = f"{v2*100:.2f}%"
-            case 0x08: # 撑杆跳高
-                desc = "撑杆跳高"
-                val = f"{v2*100:.2f}%"
-            case 0x09: # 平台跳水
-                desc = "平台跳水"
-                val = f"{v2*100:.2f}%"
-            case 0x0a: # 单笔冲涨、跌
-                desc = "单笔冲" + ("跌" if v2 < 0x00 else "涨")
-                val = f"{v2*100:.2f}%"
-            case 0x0b: # 区间放量 涨、跌、平
-                desc = "区间放量"
-                val = f"{v2:.1f}倍"
-                if v3 == 0:
-                    desc += "平"
-                else:
-                    desc += "跌" if v3 < 0 else "涨"
-                    val += f"{v3*100:.2f}%"
-            case 0x0c: # 区间缩量
-                desc = "区间缩量"
-            case 0x10: # 大单托盘
-                desc = "大单托盘"
-                val = f"{v4:.2f}/{v3:.2f}"
-            case 0x11: # 大单压盘
-                desc = "大单压盘"
-                val = f"{v2:.2f}/{v3:.2f}"
-            case 0x12: # 大单锁盘
-                desc = "大单锁盘"
-            case 0x13: # 竞价试买
-                desc = "竞价试买"
-                val = f"{v2:.2f}/{v3:.2f}"
-            case 0x14: # 打开涨停
-                type, v2, v3 = struct.unpack('<Bff', data[1:10])
-                direction = "涨" if v1 == 0x00 else "跌"
-                if type == 0x01:
-                    desc = f"逼近{direction}停"
-                elif type == 0x02:
-                    desc = f"封{direction}停板"
-                elif type == 0x04:
-                    desc = f"封{direction}大减"
-                elif type == 0x05:
-                    desc = f"打开{direction}停"
-                val = f"{v2:.2f}/{v3:.2f}"
-            case 0x15: # 尾盘
-                if v1 == 0x00:
-                    desc = "尾盘??"
-                elif v1 == 0x01:
-                    desc = "尾盘对倒"
-                elif v1 == 0x02:
-                    desc = "尾盘拉升"
-                else:
-                    desc = "尾盘???"
-                val = f"{v2*100:.2f}%/{v3:.2f}"
-            case 0x16: # 盘中弱势、强势
-                desc = "盘中" + ("弱势" if v2 < 0x00 else "强势")
-                val = f"{v2*100:.2f}%"
-            case 0x1d: # 急速拉升
-                desc = "急速拉升"
-                val = f"{v2*100:.2f}%"
-            case 0x1e: # 急速下跌
-                desc = "急速下跌" 
-                val = f"{v2*100:.2f}%"
-            
-        return desc, val
+    
 
-@register_parser(0x6b9) # TODO: 有点没用
-class TODO6b9(BaseParser):
-    def __init__(self):
-        self.body = bytearray(struct.pack('<II', 0, 30000))
-        path = "iwshop/{0}_{1}.htm".format(1, 605598)
-        self.body.extend(struct.pack('<19s281s', path.encode('gbk'), b''))
-        
+@register_parser(0xfb4)
+class HistoryOrders(BaseParser):
+    def __init__(self, market: MARKET, code: str, date: date):
+        if type(code) is six.text_type:
+            code = code.encode("utf-8")
+        date = date.year * 10000 + date.month * 100 + date.day
+        self.body = struct.pack(u'<IB6s', date, market.value, code)
+
     @override
     def deserialize(self, data):
-        print(data[4:].decode('utf-8'))
-        return data
-      
+        count, pre_close = struct.unpack('<Hf', data[:6])
+        pos = 6
+
+        orders = []
+        last_price = 0
+        for _ in range(count):
+            price, pos = get_price(data, pos)
+            unknown, pos = get_price(data, pos)
+            vol, pos = get_price(data, pos)
+
+            last_price += price
+
+            orders.append({
+                'price': last_price,
+                'unknown': unknown, # 像是大单笔数？
+                'vol': vol,
+            })
+        return {
+            'pre_close': pre_close,
+            'orders': orders,
+        }
+
+@register_parser(0xfb5)
+class HistoryTransaction(BaseParser):
+    def __init__(self, market: MARKET, code: str, date: date, start: int, count: int):
+        if type(code) is six.text_type:
+            code = code.encode("utf-8")
+        date = date.year * 10000 + date.month * 100 + date.day
+        self.body = struct.pack(u'<IH6sHH', date, market.value, code, start, count)
+
+    @override
+    def deserialize(self, data):
+        count, _ = struct.unpack('<H4s', data[:6])
+        pos = 6
+
+        last_price = 0
+        transactions = []
+        for _ in range(count):
+            hour, minute, pos = get_time(data, pos)
+
+            price, pos = get_price(data, pos)
+            vol, pos = get_price(data, pos)
+            buyorsell, pos = get_price(data, pos)
+            unknown, pos = get_price(data, pos)
+
+            last_price += price
+            transactions.append({
+                "time": "%02d:%02d" % (hour, minute),
+                'price': last_price,
+                'vol': vol,
+                'action': 'SELL' if buyorsell == 1 else 'BUY' if buyorsell == 0 else 'NEUTRAL',
+                'unknown': unknown,
+            })
+
+        return transactions
+
+@register_parser(0xfc5)
+class Transaction(BaseParser):
+    def __init__(self, market: MARKET, code: str, start: int, count: int):
+        if type(code) is six.text_type:
+            code = code.encode("utf-8")
+        self.body = struct.pack(u'<H6sHH', market.value, code, start, count)
+
+    @override
+    def deserialize(self, data):
+        count, = struct.unpack('<H', data[:2])
+        pos = 2
+
+        last_price = 0
+        transactions = []
+        for _ in range(count):
+            hour, minute, pos = get_time(data, pos)
+
+            price, pos = get_price(data, pos)
+            vol, pos = get_price(data, pos)
+            trans, pos = get_price(data, pos)
+            buyorsell, pos = get_price(data, pos)
+            unknown, pos = get_price(data, pos)
+
+            last_price += price
+            transactions.append({
+                "time": "%02d:%02d" % (hour, minute),
+                'price': last_price,
+                'vol': vol,
+                'trans': trans,
+                'action': 'SELL' if buyorsell == 1 else 'BUY' if buyorsell == 0 else 'NEUTRAL',
+                'unknown': unknown,
+            })
+
+        return transactions
+
+@register_parser(0xfd1)
+class ChartSampling(BaseParser):
+    def __init__(self, market: MARKET, code: str):
+        if type(code) is six.text_type:
+            code = code.encode("gbk")
+        self.body = bytearray(struct.pack('<H6s', market.value, code))
+        
+        self.body.extend(bytearray().fromhex('0000000000000000000000000000000001001400000000010000000000'))
+    @override
+    def deserialize(self, data):
+        market, code = struct.unpack('<H6s', data[:8])
+        num, pre_close, _ = struct.unpack('<HfH', data[34:42])
+
+        prices = []
+        for i in range(num):
+            p, = struct.unpack('<f', data[42 + i * 4: 42 + (i + 1) * 4])
+            prices.append(p)
+            
+        return {
+            'market': market,
+            'code': code.decode('gbk'),
+            'pre_close': pre_close,
+            'prices': prices
+        }

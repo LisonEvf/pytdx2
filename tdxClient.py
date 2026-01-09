@@ -5,12 +5,10 @@ from time import time
 from typing import override
 from baseStockClient import BaseStockClient, update_last_ack_time
 from utils.block_reader import BlockReader, BlockReader_TYPE_FLAT
-from utils.log import log
 from const import BLOCK_FILE_TYPE, CATEGORY, KLINE_TYPE, MARKET, tdx_hosts
-from parser import stock, server, company_info, block
+from parser import file, stock, server, company_info
 from parser.baseparser import BaseParser
-
-import pandas as pd
+from utils.log import log
 
 class TdxClient(BaseStockClient):
     def __init__(self, **kwargs):
@@ -27,7 +25,7 @@ class TdxClient(BaseStockClient):
         try:
             info = self.call(server.Login())
             if show_info:
-                print(to_df(info))
+                print(info)
             
             # self.call(remote.Notice())
             return True
@@ -73,83 +71,431 @@ class TdxClient(BaseStockClient):
     @override
     def doHeartBeat(self):
         self.call(server.HeartBeat())
+    
+    @update_last_ack_time
+    def get_security_count(self, market: MARKET):
+        '''
+        获取股票数量
+        :param market: MARKET
+
+        :return count
+        '''
+        return self.call(stock.Count(market))
 
     @update_last_ack_time
-    def get_security_bars(self, market: MARKET, code: str, kline_type: KLINE_TYPE, start, count):
-        # k线数据最多800条
+    def get_security_list(self, market: MARKET, start = 0, count = 1600):
+        '''
+        获取股票列表
+        :param market: MARKET
+        :param start?: 起始位置
+        :param count?: 获取数量
+        :return: [{
+            'code': str(code),
+            'name': str(name),
+            'pre_close': int(pre_close),
+            'vol': int(vol),
+        }, ...]
+        '''
+        MAX_LIST_COUNT = 1600
+        security_list = []
+        while count > 0:
+            part = self.call(stock.List(market, start, min(count, MAX_LIST_COUNT)))
+            security_list.extend(part)
+            count -= len(part)
+            start += len(part)
+        return security_list
+
+    @update_last_ack_time
+    def get_index_info(self, all_stock, code=None):
+        '''
+        获取指数概况
+        支持三种形式的参数
+        get_index_info(market, code )
+        get_index_info((market, code))
+        get_index_info([(market1, code1), (market2, code2)] )
+        :param all_stock （market, code) 的数组
+        :param code{optional} code to query
+        :return:[{
+            'market': MARKET,
+            'code': str(code),
+            'open': float(open),
+            'high': float(high),
+            'low': float(low),
+            'close': float(close),
+            'pre_close': float(pre_close),
+            'diff': float(diff),
+            'vol': int(vol),
+            'amount': int(amount),
+            'up_count': int(up_count),
+            'down_count': int(down_count),
+            'active': int(active),
+        }, ...]
+        '''
+        if code is not None:
+            all_stock = [(all_stock, code)]
+        elif (isinstance(all_stock, list) or isinstance(all_stock, tuple))\
+                and len(all_stock) == 2 and type(all_stock[0]) is int:
+            all_stock = [all_stock]
+        
+        index_infos = []
+        for market, code in all_stock:
+            index_info = self.call(stock.IndexInfo(market, code))
+            for item in ['diff', 'pre_close', 'close', 'open', 'high', 'low']:
+                index_info[item] /= 100
+            index_infos.append(index_info)
+
+        return index_infos
+    
+    @update_last_ack_time
+    def get_KLine_data(self, market: MARKET, code: str, kline_type: KLINE_TYPE, start = 0, count = 800):
+        '''
+        获取K线数据
+        :param market: MARKET
+        :param code: 股票代码
+        :param kline_type: KLINE_TYPE
+        :param start: 起始位置
+        :param count: 获取数量
+        
+        :return [{datetime: , open: , close: , high: , low: , vol: , amount: , upCount?: , downCount?: }, ...]
+        '''
         MAX_KLINE_COUNT = 800
         bars = []
         while len(bars) < count:
-            part = self.call(stock.K_Line(market, code, kline_type, start, min(count - len(bars), MAX_KLINE_COUNT)))
-            if not part:
-                break
+            part = self.call(stock.K_Line(market, code, kline_type, start + len(bars), min((count - len(bars)), MAX_KLINE_COUNT)))
             bars = [*part, *bars]
-            if len(part) < MAX_KLINE_COUNT:
-                break
-            start = start + len(part)
+        
+        for bar in bars:
+            bar['open'] = bar['open']/1000
+            bar['close'] = bar['close']/1000
+            bar['high'] = bar['high']/1000
+            bar['low'] = bar['low']/1000
 
         return bars
-
+    
     @update_last_ack_time
-    def get_security_quotes(self, all_stock, code=None):
+    def get_security_quotes_details(self, all_stock, code=None):
         """
+        获取详细行情
         支持三种形式的参数
         get_security_quotes(market, code )
         get_security_quotes((market, code))
         get_security_quotes([(market1, code1), (market2, code2)] )
         :param all_stock （market, code) 的数组
         :param code{optional} code to query
-        :return:
+        :return:[{
+            'market': MARKET, # 市场
+            'code': str(code), # 股票代码
+            'name': str(name), # 股票名称
+            'open': float(open), # 今开
+            'high': float(high), # 最高
+            'low': float(low), # 最低
+            'price': float(price), # 最新价
+            'pre_close': float(pre_close), # 昨收
+            'server_time': str(server_time), # 服务器时间
+            'neg_price': int(neg_price), # 负数最新价
+            'vol': int(vol), # 总量
+            'cur_vol': int(cur_vol), # 现量
+            'amount': int(amount), # 总金额
+            's_vol': int(s_vol), # 内盘
+            'b_vol': int(b_vol), # 外盘
+            's_amount': int(s_amount), 
+            'open_amount': int(open_amount), # 开盘金额
+            'handicap': {
+                'bid': [{'price': float(price), 'vol': int(vol)}, ...],
+                'ask': [{'price': float(price), 'vol': int(vol)}, ...],
+            }, # 五档盘口
+            'rise_speed': str(rise_speed_percent), # 涨速
+            'active1': int(active), # 活跃度
+        }, ...]
         """
-
         if code is not None:
             all_stock = [(all_stock, code)]
         elif (isinstance(all_stock, list) or isinstance(all_stock, tuple))\
                 and len(all_stock) == 2 and type(all_stock[0]) is int:
             all_stock = [all_stock]
 
-        return self.call(stock.Quotes(all_stock))
-
+        
+        quote_details = self.call(stock.QuotesDetail(all_stock))
+        for quote in quote_details:
+            for item in ['open', 'high', 'low', 'price', 'pre_close', 'neg_price']:
+                quote[item] /= 100
+            
+            quote['open_amount'] *= 100
+            quote['rise_speed'] = f'{(quote["rise_speed"] / 100):.2f}%'
+            for bid in quote['handicap']['bid']:
+                bid['price'] = bid['price']/100
+            for ask in quote['handicap']['ask']:
+                ask['price'] = ask['price']/100
+        return quote_details
+    
+    @update_last_ack_time
+    def get_top_stock_board(self, category: CATEGORY):
+        '''
+        获取行情全景
+        :param category: CATEGORY
+        :return: {
+            'increase': [{
+                'market': MARKET,
+                'code': str(code),
+                'price': float(price),
+                'value': float(increase),
+            }, ...], # 涨幅榜
+            'decrease': [{
+                'market': MARKET,
+                'code': str(code),
+                'name': str(name),
+                'price': float(price),
+                'value': float(decrease),
+            }, ...], # 跌幅榜
+            'amplitude': [{
+                'market': MARKET,
+                'code': str(code),
+                'name': str(name),
+                'price': float(price),
+                'value': float(amplitude),
+            }, ...], # 振幅榜
+            'rise_speed': [{
+                'market': MARKET,
+                'code': str(code),
+                'name': str(name),
+                'price': float(price),
+                'value': float(rise_speed),
+            }, ...], # 涨速榜
+            'fall_speed': [{
+                'market': MARKET,
+                'code': str(code),
+                'name': str(name),
+                'price': float(price),
+                'value': float(fall_speed),
+            }, ...], # 跌速榜
+            'vol_ratio': [{
+                'market': MARKET,
+                'code': str(code),
+                'name': str(name),
+                'price': float(price),
+                'value': float(vol_ratio),
+            }, ...], # 量比榜
+            'pos_commission_ratio': [{
+                'market': MARKET,
+                'code': str(code),
+                'name': str(name),
+                'price': float(price),
+                'value': float(pos_commission_ratio),
+            }, ...],  # 委比正序
+            'neg_commission_ratio': [{
+                'market': MARKET,
+                'code': str(code),
+                'name': str(name),
+                'price': float(price),
+                'value': float(neg_commission_ratio),
+            }, ...], # 委比倒序
+            'turnover': [{
+                'market': MARKET,
+                'code': str(code),
+                'name': str(name),
+                'price': float(price),
+                'value': float(turnover),
+            }, ...] # 换手率榜
+        }
+        '''
+        boards = self.call(stock.TopStocksBoard(category))
+        for _, board in boards.items():
+            for item in board:
+                item['price'] = f'{item["price"]:.2f}'
+        return boards
+    
     @update_last_ack_time
     def get_security_quotes_by_category(self, category: CATEGORY, start:int = 0, count: int = 0x50):
-        return client.call(stock.QuotesList(category, start, count))
+        '''
+        获取行情列表
+        :param category: CATEGORY
+        :param start: 起始位置
+        :param count: 获取数量
+        :return: [{
+            'market': MARKET, # 市场
+            'code': str(code), # 股票代码
+            'name': str(name), # 股票名称
+            'open': float(open), # 今开
+            'high': float(high), # 最高
+            'low': float(low), # 最低
+            'price': float(price), # 最新价
+            'pre_close': float(pre_close), # 昨收
+            'server_time': str(server_time), # 服务器时间
+            'neg_price': int(neg_price), # 负数最新价
+            'vol': int(vol), # 总量
+            'cur_vol': int(cur_vol), # 现量
+            'amount': int(amount), # 总金额
+            's_vol': int(s_vol), # 内盘
+            'b_vol': int(b_vol), # 外盘
+            's_amount': int(s_amount),
+            'open_amount': int(open_amount), # 开盘金额
+            'handicap': {
+                'bid': [{'price': float(price), 'vol': int(vol)}, ...],
+                'ask': [{'price': float(price), 'vol': int(vol)}, ...],
+            }, # 一档盘口
+            'rise_speed': str(rise_speed_percent), # 涨速
+            'short_turnover': str(short_turnover_percent), # 短换手
+            'min2_amount': int(min2_amount), # 两分钟成交额
+            'opening_rush': str(opening_rush_percent), # 开盘抢筹
+            'vol_rise_speed': str(vol_rise_speed_percent), # 量涨速
+            'depth': str(depth_percent), # 委比
+            'active1': int(active), # 活跃度
+        }, ...]
+        '''
+        MAX_QUOTE_COUNT = 80
+        quotes = []
+        while count > len(quotes):
+            quotes.extend(self.call(stock.QuotesList(category, start + len(quotes), min(count - len(quotes), MAX_QUOTE_COUNT))))
+            
+        for quote in quotes:
+            
+            for item in ['open', 'high', 'low', 'price', 'pre_close', 'neg_price']:
+                quote[item] /= 100
+
+            for item in ['rise_speed', 'short_turnover', 'opening_rush']:
+                quote[item] = f'{(quote[item] / 100):.2f}%'
+
+            quote['vol_rise_speed'] = f'{(quote["vol_rise_speed"]):.2f}%'
+            quote['depth'] = f'{(quote["depth"]):.2f}%'
+            
+            for bid in quote['handicap']['bid']:
+                bid['price'] = bid['price']/100
+            for ask in quote['handicap']['ask']:
+                ask['price'] = ask['price']/100
+        return quotes
 
     @update_last_ack_time
-    def get_security_count(self, market: MARKET):
-        return self.call(stock.Count(market))
+    def get_security_quotes(self, all_stock, code=None):
+        '''
+        获取简略行情
+        支持三种形式的参数
+        get_security_quotes(market, code )
+        get_security_quotes((market, code))
+        get_security_quotes([(market1, code1), (market2, code2)] )
+        :param all_stock （market, code) 的数组
+        :param code{optional} code to query
 
-    @update_last_ack_time
-    def get_security_list(self, market: MARKET, start, count = 1600):
-        return self.call(stock.List(market, start, count))
+        :return: [{
+            'market': MARKET, # 市场
+            'code': str(code), # 股票代码
+            'name': str(name), # 股票名称
+            'open': float(open), # 今开
+            'high': float(high), # 最高
+            'low': float(low), # 最低
+            'price': float(price), # 最新价
+            'pre_close': float(pre_close), # 昨收
+            'server_time': str(server_time), # 服务器时间
+            'neg_price': int(neg_price), # 负数最新价
+            'vol': int(vol), # 总成交量
+            'cur_vol': int(cur_vol), # 当前成交量
+            'amount': int(amount), # 总成交额
+            's_vol': int(s_vol), # 内盘
+            'b_vol': int(b_vol), # 外盘
+            's_amount': int(s_amount),
+            'open_amount': int(open_amount), # 开盘金额
+            'handicap': {
+                'bid': [{'price': float(price), 'vol': int(vol)}, ...],
+                'ask': [{'price': float(price), 'vol': int(vol)}, ...],
+            }, # 一档盘口
+            'rise_speed': str(rise_speed_percent), # 涨速
+            'short_turnover': str(short_turnover_percent), # 短换手
+            'min2_amount': int(min2_amount), # 两分钟成交额
+            'opening_rush': str(opening_rush_percent), # 开盘抢筹
+            'vol_rise_speed': str(vol_rise_speed_percent), # 量涨速
+            'depth': str(depth_percent), # 委比
+            'active1': int(active), # 活跃度
+        }, ...]
+        '''
+        if code is not None:
+            all_stock = [(all_stock, code)]
+        elif (isinstance(all_stock, list) or isinstance(all_stock, tuple))\
+                and len(all_stock) == 2 and type(all_stock[0]) is int:
+            all_stock = [all_stock]
 
-    @update_last_ack_time
-    def get_orders(self, market: MARKET, code: str):
-        return self.call(stock.Orders(market, code))
+        quotes = self.call(stock.Quotes(all_stock))
+        for quote in quotes:
+            for item in ['open', 'high', 'low', 'price', 'pre_close', 'neg_price']:
+                quote[item] /= 100
 
-    @update_last_ack_time
-    def get_history_orders(self, market: MARKET, code: str, date: date):
-        return self.call(stock.HistoryOrders(market, code, date))
+            for item in ['rise_speed', 'short_turnover', 'opening_rush']:
+                quote[item] = f'{(quote[item] / 100):.2f}%'
 
+            quote['vol_rise_speed'] = f'{(quote["vol_rise_speed"]):.2f}%'
+            quote['depth'] = f'{(quote["depth"]):.2f}%'
+
+            for bid in quote['handicap']['bid']:
+                bid['price'] = bid['price']/100
+            for ask in quote['handicap']['ask']:
+                ask['price'] = ask['price']/100
+
+        return quotes
+    
     @update_last_ack_time
-    def get_transaction(self, market: MARKET, code: str):
-        # 这里最多就1800条
-        MAX_TRANSACTION_COUNT = 1800
-        start = 0
-        transaction = []
+    def get_unusual(self, market: MARKET, start: int = 0, count: int = 0):
+        '''
+        获取异动股
+        :param market: MARKET
+        :param start: 起始位置
+        :param count: 获取数量
+        :return: [{
+            'index': int(index),
+            'market': MARKET,
+            'code': str(code),
+            'time': str(time),
+            'desc': str(desc),
+            'value': str(value),
+            }, ...]
+        '''
+        MAX_UNUSUAL_COUNT = 600
+        unusual_stocks = []
         while True:
-            part = self.call(stock.Transaction(market, code, start, MAX_TRANSACTION_COUNT))
+            part = self.call(stock.Unusual(market, start, min(count, MAX_UNUSUAL_COUNT) if count > 0 else MAX_UNUSUAL_COUNT))
             if not part:
                 break
-            transaction = [*part, *transaction]
-            if len(part) < MAX_TRANSACTION_COUNT:
+            unusual_stocks.extend(part)
+            start += len(part)
+            if count == 0:
+                continue
+            count -= len(part)
+            if len(part) >= count:
                 break
-            start = start + len(part)
-        return transaction
+        return unusual_stocks
+    
+    
+    @update_last_ack_time
+    def get_history_orders(self, market: MARKET, code: str, date: date):
+        '''
+        获取历史分时行情
+        :param market: MARKET
+        :param code: 股票代码
+        :param date: 日期
+        :return: {
+            'pre_close': float(pre_close),
+            'orders': [{
+                'price': float(price),
+                'vol': int(vol),
+            }, ...]
+        }
+        '''
+        data = self.call(stock.HistoryOrders(market, code, date))
+        for item in data['orders']:
+            item['price'] = item['price'] / 100
+        return data
 
     @update_last_ack_time
     def get_history_transaction(self, market: MARKET, code: str, date: date):
-        # ref : https://github.com/rainx/pytdx/issues/7
-        # 分笔行情最多2000条
+        '''
+        获取历史分时成交
+        :param market: MARKET
+        :param code: 股票代码
+        :param date: 日期
+        :return: [{
+            'time': str(time),
+            'price': float(price),
+            'vol': int(vol),
+            'action': str('SELL'|'BUY'|'NEUTRAL'),
+        }, ...]
+        '''
         MAX_TRANSACTION_COUNT = 2000
         start = 0
         transaction = []
@@ -161,11 +507,64 @@ class TdxClient(BaseStockClient):
             if len(part) < MAX_TRANSACTION_COUNT:
                 break
             start = start + len(part)
-            
+        for item in transaction:
+            item['price'] = item['price'] / 100
         return transaction
 
     @update_last_ack_time
+    def get_transaction(self, market: MARKET, code: str):
+        '''
+        获取分时成交
+        :param market: MARKET
+        :param code: 股票代码
+        :return: [{
+            'time': str(time),
+            'price': float(price),
+            'vol': int(vol),
+            'trans': int(trans),
+            'action': str('SELL'|'BUY'|'NEUTRAL'),
+        }, ...]
+        '''
+        MAX_TRANSACTION_COUNT = 1800
+        start = 0
+        transaction = []
+        while True:
+            part = self.call(stock.Transaction(market, code, start, MAX_TRANSACTION_COUNT))
+            if not part:
+                break
+            transaction = [*part, *transaction]
+            if len(part) < MAX_TRANSACTION_COUNT:
+                break
+            start = start + len(part)
+        for item in transaction:
+            item['price'] = item['price'] / 100
+        return transaction
+    
+    def get_chart_sampling(self, market: MARKET, code: str):
+        '''
+        获取分时图缩略数据
+        :param market: MARKET
+        :param code: 股票代码
+        :return: {
+            'prices': [float(price), ...],
+            'vols': [int(vol), ...],
+        }
+        '''
+        return self.call(stock.ChartSampling(market, code)) 
+    
+    
+
+    @update_last_ack_time
     def get_company_info(self, market: MARKET, code: str):
+        '''
+        获取公司信息
+        :param market: MARKET
+        :param code: 股票代码
+        :return: [{
+            'name': str(name),
+            'content': str(content),
+        }, ...]
+        '''
         category = self.call(company_info.Category(market, code))
 
         info = []
@@ -192,9 +591,17 @@ class TdxClient(BaseStockClient):
         return info
 
     @update_last_ack_time
-    def get_block_info(self, block_file_type: BLOCK_FILE_TYPE):
+    def get_block_file(self, block_file_type: BLOCK_FILE_TYPE):
+        '''
+        获取板块信息
+        :param block_file_type: BLOCK_FILE_TYPE
+        :return: [{
+            'block_name': str(block_name),
+            'stocks': [str(code), ...],
+        }, ...]
+        '''
         try:
-            meta = self.call(block.Meta(block_file_type))
+            meta = self.call(file.Meta(block_file_type.value))
         except Exception as e:
             log.error(e)
             return None
@@ -208,176 +615,69 @@ class TdxClient(BaseStockClient):
         file_content = bytearray()
         for seg in range(math.ceil(size / one_chunk)):
             start = seg * one_chunk
-            piece_data = self.call(block.Info(block_file_type, start, one_chunk))["data"]
+            piece_data = self.call(file.Block(block_file_type, start, one_chunk))["data"]
             file_content.extend(piece_data)
 
         return BlockReader().get_data(file_content, BlockReader_TYPE_FLAT)
 
     @update_last_ack_time
-    def get_report_file(self, filename: str, filesize=0, reporthook=None):
-        """
-        Download file from proxy server
-
-        :param filename the filename to download
-        :param filesize the filesize to download , if you do not known the actually filesize, leave this value 0
-        """
-        filecontent = bytearray(filesize)
+    def download_file(self, filename: str, filesize=0, report_hook=None):
+        '''
+        获取报告文件
+        :param filename: 报告文件名
+        :param filesize: 报告文件大小，如果不清楚可以传0
+        :param report_hook: 下载进度回调函数，函数原型 report_hook(downloaded_size, total_size)
+        :return: 文件内容字符串
+        '''
+        file_content = bytearray(filesize)
         current_downloaded_size = 0
         get_zero_length_package_times = 0
         while current_downloaded_size < filesize or filesize == 0:
-            response = self.call(block.Report(filename, current_downloaded_size))
+            response = self.call(file.Download(filename, current_downloaded_size))
             if response["size"] > 0:
-                current_downloaded_size = current_downloaded_size + \
-                    response["size"]
-                filecontent.extend(response["data"])
-                if reporthook is not None:
-                    reporthook(current_downloaded_size,filesize)
+                current_downloaded_size = current_downloaded_size + response["size"]
+                file_content.extend(response["data"])
+                if report_hook is not None:
+                    report_hook(current_downloaded_size, filesize)
             else:
                 get_zero_length_package_times = get_zero_length_package_times + 1
                 if filesize == 0:
                     break
                 elif get_zero_length_package_times > 2:
                     break
-
-        return filecontent.decode("gbk")
+        return file_content
     
-    def get_k_data(self, code, start_date, end_date):
-        # 具体详情参见 https://github.com/rainx/pytdx/issues/5
-        # 具体详情参见 https://github.com/rainx/pytdx/issues/21
-        def __select_market_code(code):
-            code = str(code)
-            if code[0] in ['5', '6', '9'] or code[:3] in ["009", "126", "110", "201", "202", "203", "204"]:
-                return MARKET.SH
-            return MARKET.SZ
-        # 新版一劳永逸偷懒写法zzz
-        market_code = 1 if str(code)[0] == '6' else 0
-        # https://github.com/rainx/pytdx/issues/33
-        # 0 - 深圳， 1 - 上海
-        
-
-        data = pd.concat(
-            [
-                to_df(
-                    self.get_security_bars(__select_market_code(code), code, KLINE_TYPE.DAY_K, (9 - i) * 800, 800)
-                ) for i in range(10)
-            ], axis=0)
- 
-        data = data.assign(date=data['datetime'].apply(lambda x: str(x)[0:10]))\
-            .assign(code=str(code))\
-            .set_index('date', drop=False, inplace=False)\
-            .drop(['datetime'], axis=1)[start_date:end_date]
-        return data.assign(date=data['date'].apply(lambda x: str(x)[0:10]))
-
-def to_df(v):
-    if isinstance(v, list):
-        return pd.DataFrame(data=v)
-    elif isinstance(v, dict):
-        return pd.DataFrame(data=[v, ])
-    else:
-        return pd.DataFrame(data=[{'value': v}])
-
-if __name__ == "__main__":
-    import pprint
-
-    def print_df(data):
-        pprint.pprint(to_df(data))
-
-    client = TdxClient()
-    if client.connect().login():
-        log.info("心跳包")
-        print_df(client.call(server.HeartBeat()))
-        log.info("获取服务器公告")
-        print_df(client.call(server.Announcement()))
-        # print_df(client.call(server.TodoFDE()))
-        log.info("获取升级提示")
-        print_df(client.call(server.UpgradeTip()))
-        log.info("获取交易所公告--需要登录")
-        print_df(client.call(server.ExchangeAnnouncement()))
-
-
-        log.info("获取 深市 股票数量")
-        print_df(client.get_security_count(MARKET.SZ))
-        log.info("获取股票列表")
-        print_df(client.get_security_list(MARKET.SZ, 0))
-        log.info("另一个获取股票列表")
-        print_df(client.call(stock.ListB(MARKET.SZ, 0)))
-        log.info("获取k线")
-        print_df(client.get_security_bars(MARKET.SZ, '000001', KLINE_TYPE.DAY_K, 0, 500))
-        log.info("获取指数k线")
-        print_df(client.get_security_bars(MARKET.SH, '999999', KLINE_TYPE.DAY_K, 0, 2000))
-        log.info("查询分时行情")
-        print_df(client.get_orders(MARKET.SZ, '000001'))
-        log.info("查询历史分时行情")
-        print_df(client.get_history_orders(MARKET.SZ, '000001', date(2025, 6, 5)))
-        log.info("查询分时成交")
-        print_df(client.get_transaction(MARKET.SZ, '000001'))
-        log.info("查询历史分时成交")
-        print_df(client.get_history_transaction(MARKET.SZ, '000001', date(2025, 6, 5)))
-        log.info("查询公司信息")
-        print_df(client.get_company_info(MARKET.SZ, '000001'))
-        log.info("日线级别k线获取函数")
-        pprint.pprint(client.get_k_data('000001', '2017-07-01', '2017-07-10'))
-        log.info("获取板块信息")
-        pprint.pprint(client.get_block_info(BLOCK_FILE_TYPE.ZS))
-        log.info("获取报告文件")
-        print(client.get_report_file('tdxzsbase.cfg'))
-                
-        log.info("获取分时图缩略数据")
-        chart = client.call(stock.ChartSampling(MARKET.SZ, '000001'))
-        import matplotlib.pyplot as plt
-        chart = pd.Series(chart['prices'])
-        chart.plot()
-        plt.show()
-
-
-        log.info("获取简略行情")
-        print_df(client.get_security_quotes([(MARKET.SZ, '000001'), (MARKET.SZ, '000002'), (MARKET.SZ, '000004'), (MARKET.SZ, '000006'), (MARKET.SZ, '000007'), (MARKET.SZ, '000008'), (MARKET.SZ, '000009')
-        , (MARKET.SZ, '000010'), (MARKET.SZ, '000011'), (MARKET.SZ, '000012'), (MARKET.SZ, '000014'), (MARKET.SZ, '000016'), (MARKET.SZ, '000017')]))
-        log.info("获取详细行情")
-        print_df(client.call(stock.QuotesDetail([(MARKET.SZ, '000001'), (MARKET.SZ, '000002'), (MARKET.SZ, '000004'), (MARKET.SZ, '000006'), (MARKET.SZ, '000007'), (MARKET.SZ, '000008'), (MARKET.SZ, '000009')
-        , (MARKET.SZ, '000010'), (MARKET.SZ, '000011'), (MARKET.SZ, '000012'), (MARKET.SZ, '000014'), (MARKET.SZ, '000016'), (MARKET.SZ, '000017')])))
-        log.info("获取行情列表")
-        print_df(client.call(stock.QuotesList(CATEGORY.SZ, 0)))
-        log.info("获取行情全景")
-        print_df(client.call(stock.TopStocksBoard(CATEGORY.A)))
-
-        # print_df(client.call(stock.TODO547([(MARKET.SZ, '000001')])))
-        # print_df(client.call(stock.TODO547([(MARKET.SZ, '000001'), (MARKET.SZ, '000002')])))
-        # print_df(client.call(stock.TODO547([(MARKET.SH, '600009'), (MARKET.SH, '600009')])))
-        # print_df(client.call(stock.TODO547([(MARKET.SZ, '000001'), (MARKET.SZ, '000002'), (MARKET.SH, '999998'), (MARKET.SH, '999997')])))
-        
-        
-        log.info("获取指数概况")
-        print_df(client.call(stock.IndexInfo(MARKET.SH, '999999')))
-        # print_df(client.call(stock.IndexInfo(MARKET.SZ, '399001')))
-        # print_df(client.call(stock.IndexInfo(MARKET.BJ, '899050')))
-        # print_df(client.call(stock.IndexInfo(MARKET.SZ, '399006')))
-        # print_df(client.call(stock.IndexInfo(MARKET.SH, '000688')))
-        # print_df(client.call(stock.IndexInfo(MARKET.SH, '880008')))
-        # print_df(client.call(stock.IndexInfo(MARKET.SH, '000888')))
-        # print_df(client.call(stock.IndexInfo(MARKET.SH, '000680')))
-        # print_df(client.call(stock.IndexInfo(MARKET.SZ, '399330')))
-        # print_df(client.call(stock.IndexInfo(MARKET.SZ, '399673')))
-        # print_df(client.call(stock.IndexInfo(MARKET.SZ, '399106')))
-        # print_df(client.call(stock.IndexInfo(MARKET.SZ, '399102')))
-
-        log.info("获取指数k线")
-        data = client.call(stock.IndexChartSampling(MARKET.SZ, '399006'))
-        import matplotlib.pyplot as plt
-        df = pd.DataFrame(data)
-        print(df)
-        fig, ax1 = plt.subplots(figsize=(14, 7))
-        ax2 = ax1.twinx()
-        # 绘制price曲线
-        ax1.plot(df.index, df['price'])
-        # 绘制fast曲线（等于price的100倍）
-        ax1.plot(df.index, df['fast'] / 100)
-        # 绘制amount柱状图
-        ax2.bar(df.index, df['amount'])
-        plt.show()
-
-        log.info("获取异动")
-        print_df(client.call(stock.Unusual(MARKET.SZ, 3000, 400)))
-        print_df(client.call(stock.Unusual(MARKET.SH, 5750)))
-
-        client.disconnect()
+    @update_last_ack_time
+    def get_table_file(self, filename: str):
+        '''
+        获取表格文件
+        :param filename: 表格文件名
+        :return: 文件内容字符串
+        '''
+        file_content = self.download_file(filename).decode("gbk")
+        lines = [line.strip() for line in file_content.split('\n') if line.strip()]
+        # 将数据解析为列表
+        data = []
+        for line in lines:
+            # 按竖线分割
+            fields = line.split('|')
+            data.append(fields)
+        return data
+    
+    @update_last_ack_time
+    def get_csv_file(self, filename: str):
+        '''
+        获取表格文件
+        :param filename: 表格文件名
+        :return: 文件内容字符串
+        '''
+        file_content = self.download_file(filename).decode("gbk")
+        lines = [line.strip() for line in file_content.split('\n') if line.strip()]
+        # 将数据解析为列表
+        data = []
+        for line in lines:
+            # 按竖线分割
+            fields = line.split(',')
+            data.append(fields)
+        return data
+    
