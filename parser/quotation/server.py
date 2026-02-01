@@ -115,6 +115,7 @@ class Info(BaseParser):
             _, Region, unknown_fH, _, maybe_switch, \
                 date_now, time_now, date3, date4, date5, date6, date7, z  = struct.unpack('<IH8sH55s10s255s20sIHH6s19sHHHHIIIIIIIH', data[:427])
         
+        print(maybe_delay, unknown_aH, _, unknown_bH, unknown10s, date1, unknown_cH, unknown_dH, unknown6s, Region, unknown_fH, maybe_switch, date_now, time_now, date3, date4, date5, date6, date7, z)
         time_now = datetime(date_now // 10000, date_now % 10000 // 100, date_now % 100, time_now // 10000, time_now % 10000 // 100, time_now % 100)
         return {
             "delay": maybe_delay,

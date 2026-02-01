@@ -1,25 +1,17 @@
 from datetime import date
 import math
-import threading
 from time import time
 from typing import override
-from baseStockClient import BaseStockClient, update_last_ack_time
+from client.baseStockClient import BaseStockClient, update_last_ack_time
 from utils.block_reader import BlockReader, BlockReader_TYPE_FLAT
 from const import BLOCK_FILE_TYPE, CATEGORY, KLINE_TYPE, MARKET, tdx_hosts
-from parser import file, stock, server, company_info
-from parser.baseparser import BaseParser
+from parser.quotation import file, stock, server, company_info
 from utils.log import log
 
-class TdxClient(BaseStockClient):
+class QuotationClient(BaseStockClient):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-
-    def call(self, parser: BaseParser):
-        resp = super().send(parser.serialize())
-        if resp is None:
-            return None
-        else:
-            return parser.deserialize(resp)
+        self.hosts = tdx_hosts
 
     def login(self, show_info=False):
         try:
@@ -32,41 +24,6 @@ class TdxClient(BaseStockClient):
         except Exception as e:
             log.error("login failed: %s", e)
             return False
-
-    @override
-    def connect(self, ip=None, port=7709, time_out=5, bindport=None, bindip='0.0.0.0'):
-        if ip is None:
-            # 选择延迟最低的服务器连接
-            infos = []
-            def get_latency(ip, port, timeout):
-                try:
-                    start_time = time()
-                    c = TdxClient().connect(ip, port, timeout)
-                    # info = c.call(server.Info())
-                    infos.append({
-                        'ip': ip,
-                        'port': port,
-                        # 'delay': info['delay'],
-                        'time': time() - start_time,
-                    })
-                except Exception as e:
-                    pass
-            # 多线程赛跑
-            threads = []
-            for host in tdx_hosts:
-                t = threading.Thread(target=get_latency, args=(host[1], host[2], 1))
-                threads.append(t)
-                t.start()
-            for t in threads:
-                t.join()
-            
-            infos.sort(key=lambda x: x['time'])
-            if len(infos) == 0:
-                raise Exception("no available server")
-
-            return super().connect(infos[0]['ip'], infos[0]['port'], time_out, bindport, bindip)
-        else:
-            return super().connect(ip, port, time_out, bindport, bindip)
 
     @override
     def doHeartBeat(self):
@@ -680,4 +637,3 @@ class TdxClient(BaseStockClient):
             fields = line.split(',')
             data.append(fields)
         return data
-    

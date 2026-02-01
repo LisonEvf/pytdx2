@@ -2,6 +2,7 @@
 import socket
 import threading
 import time
+from parser.baseparser import BaseParser
 from utils.log import log
 from utils.heartbeat import HeartBeatThread
 
@@ -68,12 +69,12 @@ class DefaultRetryStrategy():
 
 
 class BaseStockClient():
+    hosts = []
     def __init__(self, multithread=False, heartbeat=False, auto_retry=False, raise_exception=False): 
 
         self.client = None
         self.ip = None
         self.port = None
-
 
         if multithread or heartbeat:
             self.lock = threading.Lock()
@@ -91,14 +92,55 @@ class BaseStockClient():
         # 是否在函数调用出错的时候抛出异常
         self.raise_exception = raise_exception
 
-    def connect(self, ip='202.100.166.21', port=7709, time_out=CONNECT_TIMEOUT, bindport=None, bindip='0.0.0.0'):
+    def call(self, parser: BaseParser):
+        resp = self.send(parser.serialize())
+        if resp is None:
+            return None
+        else:
+            return parser.deserialize(resp)
+
+    def connect(self, ip=None, port=7709, time_out=5, bind_port=None, bind_ip='0.0.0.0'):
+        if ip is None:
+            # 选择延迟最低的服务器连接
+            infos = []
+            def get_latency(ip, port, timeout):
+                try:
+                    start_time = time.time()
+                    c = self._connect(ip, port, timeout)
+                    # info = c.call(server.Info())
+                    infos.append({
+                        'ip': ip,
+                        'port': port,
+                        # 'delay': info['delay'],
+                        'time': time.time() - start_time,
+                    })
+                except Exception as e:
+                    pass
+            # 多线程赛跑
+            threads = []
+            for host in self.hosts:
+                t = threading.Thread(target=get_latency, args=(host[1], host[2], 1))
+                threads.append(t)
+                t.start()
+            for t in threads:
+                t.join()
+            
+            infos.sort(key=lambda x: x['time'])
+            if len(infos) == 0:
+                raise Exception("no available server")
+
+            return self._connect(infos[0]['ip'], infos[0]['port'], time_out, bind_port, bind_ip)
+        else:
+            return self._connect(ip, port, time_out, bind_port, bind_ip)
+        
+    def _connect(self, ip='202.100.166.21', port=7709, time_out=CONNECT_TIMEOUT, bind_port=None, bind_ip='0.0.0.0'):
         """
 
         :param ip:  服务器ip 地址
         :param port:  服务器端口
         :param time_out: 连接超时时间
-        :param bindport: 绑定的本地端口
-        :param bindip: 绑定的本地ip
+        :param bind_port: 绑定的本地端口
+        :param bind_ip: 绑定的本地ip
         :return: 是否连接成功 True/False
         """
 
@@ -109,8 +151,8 @@ class BaseStockClient():
         log.debug("connecting to server : %s on port :%d" % (ip, port))
 
         try:
-            if bindport is not None:
-                self.client.bind((bindip, bindport))
+            if bind_port is not None:
+                self.client.bind((bind_ip, bind_port))
             self.client.connect((ip, port))
         except socket.timeout as e:
             # print(str(e))
@@ -194,7 +236,7 @@ class BaseStockClient():
                 prefix, zipped, customize, unknown, msg_id, zipsize, unzip_size = struct.unpack('<IBIBHHH', head_buf)
                 # log.debug("recv Header: zipped: %s, customize: %s, control: %s, msg_id: %s, zipsize: %d, unzip_size: %d" % (hex(zipped), hex(customize), hex(unknown), hex(msg_id), zipsize, unzip_size))
 
-                need_unzip_size = zipped == 0x1c
+                need_unzip_size = zipsize != unzip_size
                 body_buf = bytearray()
                 while zipsize > 0:
                     data_buf = self.client.recv(zipsize)

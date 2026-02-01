@@ -1,9 +1,11 @@
 from datetime import date
-from const import KLINE_TYPE, MARKET, BLOCK_FILE_TYPE, CATEGORY
+from client.marketClient import MarketClient
+from client.quotationClient import QuotationClient
+from const import EX_CATEGORY, KLINE_TYPE, MARKET, BLOCK_FILE_TYPE, CATEGORY
 import pandas as pd
 from time import sleep
-from parser import file, server, stock
-from tdxClient import TdxClient
+from parser.market import futures, market
+from parser.quotation import file, server, stock
 import matplotlib.pyplot as plt
 from utils.block_reader import BlockReader, BlockReader_TYPE_FLAT
 from utils.log import log
@@ -11,8 +13,9 @@ import numpy as np
 
 if __name__ == "__main__":
 
-    client = TdxClient()
+    client = QuotationClient()
     if client.connect().login():
+        
         log.info("心跳包")
         print(client.call(server.HeartBeat()))
         log.info("获取服务器公告")
@@ -22,7 +25,7 @@ if __name__ == "__main__":
         print(client.call(server.UpgradeTip()))
         log.info("获取交易所公告--需要登录")
         print(client.call(server.ExchangeAnnouncement()))
-
+        print(client.call(server.Info()))
 
         log.info(f"获取 深市 股票数量 {client.get_security_count(MARKET.SZ)}", )
         log.info("获取股票列表")
@@ -109,14 +112,14 @@ if __name__ == "__main__":
             df = pd.DataFrame(client.get_table_file('tdxzsbase.cfg'), columns=['market', 'code', '总股本', '流通股', 'AB股总市值', '流通市值', '市盈(动)', 'date', 'type', '昨涨幅', '前日涨幅', '3日前涨幅', '市净率', '3', '4', '5', '6', '7', '8', '流通股本Z', '10', '11', '12', '13', '昨成交额', '前日成交额'])
             df_base2 = pd.DataFrame(client.get_table_file('tdxzsbase2.cfg'), columns=['market', 'code', 'date', 'u15', 'u16', '昨开盘金额', '前日开盘金额'])
             return pd.merge(df, df_base2, on=['market', 'code', 'date'], how='left')
-        print(get_index_detail().to_clipboard())
+        print(get_index_detail())
 
 
         print(pd.DataFrame(client.get_table_file('tdxhy.cfg'), columns=['market', 'code', '通达信新行业代码', 'unk', 'nown', '申万行业代码'])) # 通信达行业和申万行业对照表
         print(pd.DataFrame(client.get_table_file('infoharbor_spec.cfg')))
 
         print(client.download_file('infoharbor_block.dat'))
-        print(pd.DataFrame(client.get_table_file('infoharbor_ex.name'), columns=['market', 'code', 'name']).to_clipboard())
+        print(pd.DataFrame(client.get_table_file('infoharbor_ex.name'), columns=['market', 'code', 'name']))
 
         log.info("获取转债表")
         print(pd.DataFrame(client.get_csv_file('spec/speckzzdata.txt'), columns=['market', 'code', '关联股', '转股价', '票面利率', '发行规模', '1', '2', '转股日', '到期价', '到期日', '3', '4', '上市日期', '5', '信用评级', '信用评级1', '6', '7', '8', '9']))
@@ -150,9 +153,63 @@ if __name__ == "__main__":
         print(client.download_file('tdxfin/gpcw.txt')) # bytearray(b'')
         print(client.download_file('iwshop/0_000001.htm').decode("utf-8"))
 
-        # client.call(stock.TODO547([(MARKET.SZ, '000001')]))
-        # client.call(stock.TODO547([(MARKET.SZ, '000001'), (MARKET.SZ, '000002')]))
-        # client.call(stock.TODO547([(MARKET.SH, '600009'), (MARKET.SH, '600009')]))
-        # client.call(stock.TODO547([(MARKET.SH, '999999'), (MARKET.SZ, '399001'), (MARKET.BJ, '899050'), (MARKET.SZ, '399006'), (MARKET.SH, '000688'), (MARKET.SH, '000300'), (MARKET.SH, '880005')]))
+        client.call(stock.TODO547([(MARKET.SZ, '000001')]))
+        client.call(stock.TODO547([(MARKET.SZ, '000001'), (MARKET.SZ, '000002')]))
+        client.call(stock.TODO547([(MARKET.SH, '600009'), (MARKET.SH, '600009')]))
+        client.call(stock.TODO547([(MARKET.SH, '999999'), (MARKET.SZ, '399001'), (MARKET.BJ, '899050'), (MARKET.SZ, '399006'), (MARKET.SH, '000688'), (MARKET.SH, '000300'), (MARKET.SH, '880005')]))
         
+        client.disconnect()
+
+
+        client = MarketClient()
+    # for host in market_hosts:
+    #     if client.connect(host[1], host[2]):
+    #         print(client.call(market.f023()))
+    #         client.disconnect()
+
+
+    if client.connect().login():
+        print(client.call(market.Info()))
+        print(client.call(market.f2562(MARKET.SH, 4055)))
+        
+        print(client.call(futures.Count()))
+        print(pd.DataFrame(client.call(futures.Category_List())))
+        print(client.call(futures.Info(0,100)))
+
+        print(client.call(futures.Quotes(EX_CATEGORY.CFFEX_FUTURES, 'IF2602')))
+        print(client.call(futures.QuotesList([
+            (EX_CATEGORY.CFFEX_FUTURES, 'IC2602'),
+            (EX_CATEGORY.CFFEX_FUTURES, 'IC2603'),
+            (EX_CATEGORY.CFFEX_FUTURES, 'IC2606'),
+            (EX_CATEGORY.CFFEX_FUTURES, 'IC2607'),
+            (EX_CATEGORY.CFFEX_FUTURES, 'IC500'),
+            (EX_CATEGORY.CFFEX_FUTURES, 'ICL0'),
+            (EX_CATEGORY.CFFEX_FUTURES, 'ICL2'),
+            (EX_CATEGORY.CFFEX_FUTURES, 'ICL7'),
+            (EX_CATEGORY.CFFEX_FUTURES, 'ICL8'),
+            (EX_CATEGORY.CFFEX_FUTURES, 'ICL9'),
+        ])))
+        print(pd.DataFrame(client.call(futures.Futures_QuotesList(EX_CATEGORY.DL_FUTURES))))
+        client.call(futures.Futures_Quotes([
+            (EX_CATEGORY.CFFEX_FUTURES, 'IC2602'),
+            (EX_CATEGORY.CFFEX_FUTURES, 'IC2603'),
+            (EX_CATEGORY.CFFEX_FUTURES, 'IC2606'),
+            (EX_CATEGORY.CFFEX_FUTURES, 'IC2607'),
+            (EX_CATEGORY.CFFEX_FUTURES, 'IC500'),
+            (EX_CATEGORY.CFFEX_FUTURES, 'ICL0'),
+            (EX_CATEGORY.CFFEX_FUTURES, 'ICL2'),
+            (EX_CATEGORY.CFFEX_FUTURES, 'ICL7'),
+            (EX_CATEGORY.CFFEX_FUTURES, 'ICL8'),
+            (EX_CATEGORY.CFFEX_FUTURES, 'ICL9'),
+        ]))
+
+        start = 0
+        while True:
+            _, count, context = client.call(futures.Futures_List(start))
+            start += count
+            print(context)
+            if count <= 0:
+                break
+
+        print(client.call(futures.Futures_List2(0)))
         client.disconnect()
