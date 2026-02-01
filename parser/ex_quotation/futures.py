@@ -1,11 +1,8 @@
-from datetime import date
-from utils.log import log
-from const import CATEGORY, EX_CATEGORY, EX_MARKET, KLINE_TYPE, MARKET
+from const import EX_CATEGORY, EX_MARKET, PERIOD, MARKET
 from parser.baseparser import BaseParser, register_parser
 import struct
 from typing import override
 import six
-from utils.help import to_datetime, get_price, get_time, format_time
 
 
 @register_parser(0x23f0, 1)
@@ -140,12 +137,12 @@ class QuotesList(BaseParser):
     
 @register_parser(0x23ff, 1)
 class Bars(BaseParser):
-    def __init__(self, market: MARKET, code: str, kline_type: KLINE_TYPE, start: int = 0, count: int = 800):
+    def __init__(self, market: MARKET, code: str, period: PERIOD, start: int = 0, count: int = 800):
         if type(code) is six.text_type:
             code = code.encode("utf-8")
-        self.body = struct.pack('<B9sHHIH', market, code, kline_type, 1, start, count)
+        self.body = struct.pack('<B9sHHIH', market, code, period, 1, start, count)
         
-        self.kline_type = kline_type
+        self.period = period
         
     @override
     def deserialize(self, data):

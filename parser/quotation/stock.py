@@ -1,6 +1,6 @@
 from datetime import date
 from utils.log import log
-from const import CATEGORY, KLINE_TYPE, MARKET
+from const import CATEGORY, PERIOD, MARKET
 from parser.baseparser import BaseParser, register_parser
 import struct
 from typing import override
@@ -143,12 +143,12 @@ class IndexInfo(BaseParser):
     
 @register_parser(0x523)
 class K_Line(BaseParser):
-    def __init__(self, market: MARKET, code: str, kline_type: KLINE_TYPE, start: int = 0, count: int = 800):
+    def __init__(self, market: MARKET, code: str, period: PERIOD, start: int = 0, count: int = 800):
         if type(code) is six.text_type:
             code = code.encode("utf-8")
-        self.body = struct.pack(u'<H6sHHHH10s', market.value, code, kline_type.value, 1, start, count, b'')
+        self.body = struct.pack(u'<H6sHHHH10s', market.value, code, period.value, 1, start, count, b'')
         
-        self.kline_type = kline_type
+        self.period = period
         
     @override
     def deserialize(self, data):
@@ -156,7 +156,7 @@ class K_Line(BaseParser):
         count, = struct.unpack('<H', data[:2])
         pos = 2
 
-        minute_category = self.kline_type.value < 4 or self.kline_type.value == 7 or self.kline_type.value == 8
+        minute_category = self.period.value < 4 or self.period.value == 7 or self.period.value == 8
 
         bars = []
         for i in range(count):

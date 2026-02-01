@@ -1,13 +1,12 @@
 from datetime import date
 from client.marketClient import MarketClient
 from client.quotationClient import QuotationClient
-from const import EX_CATEGORY, KLINE_TYPE, MARKET, BLOCK_FILE_TYPE, CATEGORY
+from const import EX_CATEGORY, PERIOD, MARKET, BLOCK_FILE_TYPE, CATEGORY
 import pandas as pd
 from time import sleep
-from parser.market import futures, market
 from parser.quotation import file, server, stock
+from parser.ex_quotation import futures, server as ex_server
 import matplotlib.pyplot as plt
-from utils.block_reader import BlockReader, BlockReader_TYPE_FLAT
 from utils.log import log
 import numpy as np
 
@@ -33,9 +32,9 @@ if __name__ == "__main__":
         log.info("另一个获取股票列表")
         print(pd.DataFrame(client.call(stock.ListB(MARKET.SZ, 0))))
         log.info("获取k线")
-        print(pd.DataFrame(client.get_KLine_data(MARKET.SZ, '000001', KLINE_TYPE.DAY)))
+        print(pd.DataFrame(client.get_KLine_data(MARKET.SZ, '000001', PERIOD.DAY)))
         log.info("获取指数k线")
-        print(pd.DataFrame(client.get_KLine_data(MARKET.SH, '999999', KLINE_TYPE.DAY, 0, 2000)))
+        print(pd.DataFrame(client.get_KLine_data(MARKET.SH, '999999', PERIOD.DAY, 0, 2000)))
         log.info("查询历史分时行情")
         print(pd.DataFrame(client.get_history_orders(MARKET.SH, '600151', date(2026, 1, 7))['orders']))
         log.info("查询分时成交")
@@ -105,14 +104,16 @@ if __name__ == "__main__":
         print(pd.DataFrame(client.get_block_file(BLOCK_FILE_TYPE.GN)))
         
         
-        def get_index_detail():
-            log.info("获取指数信息")
-            # df = pd.DataFrame(client.get_table_file('tdxzsbase.cfg'), columns=['market', 'code', 'capitalization', 'circulating', 'ABcapitalization', 'circulatingValue', 'pe(TTM)', 'date', 'type', 'chg_1ago', 'chg_2ago', 'chg_3ago', 'pb', 'u3', 'u4', 'u5', 'u6', 'u7', 'u8', 'circulatingZ', 'u10', 'u11', 'u12', 'u13', 'amt_1ago', 'amt_2ago'])
-            # df_base2 = pd.DataFrame(client.get_table_file('tdxzsbase2.cfg'), columns=['market', 'code', 'date', 'u15', 'u16', 'open_amt_1ago', 'open_amt_2ago'])
-            df = pd.DataFrame(client.get_table_file('tdxzsbase.cfg'), columns=['market', 'code', '总股本', '流通股', 'AB股总市值', '流通市值', '市盈(动)', 'date', 'type', '昨涨幅', '前日涨幅', '3日前涨幅', '市净率', '3', '4', '5', '6', '7', '8', '流通股本Z', '10', '11', '12', '13', '昨成交额', '前日成交额'])
-            df_base2 = pd.DataFrame(client.get_table_file('tdxzsbase2.cfg'), columns=['market', 'code', 'date', 'u15', 'u16', '昨开盘金额', '前日开盘金额'])
-            return pd.merge(df, df_base2, on=['market', 'code', 'date'], how='left')
-        print(get_index_detail())
+        # def get_index_detail():
+        #     log.info("获取指数信息")
+        #     # df = pd.DataFrame(client.get_table_file('tdxzsbase.cfg'), columns=['market', 'code', 'capitalization', 'circulating', 'ABcapitalization', 'circulatingValue', 'pe(TTM)', 'date', 'type', 'chg_1ago', 'chg_2ago', 'chg_3ago', 'pb', 'u3', 'u4', 'u5', 'u6', 'u7', 'u8', 'circulatingZ', 'u10', 'u11', 'u12', 'u13', 'amt_1ago', 'amt_2ago'])
+        #     # df_base2 = pd.DataFrame(client.get_table_file('tdxzsbase2.cfg'), columns=['market', 'code', 'date', 'u15', 'u16', 'open_amt_1ago', 'open_amt_2ago'])
+        #     df = pd.DataFrame(client.get_table_file('tdxzsbase.cfg'), columns=['market', 'code', '总股本', '流通股', 'AB股总市值', '流通市值', '市盈(动)', 'date', 'type', '昨涨幅', '前日涨幅', '3日前涨幅', '市净率', '3', '4', '5', '6', '7', '8', '流通股本Z', '10', '11', '12', '13', '昨成交额', '前日成交额'])
+        #     df_base2 = pd.DataFrame(client.get_table_file('tdxzsbase2.cfg'), columns=['market', 'code', 'date', 'u15', 'u16', '昨开盘金额', '前日开盘金额'])
+        #     return pd.merge(df, df_base2, on=['market', 'code', 'date'], how='left')
+        # print(get_index_detail())
+        print(pd.DataFrame(client.get_table_file('tdxzsbase.cfg'), columns=['market', 'code', '总股本', '流通股', 'AB股总市值', '流通市值', '市盈(动)', 'date', 'type', '昨涨幅', '前日涨幅', '3日前涨幅', '市净率', '3', '4', '5', '6', '7', '8', '流通股本Z', '10', '11', '12', '13', '昨成交额', '前日成交额']))
+        print(pd.DataFrame(client.get_table_file('tdxzsbase2.cfg'), columns=['market', 'code', 'date', 'u15', 'u16', '昨开盘金额', '前日开盘金额']))
 
 
         print(pd.DataFrame(client.get_table_file('tdxhy.cfg'), columns=['market', 'code', '通达信新行业代码', 'unk', 'nown', '申万行业代码'])) # 通信达行业和申万行业对照表
@@ -161,23 +162,21 @@ if __name__ == "__main__":
         client.disconnect()
 
 
-        client = MarketClient()
+    ex_client = MarketClient()
     # for host in market_hosts:
     #     if client.connect(host[1], host[2]):
     #         print(client.call(market.f023()))
     #         client.disconnect()
-
-
-    if client.connect().login():
-        print(client.call(market.Info()))
-        print(client.call(market.f2562(MARKET.SH, 4055)))
+    if ex_client.connect().login():
+        print(ex_client.call(ex_server.Info()))
+        print(ex_client.call(ex_server.f2562(MARKET.SH, 4055)))
         
-        print(client.call(futures.Count()))
-        print(pd.DataFrame(client.call(futures.Category_List())))
-        print(client.call(futures.Info(0,100)))
+        print(ex_client.call(futures.Count()))
+        print(pd.DataFrame(ex_client.call(futures.Category_List())))
+        print(ex_client.call(futures.Info(0,100)))
 
-        print(client.call(futures.Quotes(EX_CATEGORY.CFFEX_FUTURES, 'IF2602')))
-        print(client.call(futures.QuotesList([
+        print(ex_client.call(futures.Quotes(EX_CATEGORY.CFFEX_FUTURES, 'IF2602')))
+        print(ex_client.call(futures.QuotesList([
             (EX_CATEGORY.CFFEX_FUTURES, 'IC2602'),
             (EX_CATEGORY.CFFEX_FUTURES, 'IC2603'),
             (EX_CATEGORY.CFFEX_FUTURES, 'IC2606'),
@@ -189,8 +188,8 @@ if __name__ == "__main__":
             (EX_CATEGORY.CFFEX_FUTURES, 'ICL8'),
             (EX_CATEGORY.CFFEX_FUTURES, 'ICL9'),
         ])))
-        print(pd.DataFrame(client.call(futures.Futures_QuotesList(EX_CATEGORY.DL_FUTURES))))
-        client.call(futures.Futures_Quotes([
+        print(pd.DataFrame(ex_client.call(futures.Futures_QuotesList(EX_CATEGORY.DL_FUTURES))))
+        ex_client.call(futures.Futures_Quotes([
             (EX_CATEGORY.CFFEX_FUTURES, 'IC2602'),
             (EX_CATEGORY.CFFEX_FUTURES, 'IC2603'),
             (EX_CATEGORY.CFFEX_FUTURES, 'IC2606'),
@@ -205,11 +204,11 @@ if __name__ == "__main__":
 
         start = 0
         while True:
-            _, count, context = client.call(futures.Futures_List(start))
+            _, count, context = ex_client.call(futures.Futures_List(start))
             start += count
             print(context)
             if count <= 0:
                 break
 
-        print(client.call(futures.Futures_List2(0)))
-        client.disconnect()
+        print(ex_client.call(futures.Futures_List2(0)))
+        ex_client.disconnect()

@@ -1,11 +1,8 @@
 from datetime import datetime
-from utils.log import log
-from const import CATEGORY, KLINE_TYPE, MARKET
+from const import MARKET
 from parser.baseparser import BaseParser, register_parser
 import struct
 from typing import override
-import six
-from utils.help import to_datetime, get_price, get_time, format_time
 
 @register_parser(0x2562, 1)
 class f2562(BaseParser):

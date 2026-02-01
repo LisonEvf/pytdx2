@@ -12,10 +12,7 @@
 
 > 由于项目连接的是通达信客户端明文公开的服务器，是财富趋势科技公司既有的行情软件兼容行情服务器，只是简单整理便于大家学习，**严禁**用于任何**商业用途**，更**严禁滥用接口**，对此造成的任何问题本人概不负责。
 
-
-
 又因本项目在持续推进中，接口难免会有大幅改动，带来的不便请予宽宥。
-
 
 ### 🚀 1分钟快速上手
 
@@ -31,9 +28,9 @@ if __name__ == "__main__":
             log.info("榜单：%s", name)
             print(pd.DataFrame(board))
         log.info("获取k线")
-        print(pd.DataFrame(client.get_KLine_data(MARKET.SZ, '000001', KLINE_TYPE.DAY)))
+        print(pd.DataFrame(client.get_KLine_data(MARKET.SZ, '000001', PERIOD.DAY)))
         log.info("获取指数k线")
-        print(pd.DataFrame(client.get_KLine_data(MARKET.SH, '999999', KLINE_TYPE.DAY, 0, 2000)))
+        print(pd.DataFrame(client.get_KLine_data(MARKET.SH, '999999', PERIOD.DAY, 0, 2000)))
 ```
 
 ### 🌟 本项目亮点

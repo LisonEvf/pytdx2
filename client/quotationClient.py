@@ -1,17 +1,16 @@
 from datetime import date
 import math
-from time import time
 from typing import override
 from client.baseStockClient import BaseStockClient, update_last_ack_time
 from utils.block_reader import BlockReader, BlockReader_TYPE_FLAT
-from const import BLOCK_FILE_TYPE, CATEGORY, KLINE_TYPE, MARKET, tdx_hosts
+from const import BLOCK_FILE_TYPE, CATEGORY, PERIOD, MARKET, main_hosts
 from parser.quotation import file, stock, server, company_info
 from utils.log import log
 
 class QuotationClient(BaseStockClient):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.hosts = tdx_hosts
+        self.hosts = main_hosts
 
     def login(self, show_info=False):
         try:
@@ -104,12 +103,12 @@ class QuotationClient(BaseStockClient):
         return index_infos
     
     @update_last_ack_time
-    def get_KLine_data(self, market: MARKET, code: str, kline_type: KLINE_TYPE, start = 0, count = 800):
+    def get_KLine_data(self, market: MARKET, code: str, period: PERIOD, start = 0, count = 800):
         '''
         获取K线数据
         :param market: MARKET
         :param code: 股票代码
-        :param kline_type: KLINE_TYPE
+        :param period: 周期
         :param start: 起始位置
         :param count: 获取数量
         
@@ -118,7 +117,7 @@ class QuotationClient(BaseStockClient):
         MAX_KLINE_COUNT = 800
         bars = []
         while len(bars) < count:
-            part = self.call(stock.K_Line(market, code, kline_type, start + len(bars), min((count - len(bars)), MAX_KLINE_COUNT)))
+            part = self.call(stock.K_Line(market, code, period, start + len(bars), min((count - len(bars)), MAX_KLINE_COUNT)))
             bars = [*part, *bars]
         
         for bar in bars:

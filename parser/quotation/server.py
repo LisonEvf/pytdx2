@@ -2,7 +2,6 @@ from datetime import date, datetime
 import struct
 from typing import override
 
-from utils.log import log
 from parser.baseparser import BaseParser, register_parser
 
 
