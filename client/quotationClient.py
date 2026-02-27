@@ -118,6 +118,8 @@ class QuotationClient(BaseStockClient):
         bars = []
         while len(bars) < count:
             part = self.call(stock.K_Line(market, code, period, start + len(bars), min((count - len(bars)), MAX_KLINE_COUNT)))
+            if not part:
+                break
             bars = [*part, *bars]
         
         for bar in bars:
