@@ -4,15 +4,6 @@ from parser.baseparser import BaseParser, register_parser
 import struct
 from typing import override
 
-@register_parser(0x2562, 1)
-class f2562(BaseParser):
-    def __init__(self, market: MARKET, start: int = 0, count: int = 600):
-        self.body = struct.pack(u'<HII', market.value, start, count)
-    @override
-    def deserialize(self, data):
-        print(data.hex())
-        return data
-    
 @register_parser(0x2454, 1)
 class Login(BaseParser):
     def __init__(self):

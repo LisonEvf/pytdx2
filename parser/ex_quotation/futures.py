@@ -15,7 +15,7 @@ class Count(BaseParser): # ?
             'name': name.decode('gbk').replace('\x00', ''),
             'count': count
         }
-
+    
 @register_parser(0x23f4, 1)
 class Category_List(BaseParser):
     @override
@@ -47,10 +47,10 @@ class Info(BaseParser):
             market, category, u3, u4, code, name, u5, u6, u7, u8, u9, u10, u11, u12, u13, u14 = struct.unpack("<BBBH9s26sffHHHHHHHH", data[i * 64 + 6: i * 64 + 70])
 
             instruments.append({
-                "market": EX_MARKET(market),
-                "category": EX_CATEGORY(category),
+                "market": market,
+                "category": category,
                 "code": code.decode('gbk').replace('\x00', ''),
-                "desc": [u3, u4, u5, u6, u7, u8, u9, u10, u11, u12, u13],
+                "desc": [u3, u4, u5, u6, u7, u8, u9, u10, u11, u12, u13, u14],
                 "name": name.decode('gbk').replace('\x00', ''),
             })
         
@@ -186,3 +186,25 @@ class Futures_Quotes(QuotesList):
                 code = code.encode("gbk")
             self.body.extend(struct.pack('<B23s', category.value, code))
     
+
+
+@register_parser(0x2562, 1)
+class f2562(BaseParser):
+    def __init__(self, market: MARKET, start: int = 0, count: int = 600):
+        self.body = struct.pack(u'<HII', market.value, start, count)
+    @override
+    def deserialize(self, data):
+        count, = struct.unpack('<H', data[:2])
+        result = []
+        
+        for i in range(count):
+            category, name, market, index, switch, u2, u3, u4, u5, u6 = struct.unpack('<H23sHIBfffHH', data[48 * i + 2: 48 * i + 50])
+            result.append({
+                'category': EX_CATEGORY(category),
+                'name': name.decode('gbk').replace('\x00', ''),
+                'market': market,
+                'index': index,
+                'switch': switch,
+                'code': [u2, u3, u4, u5, u6]
+            })
+        return result
