@@ -302,8 +302,23 @@ class QuotationClient(BaseStockClient):
         '''
         MAX_QUOTE_COUNT = 80
         quotes = []
+        call_times = 0
         while count > len(quotes):
-            quotes.extend(self.call(stock.QuotesList(category, start + len(quotes), min(count - len(quotes), MAX_QUOTE_COUNT))))
+            call_times += 1
+            page_size = min(count - len(quotes), MAX_QUOTE_COUNT)
+            start_no = start + len(quotes)
+            rs = self.call(stock.QuotesList(category, start_no, page_size))
+            
+            msg = f" 请求次数[{call_times}] {start_no }, 请求数量 { page_size } 查询结果数量 {len(rs)} "
+            log.debug(msg)
+
+            quotes.extend(rs)
+
+            if len(rs) < page_size:
+                # 当请求返回量 小于 page_size ,代表服务器已经取完数据了, 终止循环
+                msg = f" [请求终止] 请求次数[{call_times}] ({ start_no }, { page_size }) 查询量{page_size} 结果数 {len(rs)} , 服务器已无数据,终止循环 "
+                log.info(msg)
+                break
             
         for quote in quotes:
             
