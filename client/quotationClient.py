@@ -57,6 +57,8 @@ class QuotationClient(BaseStockClient):
         while count > 0:
             part = self.call(stock.List(market, start, min(count, MAX_LIST_COUNT)))
             security_list.extend(part)
+            if len(part) < min(count, MAX_LIST_COUNT):
+                break
             count -= len(part)
             start += len(part)
         return security_list
