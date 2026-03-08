@@ -111,7 +111,7 @@ class IndexInfo(BaseParser):
         o, pos = get_price(data, pos)
         p, pos = get_price(data, pos)
 
-        print(code.decode('utf-8'),format_time(maybe_server_time), "{:2}".format(maybe_after_hour), "{:8}".format(maybe_cur_vol), '|',"{:9}".format(a), "{:9}".format(b), "{:9}".format(open_amount), "{:7}".format(d), "{:9}".format(e), "{:9}".format(f), '|', g, h, i, j, k, l, m, n, o, p)
+        # print(code.decode('utf-8'),format_time(maybe_server_time), "{:2}".format(maybe_after_hour), "{:8}".format(maybe_cur_vol), '|',"{:9}".format(a), "{:9}".format(b), "{:9}".format(open_amount), "{:7}".format(d), "{:9}".format(e), "{:9}".format(f), '|', g, h, i, j, k, l, m, n, o, p)
         
         orders = []
         for _ in range(count):
