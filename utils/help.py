@@ -97,7 +97,7 @@ def indexbytes(data, pos):
 
 
 def format_time(time_stamp):
-    if time_stamp == 0:
+    if time_stamp == 0 or time_stamp == 100:
         return '00:00:00.000'
     else:
         time_stamp = str(time_stamp)
