@@ -1,5 +1,4 @@
 from datetime import datetime
-from const import MARKET
 from parser.baseparser import BaseParser, register_parser
 import struct
 from typing import override

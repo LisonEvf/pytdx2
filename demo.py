@@ -1,11 +1,10 @@
 from datetime import date
-from client.marketClient import MarketClient
+from client.exQuotationClient import exQuotationClient
 from client.quotationClient import QuotationClient
 from const import EX_CATEGORY, PERIOD, MARKET, BLOCK_FILE_TYPE, CATEGORY
 import pandas as pd
 from time import sleep
-from parser.quotation import file, server, stock
-from parser.ex_quotation import futures, server as ex_server
+from parser.quotation import server, stock
 import matplotlib.pyplot as plt
 from utils.log import log
 import numpy as np
@@ -28,17 +27,29 @@ if __name__ == "__main__":
 
         log.info(f"获取 深市 股票数量 {client.get_security_count(MARKET.SZ)}", )
         log.info("获取股票列表")
-        print(pd.DataFrame(client.get_security_list(MARKET.SZ, 0, 1000)))
+        print(client.get_security_list(MARKET.SZ, 0, 20000))
         log.info("另一个获取股票列表")
         print(pd.DataFrame(client.call(stock.ListB(MARKET.SZ, 0))))
         log.info("获取k线")
-        print(pd.DataFrame(client.get_KLine_data(MARKET.SZ, '000001', PERIOD.DAY)))
+        print(pd.DataFrame(client.get_KLine_data(MARKET.SH, '999999', PERIOD.DAY)))
         log.info("获取指数k线")
         print(pd.DataFrame(client.get_KLine_data(MARKET.SH, '999999', PERIOD.DAY, 0, 2000)))
         log.info("查询历史分时行情")
         print(pd.DataFrame(client.get_history_orders(MARKET.SH, '600151', date(2026, 1, 7))['orders']))
         log.info("查询分时成交")
         print(pd.DataFrame(client.get_transaction(MARKET.SH, '600151')))
+        trans = pd.DataFrame(client.get_transaction(MARKET.SZ, '000001'))
+        plt.subplot(2, 1, 1)
+        ax1 = plt.gca()
+        # 绘制price曲线
+        ax1.plot(trans['time'], trans['price'])
+
+        # 图表2：成交量柱状图
+        plt.subplot(2, 1, 2)
+        ax3 = plt.gca()
+        ax3.bar(trans['time'], trans['vol'])
+
+        plt.show()
         log.info("查询历史分时成交")
         print(pd.DataFrame(client.get_history_transaction(MARKET.SH, '600151', date(2026, 1, 7))))
 
@@ -57,10 +68,7 @@ if __name__ == "__main__":
             print(pd.DataFrame(board))
 
         log.info("获取指数概况")
-        print(pd.DataFrame(client.get_index_info([(MARKET.SH, '999999'), (MARKET.SZ, '399001'), (MARKET.BJ, '899050'), 
-                                                  (MARKET.SZ, '399006'), (MARKET.SH, '000688'), (MARKET.SH, '880008'), 
-                                                  (MARKET.SH, '000888'), (MARKET.SH, '000680'), (MARKET.SZ, '399330'), 
-                                                  (MARKET.SZ, '399673'), (MARKET.SZ, '399106'), (MARKET.SZ, '399102')])))
+        print(pd.DataFrame(client.get_index_info([(MARKET.SH, '999999'), (MARKET.SZ, '399001'), (MARKET.SZ, '399006'), (MARKET.BJ, '899050'), (MARKET.SH, '000688'), (MARKET.SH, '000300')])))
 
 
         log.info("获取异动")
@@ -162,21 +170,20 @@ if __name__ == "__main__":
         client.disconnect()
 
 
-    ex_client = MarketClient()
+    ex_client = exQuotationClient()
     # for host in market_hosts:
     #     if client.connect(host[1], host[2]):
     #         print(client.call(market.f023()))
     #         client.disconnect()
     if ex_client.connect().login():
-        print(ex_client.call(ex_server.Info()))
-        print(ex_client.call(ex_server.f2562(MARKET.SH, 4055)))
+        print(ex_client.server_info())
         
-        print(ex_client.call(futures.Count()))
-        print(pd.DataFrame(ex_client.call(futures.Category_List())))
-        print(ex_client.call(futures.Info(0,100)))
+        print(ex_client.get_count())
+        print(pd.DataFrame(ex_client.get_category_list()))
+        print(pd.DataFrame(ex_client.get_Detail(0,1000)))
 
-        print(ex_client.call(futures.Quotes(EX_CATEGORY.CFFEX_FUTURES, 'IF2602')))
-        print(ex_client.call(futures.QuotesList([
+        print(ex_client.get_quotes(EX_CATEGORY.CFFEX_FUTURES, 'IF2602'))
+        print(pd.DataFrame(ex_client.get_quotes_list([
             (EX_CATEGORY.CFFEX_FUTURES, 'IC2602'),
             (EX_CATEGORY.CFFEX_FUTURES, 'IC2603'),
             (EX_CATEGORY.CFFEX_FUTURES, 'IC2606'),
@@ -188,8 +195,8 @@ if __name__ == "__main__":
             (EX_CATEGORY.CFFEX_FUTURES, 'ICL8'),
             (EX_CATEGORY.CFFEX_FUTURES, 'ICL9'),
         ])))
-        print(pd.DataFrame(ex_client.call(futures.Futures_QuotesList(EX_CATEGORY.DL_FUTURES))))
-        ex_client.call(futures.Futures_Quotes([
+        print(pd.DataFrame(ex_client.get_futures_quotes_list(EX_CATEGORY.DL_FUTURES)))
+        print(pd.DataFrame(ex_client.get_futures_quotes([
             (EX_CATEGORY.CFFEX_FUTURES, 'IC2602'),
             (EX_CATEGORY.CFFEX_FUTURES, 'IC2603'),
             (EX_CATEGORY.CFFEX_FUTURES, 'IC2606'),
@@ -200,15 +207,9 @@ if __name__ == "__main__":
             (EX_CATEGORY.CFFEX_FUTURES, 'ICL7'),
             (EX_CATEGORY.CFFEX_FUTURES, 'ICL8'),
             (EX_CATEGORY.CFFEX_FUTURES, 'ICL9'),
-        ]))
+        ])))
 
-        start = 0
-        while True:
-            _, count, context = ex_client.call(futures.Futures_List(start))
-            start += count
-            print(context)
-            if count <= 0:
-                break
+        print(ex_client.get_table())
+        print(ex_client.get_table_detail())
 
-        print(ex_client.call(futures.Futures_List2(0)))
         ex_client.disconnect()

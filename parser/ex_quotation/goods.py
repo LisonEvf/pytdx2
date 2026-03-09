@@ -4,20 +4,19 @@ import struct
 from typing import override
 import six
 
-
 @register_parser(0x23f0, 1)
 class Count(BaseParser): # ?
     @override
     def deserialize(self, data):
-        name, _, _, count, _, _ = struct.unpack('<11s5I', data[:31])
+        id, _, _, count, _, _ = struct.unpack('<11s5I', data[:31])
         
         return {
-            'name': name.decode('gbk').replace('\x00', ''),
+            'id': id.decode('gbk').replace('\x00', ''),
             'count': count
         }
     
 @register_parser(0x23f4, 1)
-class Category_List(BaseParser):
+class CategoryList(BaseParser):
     @override
     def deserialize(self, data):
         count, = struct.unpack('<H', data[:2])
@@ -34,7 +33,7 @@ class Category_List(BaseParser):
         return result
     
 @register_parser(0x23f5, 1)
-class Info(BaseParser):
+class Detail(BaseParser):
     def __init__(self, start, count):
         self.body = struct.pack('<IH', start, count)
 
@@ -51,11 +50,10 @@ class Info(BaseParser):
                 "category": category,
                 "code": code.decode('gbk').replace('\x00', ''),
                 "desc": [u3, u4, u5, u6, u7, u8, u9, u10, u11, u12, u13, u14],
-                "name": name.decode('gbk').replace('\x00', ''),
+                "name": name.decode('gbk', errors='ignore').replace('\x00', ''),
             })
         
         return instruments
-
 
 def unpack_futures(data, code_len: int = 23):
     if len(data) == 292 + code_len:
@@ -149,7 +147,7 @@ class Bars(BaseParser):
         return data
      
 @register_parser(0x2422, 1)
-class Futures_List(BaseParser):
+class Table(BaseParser):
     def __init__(self, start: int = 0, mode: int = 1):
         self.body = bytearray(struct.pack('<II16s85xB16x', start, 0, bytes.fromhex('00781f0e6a37447b502b7c0d01404c0a'), mode))
 
@@ -161,7 +159,7 @@ class Futures_List(BaseParser):
         return start, count, ctx
      
 @register_parser(0x2423, 1)
-class Futures_List2(Futures_List):
+class TableDetail(Table):
     def __init__(self, start: int = 0, mode: int = 0):
         super().__init__(start, mode)
     
