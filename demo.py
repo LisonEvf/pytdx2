@@ -218,7 +218,7 @@ if __name__ == "__main__":
         print(pd.DataFrame(ex_client.get_Detail(0,1000)))
 
         print(ex_client.get_quotes(EX_CATEGORY.CFFEX_FUTURES, 'IF2602'))
-        print(pd.DataFrame(ex_client.get_quotes_list([
+        print(pd.DataFrame(ex_client.get_quotes([
             (EX_CATEGORY.CFFEX_FUTURES, 'IC2602'),
             (EX_CATEGORY.CFFEX_FUTURES, 'IC2603'),
             (EX_CATEGORY.CFFEX_FUTURES, 'IC2606'),

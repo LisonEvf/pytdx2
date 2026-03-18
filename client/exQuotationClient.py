@@ -41,18 +41,18 @@ class exQuotationClient(BaseStockClient):
         return self.call(goods.Detail(start, count))
     
     @update_last_ack_time
-    def get_quotes(self, category: EX_CATEGORY, code):
-        return self.call(goods.Quotes(category, code))
+    def get_quotes_single(self, category: EX_CATEGORY, code):
+        return self.call(goods.QuotesSingle(category, code))
     
     @update_last_ack_time
-    def get_quotes_list(self, code_list: list[tuple[EX_CATEGORY, str]], code):
+    def get_quotes(self, code_list: list[tuple[EX_CATEGORY, str]], code):
         if code is not None:
             code_list = [(code_list, code)]
         elif (isinstance(code_list, list) or isinstance(code_list, tuple))\
                 and len(code_list) == 2 and type(code_list[0]) is int:
             code_list = [code_list]
 
-        return self.call(goods.QuotesList(code_list))
+        return self.call(goods.Quotes(code_list))
     
     @update_last_ack_time
     def get_kline(self, category: EX_CATEGORY, code: str, period: PERIOD, start: int = 0, count: int = 800, times: int = 1):
@@ -91,13 +91,13 @@ class exQuotationClient(BaseStockClient):
         return self.call(goods.Futures_QuotesList(category, start, count))
     
     @update_last_ack_time
-    def get_futures_quotes(self, futures: list[tuple[EX_CATEGORY, str]], code = None):
+    def get_futures_quotes(self, code_list: list[tuple[EX_CATEGORY, str]], code = None):
         if code is not None:
             code_list = [(code_list, code)]
         elif (isinstance(code_list, list) or isinstance(code_list, tuple))\
                 and len(code_list) == 2 and type(code_list[0]) is int:
             code_list = [code_list]
-        return self.call(goods.Futures_Quotes(futures))
+        return self.call(goods.Futures_Quotes(code_list))
     
     @update_last_ack_time
     def get_tick_chart(self, category: EX_CATEGORY, code: str):

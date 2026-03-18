@@ -12,25 +12,33 @@
 
 > 由于项目连接的是通达信客户端明文公开的服务器，是财富趋势科技公司既有的行情软件兼容行情服务器，只是简单整理便于大家学习，**严禁**用于任何**商业用途**，更**严禁滥用接口**，对此造成的任何问题本人概不负责。
 
-又因本项目在持续推进中，接口难免会有大幅改动，带来的不便请予宽宥。
+又因本项目在持续推进中，接口**难免会有大幅改动，带来的不便请予宽宥**。
 
 ### 🚀 1分钟快速上手
 
 ```python
 # 示例代码（基于tdxClient.py）
 if __name__ == "__main__":
-    client = QuotationClient()
-    if client.connect().login():
+    with TdxClient() as client:
         log.info("获取行情列表")
-        print(pd.DataFrame(client.get_security_quotes_by_category(CATEGORY.SZ)))
-	      log.info("获取行情全景")
-        for name, board in client.get_top_stock_board(CATEGORY.A).items():
+        print(pd.DataFrame(client.stock_quotes_list(CATEGORY.SZ)))
+        log.info("获取行情全景")
+        for name, board in client.stock_top_board().items():
             log.info("榜单：%s", name)
             print(pd.DataFrame(board))
         log.info("获取k线")
-        print(pd.DataFrame(client.get_KLine_data(MARKET.SZ, '000001', PERIOD.DAY)))
+        print(pd.DataFrame(client.stock_kline(MARKET.SZ, '000001', PERIOD.DAY)))
         log.info("获取指数k线")
-        print(pd.DataFrame(client.get_KLine_data(MARKET.SH, '999999', PERIOD.DAY, 0, 2000)))
+        print(pd.DataFrame(client.stock_kline(MARKET.SH, '999999', PERIOD.MINS, times=10)))
+        log.info("获取历史分时")
+        print(pd.DataFrame(client.stock_history_tick_chart(MARKET.SZ, '000001', date(2026, 3, 16))))
+        log.info("获取个股F10")
+        print(pd.DataFrame(client.stock_f10(MARKET.SZ, '000001')))
+        
+        log.info("获取美股K线")
+        print(pd.DataFrame(client.goods_kline(EX_CATEGORY.US_STOCK, 'TSLA', PERIOD.DAILY)))
+        log.info("获取期货行情")
+        print(pd.DataFrame(client.goods_quotes_list([(EX_CATEGORY.SH_FUTURES, 'AUL8'), (EX_CATEGORY.SH_FUTURES, 'AGL8')])))
 ```
 
 ### 🌟 本项目亮点

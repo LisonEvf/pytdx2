@@ -498,7 +498,7 @@ class TdxClient:
         '''
         return self.eq_client().get_Detail(start, count)
     
-    def goods_quotes(self, category: EX_CATEGORY, code: str):
+    def goods_quotes_single(self, category: EX_CATEGORY, code: str):
         '''
         获取商品行情
         Args:
@@ -537,9 +537,9 @@ class TdxClient:
                 'raise_speed': float(raise_speed_percent),
             }
         '''
-        return self.eq_client().get_quotes(category, code)
+        return self.eq_client().get_quotes_single(category, code)
     
-    def goods_quotes_list(self, code_list: EX_CATEGORY | list[tuple[EX_CATEGORY, str]], code = None):
+    def goods_quotes(self, code_list: EX_CATEGORY | list[tuple[EX_CATEGORY, str]], code = None):
         '''
         获取多个商品行情
         支持三种形式的参数
@@ -581,7 +581,7 @@ class TdxClient:
                 'raise_speed': float(raise_speed_percent),
             }, ...]
         '''
-        return self.eq_client().get_quotes_list(code_list, code)
+        return self.eq_client().get_quotes(code_list, code)
     
     def goods_kline(self, category: EX_CATEGORY, code: str, period: PERIOD, start: int = 0, count: int = 800, times: int = 1) -> str:
         '''
@@ -720,7 +720,7 @@ class TdxClient:
                 'raise_speed': float(raise_speed_percent),
             }, ...]
         '''
-        return self.eq_client().get_futures_quotes(code_list)
+        return self.eq_client().get_futures_quotes(code_list, code)
     
     def goods_tick_chart(self, category: EX_CATEGORY, code: str):
         '''
@@ -796,8 +796,8 @@ if __name__ == '__main__':
         print(client.goods_count())
         print(pd.DataFrame(client.goods_category_list()))
         print(pd.DataFrame(client.goods_detail()))
-        print(pd.DataFrame([client.goods_quotes(EX_CATEGORY.US_STOCK, 'TSLA')]))
-        print(pd.DataFrame(client.goods_quotes_list([(EX_CATEGORY.US_STOCK, 'TSLA')])))
+        print(pd.DataFrame([client.goods_quotes_single(EX_CATEGORY.US_STOCK, 'TSLA')]))
+        print(pd.DataFrame(client.goods_quotes([(EX_CATEGORY.US_STOCK, 'TSLA')])))
         print(pd.DataFrame(client.goods_kline(EX_CATEGORY.US_STOCK, 'TSLA', PERIOD.DAILY)))
         print(pd.DataFrame(client.goods_history_transaction(EX_CATEGORY.US_STOCK, 'TSLA', date(2026, 3, 3))))
         print(client.goods_table())

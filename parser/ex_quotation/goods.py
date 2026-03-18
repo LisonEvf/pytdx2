@@ -118,7 +118,7 @@ def unpack_futures(data, code_len: int = 23):
         }
     
 @register_parser(0x23fa, 1)
-class Quotes(BaseParser):
+class QuotesSingle(BaseParser):
     def __init__(self, category: EX_CATEGORY, code: str):
         self.body = struct.pack('<B9s', category.value, code.encode('gbk'))
     
@@ -127,12 +127,12 @@ class Quotes(BaseParser):
         return unpack_futures(data, 9)
 
 @register_parser(0x23fb, 1)
-class QuotesList(BaseParser):
+class Quotes(BaseParser):
     def __init__(self, futures: list[EX_CATEGORY, str] = []):
         length = len(futures)
         if length <= 0:
             raise Exception('futures count must > 0')
-        self.body = bytearray(struct.pack('<HHHHH', 2, 3148, 0, 600, length))
+        self.body = bytearray(struct.pack('<HHHHH', 2, 3148, 0, 600, length)) # TODO
         
         for category, code in futures:
             self.body.extend(struct.pack('<B23s', category.value, code.encode('gbk')))
@@ -250,7 +250,7 @@ class Download(file.Download):
         self.body = struct.pack('<II40s', start, size, file_name.encode('gbk'))
 
 @register_parser(0x2484, 1)
-class Futures_QuotesList(QuotesList):
+class Futures_QuotesList(Quotes):
     def __init__(self, category: EX_CATEGORY, start: int = 0, count: int = 100):
         self.body = struct.pack('<BHHHH', category.value, 0, start, count, 1)   
 
@@ -357,7 +357,7 @@ class K_Line_2(BaseParser):
 # > 8a24 4e 44303500000000 
 # > 8a24 e9 0135011b434553 
 @register_parser(0x248a, 1) # TODO 前8位不明所以
-class Futures_Quotes(QuotesList):
+class Futures_Quotes(Quotes):
     def __init__(self, futures: list[int, str]):
         length = len(futures)
         if length <= 0:
