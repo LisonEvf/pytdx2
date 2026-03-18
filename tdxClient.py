@@ -352,6 +352,23 @@ class TdxClient:
         '''
         return self.q_client().get_unusual(market, start, count)
     
+    def stock_auction(self, market: MARKET, code: str):
+        '''
+        获取集合竞价
+        Args:
+            market: MARKET
+            code: str(code)
+        Return: 
+            [{
+                'time': time(time),
+                'price': float(price),
+                'matched': int(matched),
+                'unmatched': int(unmatched),
+            }, ...]
+
+        '''
+        return self.q_client().get_auction(market, code)
+    
     def stock_history_orders(self, market: MARKET, code: str, date: date):
         '''
         获取历史委托数据

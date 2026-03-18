@@ -190,6 +190,9 @@ class QuotationClient(BaseStockClient):
             start += len(part)
         return unusual_stocks
     
+    @update_last_ack_time
+    def get_auction(self, market: MARKET, code: str):
+        return self.call(stock.Auction(market, code))
     
     @update_last_ack_time
     def get_history_orders(self, market: MARKET, code: str, date: date):
