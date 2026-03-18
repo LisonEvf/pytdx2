@@ -204,6 +204,21 @@ class BLOCK_FILE_TYPE(Enum):
     FG = 'block_fg.dat'     # 风格板块
     GN = 'block_gn.dat'     # 概念板块
 
+class BOARD_TYPE(Enum):
+    HY = 0
+    HY2 = 1
+
+    GN = 3
+    FG = 4
+    DQ = 5
+    
+    UNKNOW = 6             #其他 397个
+    HY_OTHER = 7           #行业 30个
+    
+    OTHER11 = 8     #行业板块-其他     等同于0 可能是兼容
+    OTHER12 = 9     #行业板块-二级行业  等同于1 可能是兼容
+    ALL = 255       #全部板块
+
 class EX_MARKET(Enum):
     STOCK = 1               # 股票
     HK = 2                  # 香港
