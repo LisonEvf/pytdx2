@@ -3,12 +3,10 @@ from client.exQuotationClient import exQuotationClient
 from client.quotationClient import QuotationClient
 from const import EX_CATEGORY, PERIOD, MARKET, BLOCK_FILE_TYPE, CATEGORY
 import pandas as pd
-from time import sleep
+from parser.ex_quotation import goods
 from parser.quotation import server, stock
 import matplotlib.pyplot as plt
 from utils.log import log
-import numpy as np
-
 if __name__ == "__main__":
 
     client = QuotationClient()
@@ -26,19 +24,75 @@ if __name__ == "__main__":
         print(client.call(server.Info()))
 
         log.info(f"获取 深市 股票数量 {client.get_security_count(MARKET.SZ)}", )
+        
         log.info("获取股票列表")
-        print(client.get_security_list(MARKET.SZ, 0, 20000))
+        print(client.get_list(MARKET.SZ))
+
         log.info("另一个获取股票列表")
         print(pd.DataFrame(client.call(stock.ListB(MARKET.SZ, 0))))
+
+        log.info("获取指数动量")
+        momentum = pd.DataFrame(client.get_index_momentum(MARKET.SH, '999999'))
+        momentum.plot.bar()
+        plt.show()
+
+        log.info("获取指数概况")
+        print(pd.DataFrame(client.get_index_info([(MARKET.SH, '999999'), (MARKET.SZ, '399001'), (MARKET.SZ, '399006'), (MARKET.BJ, '899050'), (MARKET.SH, '000688'), (MARKET.SH, '000300')])))
+        
         log.info("获取k线")
-        print(pd.DataFrame(client.get_KLine_data(MARKET.SH, '999999', PERIOD.DAY)))
+        print(pd.DataFrame(client.get_kline(MARKET.SH, '000001', PERIOD.DAILY)))
+        
         log.info("获取指数k线")
-        print(pd.DataFrame(client.get_KLine_data(MARKET.SH, '999999', PERIOD.DAY, 0, 2000)))
+        print(pd.DataFrame(client.get_kline(MARKET.SH, '999999', PERIOD.MINS, times=10)))
+        
+        log.info("获取分时图")
+        df = pd.DataFrame(client.get_tick_chart(MARKET.SH, '999999'))
+        print(df)
+        # 图表1：主图 
+        plt.subplot(2, 1, 1)
+        ax1 = plt.gca()
+        plt.xlim(0, 240)
+        # 绘制price曲线
+        ax1.plot(df.index, df['price'])
+        # 绘制avg曲线（等于price的100倍）
+        ax1.plot(df.index, df['avg'])
+
+        # 图表2：成交量柱状图
+        plt.subplot(2, 1, 2)
+        plt.xlim(0, 240)
+        ax3 = plt.gca()
+        ax3.bar(df.index, df['vol'])
+
+        plt.show()
+
+        log.info("获取详细行情")
+        print(pd.DataFrame(client.get_stock_quotes_details([(MARKET.SZ, '000001'), (MARKET.SZ, '000002'), (MARKET.SZ, '000004'), (MARKET.SZ, '000006'), (MARKET.SZ, '000007'), (MARKET.SZ, '000008'), (MARKET.SZ, '000009')
+        , (MARKET.SZ, '000010'), (MARKET.SZ, '000011'), (MARKET.SZ, '000012'), (MARKET.SZ, '000014'), (MARKET.SZ, '000016'), (MARKET.SZ, '000017')])))
+        
+        log.info("获取行情全景")
+        for name, board in client.get_stock_top_board(CATEGORY.A).items():
+            log.info("榜单：%s", name)
+            print(pd.DataFrame(board))
+
+        log.info("获取行情列表")
+        print(pd.DataFrame(client.get_stock_quotes_list(CATEGORY.SZ)))
+        
+        log.info("获取简略行情")
+        print(pd.DataFrame(client.get_quotes([(MARKET.SZ, '000001'), (MARKET.SZ, '000002'), (MARKET.SZ, '000004'), (MARKET.SZ, '000006'), (MARKET.SZ, '000007'), (MARKET.SZ, '000008'), (MARKET.SZ, '000009')
+        , (MARKET.SZ, '000010'), (MARKET.SZ, '000011'), (MARKET.SZ, '000012'), (MARKET.SZ, '000014'), (MARKET.SZ, '000016'), (MARKET.SZ, '000017')])))
+        
+        log.info("获取异动")
+        print(pd.DataFrame(client.get_unusual(MARKET.SZ)))
+
         log.info("查询历史分时行情")
-        print(pd.DataFrame(client.get_history_orders(MARKET.SH, '600151', date(2026, 1, 7))['orders']))
+        print(pd.DataFrame(client.get_history_orders(MARKET.SH, '000001', date(2026, 1, 7))['orders']))
+        
+        log.info("查询历史分时成交")
+        print(pd.DataFrame(client.get_history_transaction(MARKET.SH, '000001', date(2026, 3, 3))))
+        
         log.info("查询分时成交")
-        print(pd.DataFrame(client.get_transaction(MARKET.SH, '600151')))
         trans = pd.DataFrame(client.get_transaction(MARKET.SZ, '000001'))
+        print(trans)
         plt.subplot(2, 1, 1)
         ax1 = plt.gca()
         # 绘制price曲线
@@ -50,54 +104,33 @@ if __name__ == "__main__":
         ax3.bar(trans['time'], trans['vol'])
 
         plt.show()
-        log.info("查询历史分时成交")
-        print(pd.DataFrame(client.get_history_transaction(MARKET.SH, '600151', date(2026, 1, 7))))
+
+        log.info("查询带笔数的历史分时成交")
+        print(pd.DataFrame(client.get_history_transaction_with_trans(MARKET.SH, '000001', date(2026, 3, 3))))
+
+        log.info("获取历史分时线")
+        df = pd.DataFrame(client.get_history_tick_chart(MARKET.SZ, '000001', date(2026, 3, 3)))
+        print(df)
+        # 图表1：主图 
+        plt.subplot(2, 1, 1)
+        ax1 = plt.gca()
+        # 绘制price曲线
+        ax1.plot(df.index, df['price'])
+        # 绘制fast曲线（等于price的100倍）
+        ax1.plot(df.index, df['avg'] / 100)
+
+        # 图表2：成交量柱状图
+        plt.subplot(2, 1, 2)
+        ax3 = plt.gca()
+        ax3.bar(df.index, df['vol'])
+
+        plt.show()
 
 
-        log.info("获取简略行情")
-        print(pd.DataFrame(client.get_security_quotes([(MARKET.SZ, '000001'), (MARKET.SZ, '000002'), (MARKET.SZ, '000004'), (MARKET.SZ, '000006'), (MARKET.SZ, '000007'), (MARKET.SZ, '000008'), (MARKET.SZ, '000009')
-        , (MARKET.SZ, '000010'), (MARKET.SZ, '000011'), (MARKET.SZ, '000012'), (MARKET.SZ, '000014'), (MARKET.SZ, '000016'), (MARKET.SZ, '000017')])))
-        log.info("获取详细行情")
-        print(pd.DataFrame(client.get_security_quotes_details([(MARKET.SZ, '000001'), (MARKET.SZ, '000002'), (MARKET.SZ, '000004'), (MARKET.SZ, '000006'), (MARKET.SZ, '000007'), (MARKET.SZ, '000008'), (MARKET.SZ, '000009')
-        , (MARKET.SZ, '000010'), (MARKET.SZ, '000011'), (MARKET.SZ, '000012'), (MARKET.SZ, '000014'), (MARKET.SZ, '000016'), (MARKET.SZ, '000017')])))
-        log.info("获取行情列表")
-        print(pd.DataFrame(client.get_security_quotes_by_category(CATEGORY.SZ)))
-        log.info("获取行情全景")
-        for name, board in client.get_top_stock_board(CATEGORY.A).items():
-            log.info("榜单：%s", name)
-            print(pd.DataFrame(board))
-
-        log.info("获取指数概况")
-        print(pd.DataFrame(client.get_index_info([(MARKET.SH, '999999'), (MARKET.SZ, '399001'), (MARKET.SZ, '399006'), (MARKET.BJ, '899050'), (MARKET.SH, '000688'), (MARKET.SH, '000300')])))
-
-
-        log.info("获取异动")
-        print(pd.DataFrame(client.get_unusual(MARKET.SZ)))
-        
-        def index_Kline():
-            log.info("获取指数k线")
-            df = pd.DataFrame(client.call(stock.IndexChart(MARKET.SZ, '399006')))
-            print(df.to_clipboard())
-            # 图表1：主图 
-            plt.subplot(2, 1, 1)
-            ax1 = plt.gca()
-            # 绘制price曲线
-            ax1.plot(df.index, df['price'])
-            # 绘制fast曲线（等于price的100倍）
-            ax1.plot(df.index, df['fast'] / 100)
-
-            # 图表2：成交量柱状图
-            plt.subplot(2, 1, 2)
-            ax3 = plt.gca()
-            ax3.bar(df.index, df['amount'])
-
-            plt.show()
-        index_Kline()
-        
         def chart_sampling(market, code):
             log.info("获取分时图缩略数据")
             chart = client.get_chart_sampling(market, code)
-            chart = pd.Series(chart['prices'])
+            chart = pd.Series(chart)
             chart.plot()
             plt.show()
         chart_sampling(MARKET.SZ, '000001')
@@ -144,6 +177,8 @@ if __name__ == "__main__":
         log.info("获取AI行情表") 
         print(pd.DataFrame(client.get_table_file('spec/specgpext.txt'), columns=['market', 'code', 'core_Business', 'safe_score', 'light_spot', '']))
 
+        print(client.download_file('spec/specgpsxt.txt'))
+
         print(pd.DataFrame(client.get_table_file('spec/speczshot.txt'))) # 指数热点
         print(pd.DataFrame(client.get_table_file('spec/speczsevent.txt'))) # 指数事件
         print(pd.DataFrame(client.get_table_file('spec/speczsevent_ds.txt'))) # 指数事件-大事
@@ -166,7 +201,7 @@ if __name__ == "__main__":
         client.call(stock.TODO547([(MARKET.SZ, '000001'), (MARKET.SZ, '000002')]))
         client.call(stock.TODO547([(MARKET.SH, '600009'), (MARKET.SH, '600009')]))
         client.call(stock.TODO547([(MARKET.SH, '999999'), (MARKET.SZ, '399001'), (MARKET.BJ, '899050'), (MARKET.SZ, '399006'), (MARKET.SH, '000688'), (MARKET.SH, '000300'), (MARKET.SH, '880005')]))
-        
+                
         client.disconnect()
 
 
@@ -195,7 +230,7 @@ if __name__ == "__main__":
             (EX_CATEGORY.CFFEX_FUTURES, 'ICL8'),
             (EX_CATEGORY.CFFEX_FUTURES, 'ICL9'),
         ])))
-        print(pd.DataFrame(ex_client.get_futures_quotes_list(EX_CATEGORY.DL_FUTURES)))
+        print(pd.DataFrame(ex_client.get_futures_quotes_list(EX_CATEGORY.US_STOCK, 12632, 100)))
         print(pd.DataFrame(ex_client.get_futures_quotes([
             (EX_CATEGORY.CFFEX_FUTURES, 'IC2602'),
             (EX_CATEGORY.CFFEX_FUTURES, 'IC2603'),
@@ -211,5 +246,51 @@ if __name__ == "__main__":
 
         print(ex_client.get_table())
         print(ex_client.get_table_detail())
+
+        print(pd.DataFrame(ex_client.call(goods.HistoryTransaction(EX_CATEGORY.US_STOCK, 'FHN-C', date(2025, 10, 28)))))
+        print(pd.DataFrame(ex_client.call(goods.HistoryTickChart(EX_CATEGORY.US_STOCK, 'HIMS', date(2026, 3, 12)))))
+        print(ex_client.call(goods.Download('iwshop_jj/000010.htm')))
+        print(pd.DataFrame(ex_client.call(goods.K_Line(EX_CATEGORY.US_STOCK, 'TSLA', PERIOD.DAILY))))
+        print(pd.DataFrame(ex_client.call(goods.K_Line_2(EX_CATEGORY.US_STOCK, 'TSLA', PERIOD.DAILY))))
+        
+        print(ex_client.call(goods.f23f6()))
+        print(ex_client.call(goods.f2487(EX_CATEGORY.HK_MAIN_BOARD, '09988')))
+        print(ex_client.call(goods.f2488(EX_CATEGORY.HK_MAIN_BOARD, '09988')))
+        df = pd.DataFrame(ex_client.call(goods.TickChart(EX_CATEGORY.HK_MAIN_BOARD, '09988')))
+        print(df)
+        # 图表1：主图 
+        plt.subplot(2, 1, 1)
+        ax1 = plt.gca()
+        # 绘制price曲线
+        ax1.plot(df.index, df['price'])
+        # 绘制fast曲线（等于price的100倍）
+        ax1.plot(df.index, df['avg'])
+
+        # 图表2：成交量柱状图
+        plt.subplot(2, 1, 2)
+        ax3 = plt.gca()
+        ax3.bar(df.index, df['vol'])
+
+        plt.show()
+
+        df = pd.DataFrame(ex_client.call(goods.ChartSampling(EX_CATEGORY.HK_MAIN_BOARD, '09988')))
+        print(df)
+        chart = pd.Series(df['prices'])
+        chart.plot()
+        plt.show()
+
+        print(pd.DataFrame(ex_client.call(goods.f2562(1))))
+        print(pd.DataFrame(ex_client.call(goods.f2562(3))))
+
+        print(ex_client.call(goods.Meta('cfg/ggqqcode.txt')))
+        print(ex_client.call(goods.Meta('cfg/neeqcode.txt')))
+        print(ex_client.call(goods.Meta('cfg/szqqcode.txt')))
+        print(ex_client.call(goods.Meta('iwshop_hk/00006.htm')))
+        print(ex_client.call(goods.Meta('tdxbase/code2name.ini')))
+        print(ex_client.call(goods.Meta('tdxbase/code2name_hk.ini')))
+        print(ex_client.call(goods.Meta('tdxbase/code2name_qq.ini')))
+        print(ex_client.call(goods.Meta('tdxbase/code2qhidx.ini')))
+        print(ex_client.call(goods.Meta('tdxbase/code2targ.ini')))
+        print(ex_client.call(goods.Meta('tdxbase/hkcodeuse.cfg')))
 
         ex_client.disconnect()

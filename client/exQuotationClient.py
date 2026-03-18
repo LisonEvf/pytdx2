@@ -1,11 +1,13 @@
+from datetime import date
+
 from client.baseStockClient import BaseStockClient, update_last_ack_time
 from parser.ex_quotation import ex_server, goods
-from const import EX_CATEGORY, ex_hosts
+from const import EX_CATEGORY, PERIOD, ex_hosts
 from utils.log import log
 
 class exQuotationClient(BaseStockClient):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, multithread=False, heartbeat=False, auto_retry=False, raise_exception=False):
+        super().__init__(multithread, heartbeat, auto_retry, raise_exception)
         self.hosts = ex_hosts
 
     def login(self, show_info=False):
@@ -28,89 +30,40 @@ class exQuotationClient(BaseStockClient):
     
     @update_last_ack_time
     def get_count(self):
-        '''
-        获取扩展市场商品数量
-        :return: {
-            'id': 站点ID,
-            'count': 产品数量
-        } 的JSON字符串
-        '''
         return self.call(goods.Count())
     
     @update_last_ack_time
     def get_category_list(self):
-        '''
-        获取拓展市场类别列表
-        :return: [
-            {
-                'market': 市场类型,
-                'name': 类别名称,
-                'code': 类别代码,
-                'abbr': 类别简称
-            },
-            ...
-        ] 的JSON字符串
-        '''
         return self.call(goods.CategoryList())
     
     @update_last_ack_time
     def get_Detail(self, start=0, count=100):
-        '''
-        获取拓展市场商品详情
-        Args:
-            start: 起始位置，默认为0
-            count: 获取数量，默认为100
-        :return: 拓展市场商品详情的JSON字符串
-        '''
         return self.call(goods.Detail(start, count))
     
     @update_last_ack_time
-    def get_quotes(self, category, code):
-        '''
-        获取商品行情
-        Args:
-            category: 商品类别，必填项
-            code: 商品代码，必填项 
-        :return: 商品行情的JSON字符串
-        '''
+    def get_quotes(self, category: EX_CATEGORY, code):
         return self.call(goods.Quotes(category, code))
     
     @update_last_ack_time
-    def get_quotes_list(self, code_list: list[tuple[EX_CATEGORY, str]]):
-        '''
-        获取多个商品行情
-        Args:
-            code_list: 商品列表，必填项，格式为 [(category, code), ...]
-        :return: 多个商品行情的JSON字符串
-        '''
+    def get_quotes_list(self, code_list: list[tuple[EX_CATEGORY, str]], code):
+        if code is not None:
+            code_list = [(code_list, code)]
+        elif (isinstance(code_list, list) or isinstance(code_list, tuple))\
+                and len(code_list) == 2 and type(code_list[0]) is int:
+            code_list = [code_list]
+
         return self.call(goods.QuotesList(code_list))
     
     @update_last_ack_time
-    def get_futures_quotes_list(self, category):
-        '''
-        获取期货商品行情列表
-        Args:
-            category: 商品类别，必填项
-        :return: 期货商品行情列表的JSON字符串
-        '''
-        return self.call(goods.Futures_QuotesList(category))
+    def get_kline(self, category: EX_CATEGORY, code: str, period: PERIOD, start: int = 0, count: int = 800, times: int = 1):
+        return self.call(goods.K_Line(category, code, period, times, start, count))
     
     @update_last_ack_time
-    def get_futures_quotes(self, futures: list[tuple[EX_CATEGORY, str]]):
-        '''
-        获取多个期货商品行情
-        Args:
-            futures: 期货商品列表，必填项，格式为 [(category, code), ...]
-        :return: 多个期货商品行情的JSON字符串
-        '''
-        return self.call(goods.Futures_Quotes(futures))
+    def get_history_transaction(self, category: EX_CATEGORY, code: str, date: date):
+        return self.call(goods.HistoryTransaction(category, code, date))
     
     @update_last_ack_time
     def get_table(self):
-        '''
-        获取商品名称表
-        :return: 表格数据
-        '''
         start = 0
         str = ''
         while True:
@@ -123,10 +76,6 @@ class exQuotationClient(BaseStockClient):
     
     @update_last_ack_time
     def get_table_detail(self):
-        '''
-        获取商品名称表详情
-        :return: 表格数据
-        '''
         start = 0
         str = ''
         while True:
@@ -136,3 +85,28 @@ class exQuotationClient(BaseStockClient):
             if count <= 0:
                 break
         return str
+
+    @update_last_ack_time
+    def get_futures_quotes_list(self, category: EX_CATEGORY, start: int = 0, count: int = 100):
+        return self.call(goods.Futures_QuotesList(category, start, count))
+    
+    @update_last_ack_time
+    def get_futures_quotes(self, futures: list[tuple[EX_CATEGORY, str]], code = None):
+        if code is not None:
+            code_list = [(code_list, code)]
+        elif (isinstance(code_list, list) or isinstance(code_list, tuple))\
+                and len(code_list) == 2 and type(code_list[0]) is int:
+            code_list = [code_list]
+        return self.call(goods.Futures_Quotes(futures))
+    
+    @update_last_ack_time
+    def get_tick_chart(self, category: EX_CATEGORY, code: str):
+        return self.call(goods.TickChart(category, code))
+    
+    @update_last_ack_time
+    def get_history_tick_chart(self, category: EX_CATEGORY, code: str, date: date):
+        return self.call(goods.HistoryTickChart(category, code, date))
+    
+    @update_last_ack_time
+    def get_chart_sampling(self, category: EX_CATEGORY, code: str):
+        return self.call(goods.ChartSampling(category, code))

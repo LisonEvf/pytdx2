@@ -29,7 +29,7 @@ class HeartBeat(BaseParser):
 @register_parser(0xa) # 服务商公告
 class Announcement(BaseParser):
     def __init__(self):
-        self.body = struct.pack('<54s', b'')
+        self.body = struct.pack('<54x')
     @override
     def deserialize(self, data):
         had, = struct.unpack('<B', data[:1])
@@ -53,7 +53,43 @@ class Announcement(BaseParser):
 @register_parser(0xb)#TODO: 未完成
 class TodoB(BaseParser):
     def __init__(self):
-        self.body = bytearray()
+        self.body = bytearray.fromhex('' \
+        'e53878ee8bd8dbb8'\
+        '749933ae27700357'\
+        '749933ae27700357'\
+        '749933ae27700357'\
+        '749933ae27700357'\
+        '749933ae27700357'\
+        '749933ae27700357'\
+        '749933ae27700357'\
+        '749933ae27700357'\
+        '749933ae27700357'\
+        '749933ae27700357'\
+        '749933ae27700357'\
+        '749933ae27700357'\
+        '749933ae27700357'\
+        '901a1266bd9f62d9'\
+        '6810db2bdf3e50a1'\
+        '9e93269128ddf91f'\
+        '749933ae27700357'\
+        '749933ae27700357'\
+        '749933ae27700357'\
+        '749933ae27700357'\
+        '749933ae27700357'\
+        '27fd50435e32ca0d'\
+        '8872a27c327343f1'\
+        '749933ae27700357'\
+        '749933ae27700357'\
+        '749933ae27700357'\
+        '749933ae27700357'\
+        '749933ae27700357'\
+        '749933ae27700357'\
+        '749933ae27700357'\
+        '749933ae27700357'\
+        '749933ae27700357'\
+        '749933ae27700357'\
+        '7c8810a76fd73daf')
+
     @override
     def deserialize(self, data):
         return data

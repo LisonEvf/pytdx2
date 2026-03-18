@@ -9,7 +9,7 @@ class Download(BaseParser):
     def __init__(self, file_name: str, start: int = 0, size: int = 0x7530):
         if type(file_name) is six.text_type:
             file_name = file_name.encode("utf-8")
-        self.body = struct.pack('<II100s', start, size, file_name)
+        self.body = struct.pack('<II300s', start, size, file_name)
 
     @override
     def deserialize(self, data):

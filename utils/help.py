@@ -1,8 +1,6 @@
 # coding=utf-8
 
 from datetime import datetime
-import struct
-import six
 
 from const import MARKET
 from utils.log import log
@@ -27,8 +25,8 @@ def query_market(code) -> MARKET:
 #### XXX: 分析了一下，貌似是类似utf-8的编码方式保存有符号数字
 def get_price(data, pos):
     pos_byte = 6
-    bdata = indexbytes(data, pos)
-    intdata = bdata & 0x3f
+    bdata = data[pos]
+    int_data = bdata & 0x3f
     if bdata & 0x40:
         sign = True
     else:
@@ -37,8 +35,8 @@ def get_price(data, pos):
     if bdata & 0x80:
         while True:
             pos += 1
-            bdata = indexbytes(data, pos)
-            intdata += (bdata & 0x7f) << pos_byte
+            bdata = data[pos]
+            int_data += (bdata & 0x7f) << pos_byte
             pos_byte += 7
 
             if bdata & 0x80:
@@ -49,9 +47,9 @@ def get_price(data, pos):
     pos += 1
 
     if sign:
-        intdata = -intdata
+        int_data = -int_data
 
-    return intdata, pos
+    return int_data, pos
 
 def to_datetime(num, with_time=False) -> datetime:
     year = 0
@@ -65,36 +63,17 @@ def to_datetime(num, with_time=False) -> datetime:
         month = int((zip_data & 0x7FF) / 100)
         day = (zip_data & 0x7FF) % 100
 
-        tminutes = num >> 16
-        hour = int(tminutes / 60)
-        minute = tminutes % 60
+        minutes = num >> 16
+        hour = int(minutes / 60)
+        minute = minutes % 60
     else:
-        year = int(num / 10000)
-        month = int((num % 10000) / 100)
+        year = num // 10000
+        month = num % 10000 // 100
         day = num % 100
     if year > datetime.now().year:
         raise ValueError("year is too large")
 
     return datetime(year, month, day, hour, minute)
-
-def get_time(buffer, pos):
-    (tminutes, ) = struct.unpack("<H", buffer[pos: pos + 2])
-    hour = int(tminutes / 60)
-    minute = tminutes % 60
-    pos += 2
-
-    return hour, minute, pos
-
-def indexbytes(data, pos):
-
-    if six.PY2:
-        if type(data) is bytearray:
-            return data[pos]
-        else:
-            return six.indexbytes(data, pos)
-    else:
-        return data[pos]
-
 
 def format_time(time_stamp):
     if time_stamp == 0 or time_stamp == 100:

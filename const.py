@@ -184,18 +184,19 @@ class CATEGORY(Enum):
     CYB = 14    # 创业板
 
 class PERIOD(Enum):
-    MIN_5 = 0      # 5 分钟K 线
-    MIN_15 = 1     # 15分钟K 线
-    MIN_30 = 2     # 30分钟K 线
-    MIN_60 = 3     # 1 小时K 线
-    DAILY = 4      # 日K 线
-    WEEKLY = 5     # 周K 线
-    MONTHLY = 6    # 月K 线
-    MIN_1 = 7      # 1 分钟
-    MINUTELY = 8   # 1 分钟K 线
-    DAY = 9        # 日K 线
-    QUARTERLY = 10 # 季K 线
-    YEARLY = 11    # 年K 线
+    MIN_1   = 7     # 1 分钟K 线
+    MIN_5   = 0     # 5 分钟K 线
+    MIN_15  = 1     # 15分钟K 线
+    MIN_30  = 2     # 30分钟K 线
+    MIN_60  = 3     # 60分钟K 线
+    DAILY   = 4     # 日K 线
+    WEEKLY  = 5     # 周K 线
+    MONTHLY = 6     # 月K 线
+    MINS    = 8     # 多分钟K 线 e.g. 10分钟
+    DAYS    = 9     # 多日K 线 e.g. 45日
+    QUARTERLY = 10  # 季K 线
+    YEARLY  = 11    # 年K 线
+    SECONDS = 13    # 多秒K 线 e.g. 5秒 15秒
 
 class BLOCK_FILE_TYPE(Enum):
     DEFAULT = 'block.dat'   # 一般板块
