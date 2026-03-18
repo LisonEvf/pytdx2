@@ -23,13 +23,13 @@ class TDXMACDStrategy:
         """获取股票K线数据"""
         try:
             print(f"正在获取 {self.code} 的K线数据...")
-            print(f"市场: {self.market}, 代码: {self.code}, 周期: PERIOD.DAY")
+            print(f"市场: {self.market}, 代码: {self.code}, 周期: PERIOD.DAILY")
 
-            # 获取日线数据 (PERIOD.DAY)
+            # 获取日线数据 (PERIOD.DAILY)
             self.data = self.client.get_KLine_data(
                 market=self.market,
                 code=self.code,
-                period=PERIOD.DAY,
+                period=PERIOD.DAILY,
                 start=0,
                 count=800
             )
