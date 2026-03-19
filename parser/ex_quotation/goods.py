@@ -84,6 +84,14 @@ def unpack_futures(data, code_len: int = 23):
     u1, settlement_price, u2, average_price, pre_settlement_price, u3, u4, u5, u6, pre_close_price  = struct.unpack('<HfIffIIIIf', data[141 + code_len: 179 + code_len])
     s1, pre_vol, u7, s2, u8, day3_raise, s3, settlement_price2, date_raw, u9, raise_speed, u10, s4, u11, u12 = struct.unpack('<12sff12sff25sfIIff24sHB', data[179 + code_len: 291 + code_len])
 
+
+    # 当没有 date_raw 数据时,会报错
+    # goods.Futures_QuotesList(ExtMarketCategory.港股.value, 1895, 2)  02632没有date_raw数据
+    if date_raw // 10000 == 0:
+        date_obj = date(1900, 1, 1)
+    else:
+        date_obj = date(date_raw // 10000, date_raw % 10000 // 100, date_raw % 100)
+        
     return {
             'category': EX_CATEGORY(category), 
             'code': code.decode('gbk').replace('\x00', ''), 
@@ -110,7 +118,7 @@ def unpack_futures(data, code_len: int = 23):
             'pre_vol': pre_vol,
             'day3_raise': day3_raise,
             'settlement_price2': settlement_price2,
-            'date': date(date_raw // 10000, date_raw % 10000 // 100, date_raw % 100),
+            'date': date_obj,
             'raise_speed': raise_speed,
             'u1': u1,
             'u2': u2,

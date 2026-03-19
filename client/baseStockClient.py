@@ -143,8 +143,11 @@ class BaseStockClient():
         :param bind_ip: 绑定的本地ip
         :return: 是否连接成功 True/False
         """
-
-        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        if ip.count(":") > 0:
+            self.client = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+        else:
+            self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            
         self.ip = ip
         self.port = port
         self.client.settimeout(time_out)
