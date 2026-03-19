@@ -2,7 +2,7 @@
 import socket
 import threading
 import time
-from parser.baseparser import BaseParser
+from parser.base_parser import BaseParser
 from utils.log import log
 from utils.heartbeat import HeartBeatThread
 

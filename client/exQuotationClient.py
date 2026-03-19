@@ -1,7 +1,7 @@
 from datetime import date
 
 from client.baseStockClient import BaseStockClient, update_last_ack_time
-from parser.ex_quotation import ex_server, goods
+from parser.ex_quotation import server as ex_server, goods
 from const import EX_CATEGORY, PERIOD, ex_hosts
 from utils.log import log
 
@@ -37,8 +37,8 @@ class exQuotationClient(BaseStockClient):
         return self.call(goods.CategoryList())
     
     @update_last_ack_time
-    def get_Detail(self, start=0, count=100):
-        return self.call(goods.Detail(start, count))
+    def get_list(self, start=0, count=100):
+        return self.call(goods.List(start, count))
     
     @update_last_ack_time
     def get_quotes_single(self, category: EX_CATEGORY, code):

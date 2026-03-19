@@ -1,7 +1,7 @@
 import struct
 from typing import override
 from const import BLOCK_FILE_TYPE
-from parser.baseparser import BaseParser, register_parser
+from parser.base_parser import BaseParser, register_parser
 
 @register_parser(0x6b9)
 class Download(BaseParser):
@@ -22,12 +22,12 @@ class Meta(BaseParser):
 
     @override
     def deserialize(self, data):
-        (size, unknow1, hash_value, unknow2) = struct.unpack(u"<I1s32s1s", data)
+        size, unknown1, hash_value, unknown2 = struct.unpack(u"<I1s32s1s", data)
         return {
             "size": size,
             "hash_value" : hash_value,
-            "unknow1" : unknow1,
-            "unknow2" : unknow2
+            "unknown1" : unknown1,
+            "unknown2" : unknown2
         }
 
 class Block(Download):

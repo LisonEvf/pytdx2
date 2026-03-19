@@ -1,8 +1,9 @@
 # coding=utf-8
 
-from datetime import datetime
+from datetime import date, datetime
+import struct
 
-from const import MARKET
+from const import EX_CATEGORY, MARKET
 from utils.log import log
 
 def query_market(code) -> MARKET:
@@ -98,3 +99,57 @@ def format_time(time_stamp):
             (int(time_stamp[-6:]) * 60 % 1000000) * 60 / 1000000.0
         )
     return time
+
+def unpack_futures(data, code_len: int = 23):
+    if len(data) == 292 + code_len:
+        raise Exception('')
+    
+    category, code = struct.unpack(f'<B{code_len}s', data[:1 + code_len])
+    active, pre_close, open, high, low, current, open_position, add_position, vol, curr_vol, amount, in_vol, ex_vol, u14, hold_position = struct.unpack(f'<I5f4If4I', data[1 + code_len: 61 + code_len])
+    pending_list = struct.unpack('<5f5I5f5I', data[61 + code_len: 141 + code_len])
+    pending = {
+        'bids': [{'price': pending_list[i], 'vol': pending_list[i + 5]} for i in range(5)],
+        'asks': [{'price': pending_list[i], 'vol': pending_list[i + 5]} for i in range(10, 15)]
+    }
+    u1, settlement_price, u2, average_price, pre_settlement_price, u3, u4, u5, u6, pre_close_price  = struct.unpack('<HfIffIIIIf', data[141 + code_len: 179 + code_len])
+    s1, pre_vol, u7, s2, u8, day3_raise, s3, settlement_price2, date_raw, u9, raise_speed, u10, s4, u11, u12 = struct.unpack('<12sff12sff25sfIIff24sHB', data[179 + code_len: 291 + code_len])
+
+    # 当没有 date_raw 数据时,会报错
+    # goods.Futures_QuotesList(ExtMarketCategory.港股.value, 1895, 2)  02632没有date_raw数据
+    if date_raw // 10000 == 0:
+        date_obj = date(1900, 1, 1)
+    else:
+        date_obj = date(date_raw // 10000, date_raw % 10000 // 100, date_raw % 100)
+
+    return {
+            'category': EX_CATEGORY(category), 
+            'code': code.decode('gbk').replace('\x00', ''), 
+            'active': active, 
+            'pre_close': pre_close, 
+            'open': open, 
+            'high': high, 
+            'low': low, 
+            'current': current, 
+            'open_position': open_position, 
+            'add_position': add_position, 
+            'vol': vol, 
+            'curr_vol': curr_vol, 
+            'amount': amount, 
+            'in_vol': in_vol, 
+            'ex_vol': ex_vol, 
+            'u14': u14, 
+            'hold_position': hold_position,
+            'pending': pending,
+            'settlement_price': settlement_price,
+            'average_price': average_price,
+            'pre_settlement_price': pre_settlement_price,
+            'pre_close_price': pre_close_price,
+            'pre_vol': pre_vol,
+            'day3_raise': day3_raise,
+            'settlement_price2': settlement_price2,
+            'date': date_obj,
+            'raise_speed': raise_speed,
+            'u1': u1,
+            'u2': u2,
+            'u3': [u3, u4, u5, u6],
+        }

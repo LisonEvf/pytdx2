@@ -499,9 +499,9 @@ class TdxClient:
         '''
         return self.eq_client().get_category_list()
 
-    def goods_detail(self, start = 0, count = 2000):
+    def goods_list(self, start = 0, count = 2000):
         '''
-        获取商品详情
+        获取商品行情列表
         Args:
             start?: 起始位置，默认为0
             count?: 获取数量，默认为2000
@@ -513,7 +513,7 @@ class TdxClient:
                 'name': str(name)
             }, ...]
         '''
-        return self.eq_client().get_Detail(start, count)
+        return self.eq_client().get_list(start, count)
     
     def goods_quotes_single(self, category: EX_CATEGORY, code: str):
         '''
@@ -810,9 +810,12 @@ if __name__ == '__main__':
         print(pd.DataFrame(client.stock_chart_sampling(MARKET.SZ, '000001')))
         print(pd.DataFrame(client.stock_f10(MARKET.SZ, '000001')))
 
+        print("获取ETF表")
+        print(pd.DataFrame(client.q_client().get_csv_file('spec/specjjdata.txt'), columns=['code', 'market', '_', 'date', '最新净资产M', '现价？']))
+
         print(client.goods_count())
         print(pd.DataFrame(client.goods_category_list()))
-        print(pd.DataFrame(client.goods_detail()))
+        print(pd.DataFrame(client.goods_list()))
         print(pd.DataFrame([client.goods_quotes_single(EX_CATEGORY.US_STOCK, 'TSLA')]))
         print(pd.DataFrame(client.goods_quotes([(EX_CATEGORY.US_STOCK, 'TSLA')])))
         print(pd.DataFrame(client.goods_kline(EX_CATEGORY.US_STOCK, 'TSLA', PERIOD.DAILY)))

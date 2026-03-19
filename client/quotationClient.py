@@ -128,7 +128,7 @@ class QuotationClient(BaseStockClient):
     
     @update_last_ack_time
     def get_stock_top_board(self, category: CATEGORY):
-        boards = self.call(stock.TopStocksBoard(category))
+        boards = self.call(stock.TopBoard(category))
         for _, board in boards.items():
             for item in board:
                 item['price'] = f'{item["price"]:.2f}'

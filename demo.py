@@ -3,7 +3,7 @@ from client.exQuotationClient import exQuotationClient
 from client.quotationClient import QuotationClient
 from const import EX_CATEGORY, PERIOD, MARKET, BLOCK_FILE_TYPE, CATEGORY
 import pandas as pd
-from parser.ex_quotation import goods
+from parser.ex_quotation import file, goods
 from parser.quotation import server, stock
 import matplotlib.pyplot as plt
 from utils.log import log
@@ -23,13 +23,13 @@ if __name__ == "__main__":
         print(client.call(server.ExchangeAnnouncement()))
         print(client.call(server.Info()))
 
-        log.info(f"获取 深市 股票数量 {client.get_security_count(MARKET.SZ)}", )
+        log.info(f"获取 深市 股票数量 {client.get_count(MARKET.SZ)}", )
         
         log.info("获取股票列表")
         print(client.get_list(MARKET.SZ))
 
         log.info("另一个获取股票列表")
-        print(pd.DataFrame(client.call(stock.ListB(MARKET.SZ, 0))))
+        print(pd.DataFrame(client.call(stock.List2(MARKET.SZ, 0))))
 
         log.info("获取指数动量")
         momentum = pd.DataFrame(client.get_index_momentum(MARKET.SH, '999999'))
@@ -170,8 +170,10 @@ if __name__ == "__main__":
         log.info("获取LOF表")
         print(pd.DataFrame(client.get_csv_file('spec/speclofdata.txt'), columns=['market', 'code', '发行批准文号', 'unknown', '基金经理？', 'X']))
         log.info("获取ETF表")
-        print(pd.DataFrame(client.get_csv_file('spec/specjjdata.txt'), columns=['code', 'market', '_', 'date', '最新净资产M', '现价？']))
-
+        etf_table = client.get_csv_file('spec/specjjdata.txt')
+        etf_table = [(MARKET(int(row[1])), row[0]) for row in etf_table]
+        print(pd.DataFrame(client.get_stock_quotes_details(etf_table[:100])))
+        
         log.info("获取关联信息表") 
         print(pd.DataFrame(client.get_table_file('infoharbor_ex.code'), columns=['code', 'name', '关联信息']))
         log.info("获取AI行情表") 
@@ -201,8 +203,11 @@ if __name__ == "__main__":
         client.call(stock.TODO547([(MARKET.SZ, '000001'), (MARKET.SZ, '000002')]))
         client.call(stock.TODO547([(MARKET.SH, '600009'), (MARKET.SH, '600009')]))
         client.call(stock.TODO547([(MARKET.SH, '999999'), (MARKET.SZ, '399001'), (MARKET.BJ, '899050'), (MARKET.SZ, '399006'), (MARKET.SH, '000688'), (MARKET.SH, '000300'), (MARKET.SH, '880005')]))
-                
-        client.disconnect()
+            
+        # imgdata = client.download_file('hishf/date/20260317/sz000001.img')
+        # r = zlib.decompress(imgdata[24:])
+        # print(r.decode('gbk', errors='ignore'))
+        
 
 
     ex_client = exQuotationClient()
@@ -213,11 +218,16 @@ if __name__ == "__main__":
     if ex_client.connect().login():
         print(ex_client.server_info())
         
+        log.info("获取商品数量")
         print(ex_client.get_count())
+        log.info("获取商品类别表")
         print(pd.DataFrame(ex_client.get_category_list()))
-        print(pd.DataFrame(ex_client.get_Detail(0,1000)))
+        log.info("获取商品列表")
+        print(pd.DataFrame(ex_client.get_list(0,1000)))
 
+        log.info("获取商品报价")
         print(ex_client.get_quotes(EX_CATEGORY.CFFEX_FUTURES, 'IF2602'))
+        log.info("批量获取商品报价")
         print(pd.DataFrame(ex_client.get_quotes([
             (EX_CATEGORY.CFFEX_FUTURES, 'IC2602'),
             (EX_CATEGORY.CFFEX_FUTURES, 'IC2603'),
@@ -230,7 +240,9 @@ if __name__ == "__main__":
             (EX_CATEGORY.CFFEX_FUTURES, 'ICL8'),
             (EX_CATEGORY.CFFEX_FUTURES, 'ICL9'),
         ])))
+        log.info("获取期货报价列表")
         print(pd.DataFrame(ex_client.get_futures_quotes_list(EX_CATEGORY.US_STOCK, 12632, 100)))
+        log.info("批量获取期货报价")
         print(pd.DataFrame(ex_client.get_futures_quotes([
             (EX_CATEGORY.CFFEX_FUTURES, 'IC2602'),
             (EX_CATEGORY.CFFEX_FUTURES, 'IC2603'),
@@ -247,16 +259,24 @@ if __name__ == "__main__":
         print(ex_client.get_table())
         print(ex_client.get_table_detail())
 
-        print(pd.DataFrame(ex_client.call(goods.HistoryTransaction(EX_CATEGORY.US_STOCK, 'FHN-C', date(2025, 10, 28)))))
-        print(pd.DataFrame(ex_client.call(goods.HistoryTickChart(EX_CATEGORY.US_STOCK, 'HIMS', date(2026, 3, 12)))))
-        print(ex_client.call(goods.Download('iwshop_jj/000010.htm')))
-        print(pd.DataFrame(ex_client.call(goods.K_Line(EX_CATEGORY.US_STOCK, 'TSLA', PERIOD.DAILY))))
-        print(pd.DataFrame(ex_client.call(goods.K_Line_2(EX_CATEGORY.US_STOCK, 'TSLA', PERIOD.DAILY))))
+        log.info("获取商品历史成交")
+        print(pd.DataFrame(ex_client.get_history_transaction(EX_CATEGORY.US_STOCK, 'FHN-C', date(2025, 10, 28))))
         
-        print(ex_client.call(goods.f23f6()))
-        print(ex_client.call(goods.f2487(EX_CATEGORY.HK_MAIN_BOARD, '09988')))
-        print(ex_client.call(goods.f2488(EX_CATEGORY.HK_MAIN_BOARD, '09988')))
-        df = pd.DataFrame(ex_client.call(goods.TickChart(EX_CATEGORY.HK_MAIN_BOARD, '09988')))
+        log.info("获取商品历史分时图")
+        print(pd.DataFrame(ex_client.get_history_tick_chart(EX_CATEGORY.US_STOCK, 'HIMS', date(2026, 3, 12))))
+        
+        log.info("获取基金信息")
+        print(ex_client.call(file.Download('iwshop_jj/000010.htm')))
+
+        log.info("获取商品K线")
+        print(pd.DataFrame(ex_client.get_kline(EX_CATEGORY.US_STOCK, 'TSLA', PERIOD.DAILY)))
+
+        log.info("又一个获取商品K线")
+        print(pd.DataFrame(ex_client.call(goods.K_Line2(EX_CATEGORY.US_STOCK, 'TSLA', PERIOD.DAILY))))
+        
+        
+        log.info("获取商品分时图")
+        df = pd.DataFrame(ex_client.get_tick_chart(EX_CATEGORY.HK_MAIN_BOARD, '09988'))
         print(df)
         # 图表1：主图 
         plt.subplot(2, 1, 1)
@@ -273,14 +293,13 @@ if __name__ == "__main__":
 
         plt.show()
 
+        log.info("获取商品分时缩略图")
         df = pd.DataFrame(ex_client.call(goods.ChartSampling(EX_CATEGORY.HK_MAIN_BOARD, '09988')))
         print(df)
         chart = pd.Series(df['prices'])
         chart.plot()
         plt.show()
 
-        print(pd.DataFrame(ex_client.call(goods.f2562(1))))
-        print(pd.DataFrame(ex_client.call(goods.f2562(3))))
 
         print(ex_client.call(goods.Meta('cfg/ggqqcode.txt')))
         print(ex_client.call(goods.Meta('cfg/neeqcode.txt')))
@@ -293,4 +312,9 @@ if __name__ == "__main__":
         print(ex_client.call(goods.Meta('tdxbase/code2targ.ini')))
         print(ex_client.call(goods.Meta('tdxbase/hkcodeuse.cfg')))
 
-        ex_client.disconnect()
+        
+        print(pd.DataFrame(ex_client.call(goods.f2562(1))))
+        print(pd.DataFrame(ex_client.call(goods.f2562(3))))
+        print(ex_client.call(goods.f23f6()))
+        print(ex_client.call(goods.f2487(EX_CATEGORY.HK_MAIN_BOARD, '09988')))
+        print(ex_client.call(goods.f2488(EX_CATEGORY.HK_MAIN_BOARD, '09988')))
