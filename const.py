@@ -281,6 +281,7 @@ class EX_CATEGORY(Enum):
     RISK_CONTROL_INDEX = 68         # 风控指数
     HUAZHENG_INDEX = 69             # 华证指数
     EXTENDED_SECTOR_INDEX = 70      # 扩展板块指数
+    HK_STOCK = 71                   # 港股
     GE_STOCK = 73                   # 德国股票
     US_STOCK = 74                   # 美国股票
     SG_STOCK = 78                   # 新加坡股票
