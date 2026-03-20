@@ -1,4 +1,4 @@
-from parser.base_parser import register_parser
+from parser.baseParser import register_parser
 from parser.ex_quotation.table import Table
 
 @register_parser(0x2423, 1)

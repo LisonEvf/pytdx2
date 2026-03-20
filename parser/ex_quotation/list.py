@@ -1,7 +1,7 @@
 import struct
 from typing import override
 
-from parser.base_parser import BaseParser, register_parser
+from parser.baseParser import BaseParser, register_parser
 
 @register_parser(0x23f5, 1)
 class List(BaseParser):

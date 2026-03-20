@@ -1,6 +1,6 @@
 import struct
 
-from parser.base_parser import register_parser
+from parser.baseParser import register_parser
 from parser.quotation import file
 
 @register_parser(0x2458, 1)

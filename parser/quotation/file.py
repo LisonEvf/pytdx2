@@ -1,7 +1,7 @@
 import struct
 from typing import override
 from const import BLOCK_FILE_TYPE
-from parser.base_parser import BaseParser, register_parser
+from parser.baseParser import BaseParser, register_parser
 
 @register_parser(0x6b9)
 class Download(BaseParser):

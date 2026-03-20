@@ -2,7 +2,7 @@ import struct
 from typing import override
 
 from const import EX_CATEGORY
-from parser.base_parser import BaseParser, register_parser
+from parser.baseParser import BaseParser, register_parser
 
 # > 4d25 4a00 4352434c000000000000000000000000000000000000 0100 1400 000000000000000000
 # > 4d25 2f00 54534c39000000000000000000000000000000000000 0100 1400 000000000000000000

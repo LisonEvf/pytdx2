@@ -3,7 +3,7 @@ import math
 from typing import override
 from client.baseStockClient import BaseStockClient, update_last_ack_time
 from utils.block_reader import BlockReader, BlockReader_TYPE_FLAT
-from const import BLOCK_FILE_TYPE, CATEGORY, PERIOD, MARKET, main_hosts
+from const import BLOCK_FILE_TYPE, CATEGORY, FILTER_TYPE, PERIOD, MARKET, SORT_TYPE, main_hosts
 from parser.quotation import file, stock, server, company_info
 from utils.log import log
 
@@ -26,7 +26,12 @@ class QuotationClient(BaseStockClient):
 
     @override
     def doHeartBeat(self):
-        self.call(server.HeartBeat())
+        result = self.call(server.HeartBeat())
+        if self.heartbeat:
+            self.heartbeat_thread.update_last_ack_time()
+
+        return result
+        
     
     def quotes_adjustment(self, quotes_list):
         for quotes in quotes_list:
@@ -135,26 +140,27 @@ class QuotationClient(BaseStockClient):
         return boards
     
     @update_last_ack_time
-    def get_stock_quotes_list(self, category: CATEGORY, start:int = 0, count: int = 0):
+    def get_stock_quotes_list(self, category: CATEGORY, start:int = 0, count: int = 80, sortType: SORT_TYPE = SORT_TYPE.CODE, reverse: bool = False, filter: list[FILTER_TYPE] = []):
         MAX_QUOTE_COUNT = 80
-        quotes_list = []
+        results = []
         # 如果 count 为 0，则设置 remaining 为无穷大，表示获取所有数据
         remaining = count if count != 0 else float('inf')
         while remaining > 0:
             req_count = min(remaining, MAX_QUOTE_COUNT)
-            part = self.call(stock.QuotesList(category, start, req_count))
-            quotes_list.extend(part)
+            part = self.call(stock.QuotesList(category, start, req_count, sortType, reverse, filter))
+            results.extend(part)
             if len(part) < req_count:
                 break
+            remaining -= len(part)
             start += len(part)
             
-        for quotes in quotes_list:
+        for quotes in results:
             quotes['short_turnover'] = f'{(quotes['short_turnover'] / 100):.2f}%'
             quotes['opening_rush'] = f'{(quotes['opening_rush'] / 100):.2f}%'
             quotes['vol_rise_speed'] = f'{(quotes['vol_rise_speed']):.2f}%'
             quotes['depth'] = f'{(quotes["depth"]):.2f}%'
 
-        return self.quotes_adjustment(quotes_list)
+        return self.quotes_adjustment(results)
 
     @update_last_ack_time
     def get_quotes(self, all_stock, code=None):
@@ -177,18 +183,18 @@ class QuotationClient(BaseStockClient):
     @update_last_ack_time
     def get_unusual(self, market: MARKET, start: int = 0, count: int = 0):
         MAX_UNUSUAL_COUNT = 600
-        unusual_stocks = []
+        results = []
         # 如果 count 为 0，则设置 remaining 为无穷大，表示获取所有数据
         remaining = count if count != 0 else float('inf')
         while remaining > 0:
             req_count = min(remaining, MAX_UNUSUAL_COUNT)
             part = self.call(stock.Unusual(market, start, req_count))
-            unusual_stocks.extend(part)
+            results.extend(part)
             if len(part) < req_count:
                 break
             remaining -= len(part)
             start += len(part)
-        return unusual_stocks
+        return results
     
     @update_last_ack_time
     def get_auction(self, market: MARKET, code: str):

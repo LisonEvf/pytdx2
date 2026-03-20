@@ -1,7 +1,8 @@
 from datetime import date
+import zlib
 from client.exQuotationClient import exQuotationClient
 from client.quotationClient import QuotationClient
-from const import EX_CATEGORY, PERIOD, MARKET, BLOCK_FILE_TYPE, CATEGORY
+from const import EX_CATEGORY, FILTER_TYPE, PERIOD, MARKET, BLOCK_FILE_TYPE, CATEGORY, SORT_TYPE
 import pandas as pd
 from parser.ex_quotation import file, goods
 from parser.quotation import server, stock
@@ -75,7 +76,10 @@ if __name__ == "__main__":
             print(pd.DataFrame(board))
 
         log.info("获取行情列表")
-        print(pd.DataFrame(client.get_stock_quotes_list(CATEGORY.SZ)))
+        print(pd.DataFrame(client.get_stock_quotes_list(CATEGORY.A)))
+        
+        log.info("获取行情列表-按总金额排序，排除北证、ST、科创")
+        print(pd.DataFrame(client.get_stock_quotes_list(CATEGORY.A, sortType=SORT_TYPE.TOTAL_AMOUNT, filter=[FILTER_TYPE.BJ, FILTER_TYPE.ST, FILTER_TYPE.KC])))
         
         log.info("获取简略行情")
         print(pd.DataFrame(client.get_quotes([(MARKET.SZ, '000001'), (MARKET.SZ, '000002'), (MARKET.SZ, '000004'), (MARKET.SZ, '000006'), (MARKET.SZ, '000007'), (MARKET.SZ, '000008'), (MARKET.SZ, '000009')
@@ -203,11 +207,6 @@ if __name__ == "__main__":
         client.call(stock.TODO547([(MARKET.SZ, '000001'), (MARKET.SZ, '000002')]))
         client.call(stock.TODO547([(MARKET.SH, '600009'), (MARKET.SH, '600009')]))
         client.call(stock.TODO547([(MARKET.SH, '999999'), (MARKET.SZ, '399001'), (MARKET.BJ, '899050'), (MARKET.SZ, '399006'), (MARKET.SH, '000688'), (MARKET.SH, '000300'), (MARKET.SH, '880005')]))
-            
-        # imgdata = client.download_file('hishf/date/20260317/sz000001.img')
-        # r = zlib.decompress(imgdata[24:])
-        # print(r.decode('gbk', errors='ignore'))
-        
 
 
     ex_client = exQuotationClient()
@@ -223,8 +222,10 @@ if __name__ == "__main__":
         log.info("获取商品类别表")
         print(pd.DataFrame(ex_client.get_category_list()))
         log.info("获取商品列表")
-        print(pd.DataFrame(ex_client.get_list(0,1000)))
+        print(pd.DataFrame(ex_client.get_list()))
 
+        log.info("获取期货报价列表")
+        print(pd.DataFrame(ex_client.get_quotes_list(EX_CATEGORY.US_STOCK, 12632, 100)))
         log.info("获取商品报价")
         print(ex_client.get_quotes(EX_CATEGORY.CFFEX_FUTURES, 'IF2602'))
         log.info("批量获取商品报价")
@@ -240,10 +241,8 @@ if __name__ == "__main__":
             (EX_CATEGORY.CFFEX_FUTURES, 'ICL8'),
             (EX_CATEGORY.CFFEX_FUTURES, 'ICL9'),
         ])))
-        log.info("获取期货报价列表")
-        print(pd.DataFrame(ex_client.get_futures_quotes_list(EX_CATEGORY.US_STOCK, 12632, 100)))
         log.info("批量获取期货报价")
-        print(pd.DataFrame(ex_client.get_futures_quotes([
+        print(pd.DataFrame(ex_client.get_quotes2([
             (EX_CATEGORY.CFFEX_FUTURES, 'IC2602'),
             (EX_CATEGORY.CFFEX_FUTURES, 'IC2603'),
             (EX_CATEGORY.CFFEX_FUTURES, 'IC2606'),
@@ -301,20 +300,20 @@ if __name__ == "__main__":
         plt.show()
 
 
-        print(ex_client.call(goods.Meta('cfg/ggqqcode.txt')))
-        print(ex_client.call(goods.Meta('cfg/neeqcode.txt')))
-        print(ex_client.call(goods.Meta('cfg/szqqcode.txt')))
-        print(ex_client.call(goods.Meta('iwshop_hk/00006.htm')))
-        print(ex_client.call(goods.Meta('tdxbase/code2name.ini')))
-        print(ex_client.call(goods.Meta('tdxbase/code2name_hk.ini')))
-        print(ex_client.call(goods.Meta('tdxbase/code2name_qq.ini')))
-        print(ex_client.call(goods.Meta('tdxbase/code2qhidx.ini')))
-        print(ex_client.call(goods.Meta('tdxbase/code2targ.ini')))
-        print(ex_client.call(goods.Meta('tdxbase/hkcodeuse.cfg')))
+        print(ex_client.download_file('cfg/ggqqcode.txt'))
+        print(ex_client.download_file('cfg/neeqcode.txt'))
+        print(ex_client.download_file('cfg/szqqcode.txt'))
+        print(ex_client.download_file('iwshop_hk/00006.htm'))
+        print(ex_client.download_file('tdxbase/code2name.ini'))
+        print(ex_client.download_file('tdxbase/code2name_hk.ini'))
+        print(ex_client.download_file('tdxbase/code2name_qq.ini'))
+        print(ex_client.download_file('tdxbase/code2qhidx.ini'))
+        print(ex_client.download_file('tdxbase/code2targ.ini'))
+        print(ex_client.download_file('tdxbase/hkcodeuse.cfg'))
 
         
-        print(pd.DataFrame(ex_client.call(goods.f2562(1))))
-        print(pd.DataFrame(ex_client.call(goods.f2562(3))))
-        print(ex_client.call(goods.f23f6()))
-        print(ex_client.call(goods.f2487(EX_CATEGORY.HK_MAIN_BOARD, '09988')))
-        print(ex_client.call(goods.f2488(EX_CATEGORY.HK_MAIN_BOARD, '09988')))
+        # print(pd.DataFrame(ex_client.call(goods.f2562(1))))
+        # print(pd.DataFrame(ex_client.call(goods.f2562(3))))
+        # print(ex_client.call(goods.f23f6()))
+        # print(ex_client.call(goods.f2487(EX_CATEGORY.HK_MAIN_BOARD, '09988')))
+        # print(ex_client.call(goods.f2488(EX_CATEGORY.HK_MAIN_BOARD, '09988')))

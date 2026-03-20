@@ -1,15 +1,20 @@
 import struct
 from typing import override
 
-from const import CATEGORY, MARKET
-from parser.base_parser import BaseParser, register_parser
+from const import CATEGORY, FILTER_TYPE, MARKET, SORT_TYPE
+from parser.baseParser import BaseParser, register_parser
 from utils.help import format_time, get_price
-
 
 @register_parser(0x54b) # TODO: 
 class QuotesList(BaseParser):
-    def __init__(self, category: CATEGORY, start: int = 0, count: int = 0x50):
-        self.body = struct.pack('<9H', category.value, 0, start, count, 0 ,5, 0, 1, 0)
+    def __init__(self, category: CATEGORY, start: int = 0, count: int = 0x50, sortType: SORT_TYPE = SORT_TYPE.CODE, reverse: bool = False, filter: list[FILTER_TYPE] = []):
+        sort_reverse = 0 if sortType == SORT_TYPE.CODE else 2 if reverse else 1
+
+        filter_raw = 0
+        for filter_type in filter:
+            filter_raw &= filter_type.value
+
+        self.body = struct.pack('<9H', category.value, sortType.value, start, count,  sort_reverse, 5, filter_raw, 1, 0)
     @override
     def deserialize(self, data):
         block, count = struct.unpack('<HH', data[:4])

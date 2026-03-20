@@ -1,7 +1,7 @@
 import struct
 
 from const import MARKET
-from parser.base_parser import register_parser
+from parser.baseParser import register_parser
 from parser.quotation.quotes_list import QuotesList
 
 

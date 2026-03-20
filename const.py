@@ -198,6 +198,164 @@ class PERIOD(Enum):
     YEARLY  = 11    # 年K 线
     SECONDS = 13    # 多秒K 线 e.g. 5秒 15秒
 
+class FILTER_TYPE(Enum):
+    NEW = 1  # 未开板次新股
+    KC  = 2  # 科创板
+    ST  = 4  # ST股
+    CY  = 8  # 创业板
+    BJ  = 16 # 北证A股
+
+class SORT_TYPE(Enum):
+    CODE = 0
+    NAME = 0x1
+    PRE_CLOSE = 0x2 # 昨收
+    OPEN = 0x3 # 今开
+    HIGH = 0x4 # 最高
+    LOW = 0x5 # 最低
+    PRICE = 0x6 # 现价
+    BID = 0x7 # 买价
+    ASK = 0x8 # 卖价
+    VOLUME = 0x9 # 总量
+    TOTAL_AMOUNT = 0xa # 总金额
+    LAST_VOLUME = 0xb # 现量
+    CHANGE = 0xc # 涨跌
+
+    CHANGE_PCT = 0xe # 涨幅%
+    AMPLITUDE_PCT = 0xf # 振幅%
+    AVG = 0x10 # 均价
+    PE_DYNAMIC = 0x11 # 市盈(动)
+    ENTRUST_RATIO = 0x12 # 委比%
+    INSIDE_VOLUME = 0x13 # 内盘
+    OUTSIDE_VOLUME = 0x14 # 外盘
+    IN_OUT_RATIO = 0x15 # 内外比
+
+    BID_VOLUME = 0x17 # 买量
+    ASK_VOLUME = 0x18 # 卖量
+
+    LOCKED_RATIO = 0x1b # 封成比
+    LOCKED_AMOUNT = 0x1c # 封单额
+    OPEN_AMOUNT = 0x1d # 开盘金额
+    OPEN_TURNOVER_PCT = 0x1e # 开盘换手%
+
+    VOL_RATIO = 0x23 # 量比
+    TURNOVER_RATE = 0x24 # 换手%
+    FLOAT_SHARES = 0x25 # 流通股(亿)
+    FLOAT_MARKET_CAP = 0x26 # 流通市值
+    TOTAL_MARKET_CAP_AB = 0x27 # AB股总市值
+
+    UNMATCHED_VOLUME = 0x2a # 未匹配量
+    STRENGTH_PCT = 0x2d # 强弱度%
+    SPEED_PCT = 0x2e # 涨速%
+    ACTIVITY = 0x2f # 活跃度
+
+    SHORT_TURNOVER_PCT = 0xcc # 短换手%
+    VOL_SPEED_PCT = 0xd0 # 量涨速%
+    MAIN_NET_AMOUNT = 0xd4 # 主力净额
+    MAIN_NET_RATIO = 0xd7 # 主力净比%
+    AUCTION_LIMIT_BUY = 0x102 # 竞价涨停买
+    AMOUNT_2M = 0x10c # 2分钟金额
+    OPEN_SNATCH_PCT = 0x10a # 开盘抢筹%
+    OPEN_PCT = 0x119 # 开盘%
+    HIGH_PCT = 0x11a # 最高%
+    LOW_PCT = 0x11b # 最低%
+    AVG_CHANGE_PCT = 0x11c # 均涨幅%
+    DRAWDOWN_PCT = 0x11e # 回撤%
+    ATTACK_PCT = 0x11f # 攻击%
+
+    # INDUSTRY = 0x0 # 细分行业
+    # REGION = 0x0 # 地区
+    # PREMIUM_PCT = 0x0 # 溢价%
+    # PREV_TURNOVER = 0x0 # 昨成交额
+    # OPEN_RATIO = 0x0 # 开盘比%
+    # OPEN_TIME_RATIO = 0x0 # 开盘时比%
+    # OPEN_VOL_RATIO = 0x0 # 开盘量比
+
+    # AUCTION_RATIO = 0x0 # 竞价比
+    # LOCKED_ORDERS = 0x0 # 封单数
+
+    # CONSECUTIVE_UP_DAYS = 0x0 # 连涨天
+    # PREV_CHANGE_PCT = 0x0 # 昨涨幅%
+    # CHANGE_3D_PCT = 0x0 # 3日涨幅%
+    # CHANGE_5D_PCT = 0x0 # 5日涨幅%
+    # CHANGE_10D_PCT = 0x0 # 10日涨幅%
+    # CHANGE_20D_PCT = 0x0 # 20日涨幅%
+    # CHANGE_30D_PCT = 0x0 # 30日涨幅%
+    # CHANGE_60D_PCT = 0x0 # 60日涨幅%
+    # CHANGE_1Y_PCT = 0x0 # 一年涨幅%
+    # MTD_PCT = 0x0 # 月初至今%
+    # YTD_PCT = 0x0 # 年初至今%
+    # YEAR_CHANGE_PCT = 0x0 # 年涨幅%
+    # YEAR_CHANGE_DAYS = 0x0 # 年涨幅天数
+    # TURNOVER_Z = 0x0 # 换手Z
+    # FLOAT_MCAP_Z = 0x0 # 流通市值Z
+    # MCAP_CHANGE = 0x0 # 市值增减
+    # PE_TTM = 0x0 # 市盈(TTM)
+    # PE_STATIC = 0x0 # 市盈率(静)
+    # BETA = 0x0 # 贝塔系数
+    # DIST_MA5_PCT = 0x0 # 距5日线%
+    # RECENT_INDICATOR = 0x0 # 近日指标提示
+    # SHORT_TERM_PATTERN = 0x0 # 短期形态
+    # MEDIUM_TERM_PATTERN = 0x0 # 中期形态
+    # LONG_TERM_PATTERN = 0x0 # 长期形态
+   
+    # FINANCIAL_UPDATE = 0x0 # 财务更新
+    # LISTING_DATE = 0x0 # 上市日期
+    # TOTAL_SHARES = 0x0 # 总股本(亿)
+    # BA_SHARES = 0x0 # B/A股(亿)
+    # H_SHARES = 0x0 # H股(亿)
+    # REPORT_PERIOD = 0x0 # 报告期
+    # TOTAL_ASSETS = 0x0 # 总资产(亿)
+    # NET_ASSETS = 0x0 # 净资产(亿)
+    # MINORITY_INTEREST = 0x0 # 少数股权(亿)
+    # DEBT_TO_ASSETS_RATIO = 0x0 # 资产负债率%
+    # CURRENT_ASSETS = 0x0 # 流动资产(亿)
+    # FIXED_ASSETS = 0x0 # 固定资产(亿)
+    # INTANGIBLE_ASSETS = 0x0 # 无形资产(亿)
+    # CURRENT_LIABILITIES = 0x0 # 流动负债(亿)
+    # CASH = 0x0 # 货币资金(亿)
+    # INVENTORY = 0x0 # 存货(亿)
+    # ACCOUNTS_RECEIVABLE = 0x0 # 应收账款(亿)
+    # CONTRACT_LIABILITIES = 0x0 # 合同负债(亿)
+    # CAPITAL_RESERVE = 0x0 # 资本公积金(亿)
+    # OPERATING_REVENUE = 0x0 # 营业收入(亿)
+    # OPERATING_COST = 0x0 # 营业成本(亿)
+    # OPERATING_PROFIT = 0x0 # 营业利润(亿)
+    # INVESTMENT_INCOME = 0x0 # 投资收益(亿)
+    # TOTAL_PROFIT = 0x0 # 利润总额(亿)
+    # AFTER_TAX_PROFIT = 0x0 # 税后利润(亿)
+    # NET_PROFIT = 0x0 # 净利润(亿)
+    # CORE_NET_PROFIT = 0x0 # 扣非净利润(亿)
+    # RETAINED_EARNINGS = 0x0 # 未分配利润(亿)
+    # OPERATING_CASH_FLOW = 0x0 # 经营现金流(亿)
+    # TOTAL_CASH_INFLOW = 0x0 # 总现金流入(亿)
+    # SHAREHOLDER_COUNT = 0x0 # 股东人数
+    # AVG_SHARES_PER_HOLDER = 0x0 # 人均持股
+    # AVG_MCAP_PER_HOLDER = 0x0 # 人均市值
+    # PROFIT_YOY_PCT = 0x0 # 利润同比%
+    # REVENUE_YOY_PCT = 0x0 # 收入同比%
+    # PB = 0x0 # 市净率
+    # PE_RATIO = 0x0 # 市盈率
+    # PS = 0x0 # 市销率
+    # DIVIDEND_YIELD = 0x0 # 股息率%
+    # EPS = 0x0 # 每股收益
+    # BPS = 0x0 # 每股净资产
+    # CAPITAL_RESERVE_PS = 0x0 # 每股公积
+    # RETAINED_EARNINGS_PS = 0x0 # 每股未分配
+    # CASH_FLOW_PS = 0x0 # 每股现金流
+    # EQUITY_RATIO = 0x0 # 权益比%
+    # NET_MARGIN = 0x0 # 净利率%
+    # GROSS_MARGIN = 0x0 # 毛利率%
+    # OPERATING_MARGIN = 0x0 # 营业利润率%
+    # NET_PROFIT_MARGIN = 0x0 # 净利润率%
+    # R_D_EXPENSE = 0x0 # 研发费用(亿)
+    # EMPLOYEE_COUNT = 0x0 # 员工人数
+    # ISSUE_TYPE = 0x0 # 发行类型
+    # TICKER = 0x0 # 交易代码
+    # WATCHLIST_DATE = 0x0 # 自选日
+    # WATCHLIST_PRICE = 0x0 # 自选价
+    # WATCHLIST_RETURN_PCT = 0x0 # 自选收益率%
+    
+
 class BLOCK_FILE_TYPE(Enum):
     DEFAULT = 'block.dat'   # 一般板块
     ZS = 'block_zs.dat'     # 指数板块

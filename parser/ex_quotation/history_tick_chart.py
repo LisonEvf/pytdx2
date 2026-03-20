@@ -3,7 +3,7 @@ import struct
 from typing import override
 
 from const import EX_CATEGORY
-from parser.base_parser import BaseParser, register_parser
+from parser.baseParser import BaseParser, register_parser
 
 # > 8c24 e0013501 1c 434a4c3800000000000000000000000000000000000000 000000000000 2f49
 # > 8c24 31013501 1c 434a4c3800000000000000000000000000000000000000 393938f94902 0001

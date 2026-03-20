@@ -2,7 +2,7 @@ import struct
 from typing import override
 
 from const import EX_CATEGORY
-from parser.base_parser import BaseParser, register_parser
+from parser.baseParser import BaseParser, register_parser
 from utils.help import unpack_futures
 
 @register_parser(0x23fa, 1)

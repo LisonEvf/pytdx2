@@ -5,7 +5,7 @@ import pandas as pd
 
 from client.exQuotationClient import exQuotationClient
 from client.quotationClient import QuotationClient
-from const import BLOCK_FILE_TYPE, CATEGORY, EX_CATEGORY, MARKET, PERIOD
+from const import BLOCK_FILE_TYPE, CATEGORY, EX_CATEGORY, FILTER_TYPE, MARKET, PERIOD, SORT_TYPE
 
 class TdxClient:
     def __enter__(self):
@@ -249,13 +249,16 @@ class TdxClient:
         '''
         return self.q_client().get_stock_top_board(category)
     
-    def stock_quotes_list(self, category: CATEGORY, start:int = 0, count: int = 0):
+    def stock_quotes_list(self, category: CATEGORY, start:int = 0, count: int = 80, sortType: SORT_TYPE = SORT_TYPE.CODE, reverse: bool = False, filter: list[FILTER_TYPE] = []):
         '''
         获取分类股票报价
         Args:
-            category: CATEGORY
-            start?: 起始位置
-            count?: 获取数量
+            category: CATEGORY(category)    市场分类
+            start?: int(start)              起始位置
+            count?: int(count)              获取数量
+            sortType?: SORT_TYPE(sortType)  排序类型
+            reverse?: bool(reverse)         倒序排序
+            filter?: list[FILTER_TYPE, ...] 过滤类型
         Return: 
             [{
                 'market': MARKET, # 市场
@@ -288,7 +291,7 @@ class TdxClient:
                 'active1': int(active), # 活跃度
             }, ...]
         '''
-        return self.q_client().get_stock_quotes_list(category, start, count)
+        return self.q_client().get_stock_quotes_list(category, start, count, sortType, reverse, filter)
     
     def stock_quotes(self, code_list: MARKET | list[tuple[MARKET, str]], code: str = None):
         '''
@@ -515,6 +518,50 @@ class TdxClient:
         '''
         return self.eq_client().get_list(start, count)
     
+    def goods_quotes_list(self, category: EX_CATEGORY, start: int = 0, count: int = 100, sortType: SORT_TYPE = SORT_TYPE.CODE, reverse: bool = False):
+        '''
+        获取期货商品行情列表
+        Args:
+            category: EX_CATEGORY(category) 市场分类
+            start?: int(start)              起始位置
+            count?: int(count)              获取数量
+            sortType?: SORT_TYPE(sortType)  排序类型
+            reverse?: bool(reverse)         倒序排序
+        Return: 
+            [{
+                'category': EX_CATEGORY(category),
+                'code': str(code),
+                'active': int(active),
+                'pre_close': float(pre_close),
+                'open': float(open),
+                'high': float(high),
+                'low': float(low),
+                'current': float(current),
+                'open_position': int(open_position),
+                'add_position': int(add_position),
+                'vol': int(vol),
+                'curr_vol': int(curr_vol),
+                'amount': float(amount),
+                'in_vol': int(in_vol),
+                'ex_vol': int(ex_vol),
+                'hold_position': int(hold_position),
+                'pending': {
+                    'bids': [{'price': float(price), 'vol': int(vol)}, ...],
+                    'asks': [{'price': float(price), 'vol': int(vol)}, ...],
+                },
+                'settlement_price': float(settlement_price),
+                'average_price': float(average_price),
+                'pre_settlement_price': float(pre_settlement_price),
+                'pre_close_price': float(pre_close_price),
+                'pre_vol': int(pre_vol),
+                'day3_raise': float(day3_raise_percent),
+                'settlement_price2': float(settlement_price2),
+                'date': date(date),
+                'raise_speed': float(raise_speed_percent),
+            }, ...]
+        '''
+        return self.eq_client().get_quotes_list(category, start, count, sortType, reverse)
+    
     def goods_quotes_single(self, category: EX_CATEGORY, code: str):
         '''
         获取商品行情
@@ -558,13 +605,13 @@ class TdxClient:
     
     def goods_quotes(self, code_list: EX_CATEGORY | list[tuple[EX_CATEGORY, str]], code = None):
         '''
-        获取多个商品行情
+        获取多个期货商品行情
         支持三种形式的参数
-        goods_quotes_list(market, code )
-        goods_quotes_list((market, code))
-        goods_quotes_list([(market1, code1), (market2, code2)] )
+        goods_quotes(market, code )
+        goods_quotes((market, code))
+        goods_quotes([(market1, code1), (market2, code2)] )
         Args:
-            [(category: EX_CATEGORY(category), code: str(code)), ...]
+            [(category: EX_CATEGORY(category), code: str(code)), ...] # 期货商品列表
         Return: 
             [{
                 'category': EX_CATEGORY(category),
@@ -655,90 +702,6 @@ class TdxClient:
         '''
         return self.eq_client().get_table_detail()
     
-    def futures_quotes_list(self, category: EX_CATEGORY):
-        '''
-        获取期货商品行情列表
-        Args:
-            category: EX_CATEGORY(category)
-        Return: 
-            [{
-                'category': EX_CATEGORY(category),
-                'code': str(code),
-                'active': int(active),
-                'pre_close': float(pre_close),
-                'open': float(open),
-                'high': float(high),
-                'low': float(low),
-                'current': float(current),
-                'open_position': int(open_position),
-                'add_position': int(add_position),
-                'vol': int(vol),
-                'curr_vol': int(curr_vol),
-                'amount': float(amount),
-                'in_vol': int(in_vol),
-                'ex_vol': int(ex_vol),
-                'hold_position': int(hold_position),
-                'pending': {
-                    'bids': [{'price': float(price), 'vol': int(vol)}, ...],
-                    'asks': [{'price': float(price), 'vol': int(vol)}, ...],
-                },
-                'settlement_price': float(settlement_price),
-                'average_price': float(average_price),
-                'pre_settlement_price': float(pre_settlement_price),
-                'pre_close_price': float(pre_close_price),
-                'pre_vol': int(pre_vol),
-                'day3_raise': float(day3_raise_percent),
-                'settlement_price2': float(settlement_price2),
-                'date': date(date),
-                'raise_speed': float(raise_speed_percent),
-            }, ...]
-        '''
-        return self.eq_client().get_futures_quotes_list(category)
-    
-    def futures_quotes(self, code_list: EX_CATEGORY | list[tuple[EX_CATEGORY, str]], code = None):
-        '''
-        获取多个期货商品行情
-        支持三种形式的参数
-        futures_quotes(market, code )
-        futures_quotes((market, code))
-        futures_quotes([(market1, code1), (market2, code2)] )
-        Args:
-            [(category: EX_CATEGORY(category), code: str(code)), ...] # 期货商品列表
-        Return: 
-            [{
-                'category': EX_CATEGORY(category),
-                'code': str(code),
-                'active': int(active),
-                'pre_close': float(pre_close),
-                'open': float(open),
-                'high': float(high),
-                'low': float(low),
-                'current': float(current),
-                'open_position': int(open_position),
-                'add_position': int(add_position),
-                'vol': int(vol),
-                'curr_vol': int(curr_vol),
-                'amount': float(amount),
-                'in_vol': int(in_vol),
-                'ex_vol': int(ex_vol),
-                'hold_position': int(hold_position),
-                'pending': {
-                    'bids': [{'price': float(price), 'vol': int(vol)}, ...],
-                    'asks': [{'price': float(price), 'vol': int(vol)}, ...],
-                },
-                'settlement_price': float(settlement_price),
-                'average_price': float(average_price),
-                'pre_settlement_price': float(pre_settlement_price),
-                'pre_close_price': float(pre_close_price),
-                'pre_vol': int(pre_vol),
-                'day3_raise': float(day3_raise_percent),
-                'settlement_price2': float(settlement_price2),
-                'date': date(date),
-                'raise_speed': float(raise_speed_percent),
-            }, ...]
-        '''
-        return self.eq_client().get_futures_quotes(code_list, code)
-    
     def goods_tick_chart(self, category: EX_CATEGORY, code: str):
         '''
         获取商品分时图
@@ -800,7 +763,7 @@ if __name__ == '__main__':
         print(pd.DataFrame(client.tick_chart(MARKET.SZ, '000001')))
         print(pd.DataFrame(client.stock_quotes_detail(MARKET.SZ, '000001')))
         print(pd.DataFrame(client.stock_top_board()))
-        print(pd.DataFrame(client.stock_quotes_list(CATEGORY.A)))
+        print(pd.DataFrame(client.stock_quotes_list(CATEGORY.A, count = 0, sortType=SORT_TYPE.TOTAL_AMOUNT)))
         print(pd.DataFrame(client.stock_quotes(MARKET.SZ, '000001')))
         print(pd.DataFrame(client.stock_unusual(MARKET.SZ)))
         print(pd.DataFrame(client.stock_history_orders(MARKET.SZ, '000001', date(2026, 3, 16))))
@@ -810,20 +773,16 @@ if __name__ == '__main__':
         print(pd.DataFrame(client.stock_chart_sampling(MARKET.SZ, '000001')))
         print(pd.DataFrame(client.stock_f10(MARKET.SZ, '000001')))
 
-        print("获取ETF表")
-        print(pd.DataFrame(client.q_client().get_csv_file('spec/specjjdata.txt'), columns=['code', 'market', '_', 'date', '最新净资产M', '现价？']))
-
         print(client.goods_count())
         print(pd.DataFrame(client.goods_category_list()))
         print(pd.DataFrame(client.goods_list()))
+        print(pd.DataFrame(client.goods_quotes_list(EX_CATEGORY.US_STOCK, sortType=SORT_TYPE.TOTAL_AMOUNT)))
         print(pd.DataFrame([client.goods_quotes_single(EX_CATEGORY.US_STOCK, 'TSLA')]))
-        print(pd.DataFrame(client.goods_quotes([(EX_CATEGORY.US_STOCK, 'TSLA')])))
+        print(pd.DataFrame(client.goods_quotes([(EX_CATEGORY.US_STOCK, 'TSLA'), (EX_CATEGORY.HK_MAIN_BOARD, '09988')])))
         print(pd.DataFrame(client.goods_kline(EX_CATEGORY.US_STOCK, 'TSLA', PERIOD.DAILY)))
         print(pd.DataFrame(client.goods_history_transaction(EX_CATEGORY.US_STOCK, 'TSLA', date(2026, 3, 3))))
         print(client.goods_table())
         print(client.goods_table_detail())
-        print(pd.DataFrame(client.futures_quotes_list(EX_CATEGORY.US_STOCK)))
-        print(pd.DataFrame(client.futures_quotes([(EX_CATEGORY.US_STOCK, 'TSLA')])))
         print(pd.DataFrame(client.goods_tick_chart(EX_CATEGORY.US_STOCK, 'TSLA')))
         print(pd.DataFrame(client.goods_history_tick_chart(EX_CATEGORY.US_STOCK, 'TSLA', date(2026, 3, 3))))
         print(pd.DataFrame(client.goods_chart_sampling(EX_CATEGORY.US_STOCK, 'TSLA')))
