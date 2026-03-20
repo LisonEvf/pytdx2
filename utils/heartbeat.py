@@ -25,11 +25,16 @@ class HeartBeatThread(Thread):
     def run(self):
         while not self.stop_event.is_set():
             self.stop_event.wait(self.heartbeat_interval)
-            if self.client and (time.time() - self.last_ack_time > self.heartbeat_interval):
-                try:
-                    # 发送一个获取股票数量的包作为心跳包
-                    self.heartbeat()
-                except Exception as e:
-                    log.debug(str(e))
+            if self.client:
+                # 只有在超过15秒没有新请求时才发送心跳
+                # 最近一次请求是在15秒前或更早
+                if time.time() - self.last_ack_time > self.heartbeat_interval:
+                    try:
+                        self.heartbeat()
+                    except Exception as e:
+                        log.debug(str(e))
+                else:
+                    # 15秒内有新请求，不发送心跳，等待下一次
+                    continue
 
 

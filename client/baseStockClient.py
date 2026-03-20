@@ -168,7 +168,7 @@ class BaseStockClient():
 
         log.debug("connected!")
 
-        if self.heartbeat:
+        if self.heartbeat and not (self.heartbeat_thread and self.heartbeat_thread.is_alive()):
             self.stop_event = threading.Event()
             self.heartbeat_thread = HeartBeatThread(self.client, self.stop_event, self.doHeartBeat)
             self.heartbeat_thread.daemon = True
