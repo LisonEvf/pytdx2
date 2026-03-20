@@ -57,7 +57,7 @@ class BoardMembersQuotes(BaseParser):
                 market_obj = MARKET
 
             base_info = {"name": name, "market": market_obj(market), "symbol": code}
-            # 定义字段名列表
+            # TODO 定义字段名列表, 原先根据futu接口名定义,后来发现与pytdx2不太一致,先改成中文
             field_names = [
                 "pre_close",
                 "open",
@@ -77,8 +77,7 @@ class BoardMembersQuotes(BaseParser):
                 "zero16",
                 "zero17",
                 "涨速",
-                "现量",
-                # "uk19",
+                "现量",  # 部分数据不是f , 而是H, 由f改为H2x
                 "换手率",
                 "uk21",
                 "uk22",
