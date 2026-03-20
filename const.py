@@ -168,6 +168,19 @@ ex_hosts = [
     ("扩展市场上海双线6", "118.89.69.202", 7727),
 ]
 
+# 并非所有服务端都有board相关的接口,似乎是单独的前置机提供服务
+board_hosts = [
+    # ("UNKNOW1", "120.76.1.198", 7709), #板块数据488
+    ("UNKNOW1", "121.36.248.138", 7709),  # 板块数据559
+    ("UNKNOW1", "121.37.207.165", 7709),
+]
+ex_board_hosts = [
+    ("扩展行情2", "121.37.232.167", 7727),
+    # ("扩展行情1", "116.205.135.205", 7727),
+]
+
+
+
 class MARKET(Enum):
     # 0 - 深圳， 1 - 上海
     SZ = 0
@@ -377,6 +390,14 @@ class BOARD_TYPE(Enum):
     OTHER12 = 9     #行业板块-二级行业  等同于1 可能是兼容
     ALL = 255       #全部板块
 
+class EX_BOARD_TYPE(Enum):
+    HK_ALL = 0  # 港股板块
+    HK_GN = 1  # 港股概念板块
+    HK_HY = 2  # 港股行业板块
+    US_ALL = 3  # 美股板块
+    US_GN = 4  # 美股概念板块
+    US_HY = 5  # 美股行业板块
+    
 class EX_MARKET(Enum):
     STOCK = 1               # 股票
     HK = 2                  # 香港
@@ -393,6 +414,7 @@ class EX_MARKET(Enum):
     US = 13                 # 美国
     DE = 14                 # 德国
     SG = 15                 # 新加坡
+    BOARD = 70              # 港股美股板块
 
 class EX_CATEGORY(Enum):
     TEMP_STOCK = 1                  # 临时股
@@ -439,7 +461,7 @@ class EX_CATEGORY(Enum):
     RISK_CONTROL_INDEX = 68         # 风控指数
     HUAZHENG_INDEX = 69             # 华证指数
     EXTENDED_SECTOR_INDEX = 70      # 扩展板块指数
-    HK_STOCK = 71                   # 港股
+    HK_STOCK_GGT = 71               # 港股港股通
     GE_STOCK = 73                   # 德国股票
     US_STOCK = 74                   # 美国股票
     SG_STOCK = 78                   # 新加坡股票
