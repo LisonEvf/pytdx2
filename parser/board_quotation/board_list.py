@@ -4,7 +4,7 @@ from typing import override
 from typing import Union
 
 from const import BOARD_TYPE, EX_BOARD_TYPE, EX_MARKET, MARKET, EX_CATEGORY
-from parser.base_parser import BaseParser, register_parser
+from parser.baseParser import BaseParser, register_parser
 
 
 @register_parser(0x1231, 1)
@@ -91,13 +91,13 @@ class BoardList(BaseParser):
 
             result.append(
                 {
-                    "market": market_obj(market),
+                    "market": market,
                     "code": code.decode("gbk").replace("\x00", ""),
                     "name": name.decode("gbk").replace("\x00", ""),
                     "price": price,
                     "rise_speed": rise_speed,
                     "pre_close": pre_close,
-                    "symbol_market": symbol_market_obj(symbol_market),
+                    "symbol_market": symbol_market,
                     "symbol_code": symbol_code.decode("gbk").replace("\x00", ""),
                     "symbol_name": symbol_name.decode("gbk").replace("\x00", ""),
                     "symbol_price": symbol_price,

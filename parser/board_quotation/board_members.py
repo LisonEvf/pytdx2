@@ -1,6 +1,6 @@
 import struct
 from typing import override
-from parser.base_parser import BaseParser, register_parser
+from parser.baseParser import BaseParser, register_parser
 from utils.help import exchange_board_code
 from const import BOARD_TYPE, EX_BOARD_TYPE, MARKET, EX_CATEGORY
 
