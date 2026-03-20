@@ -93,8 +93,8 @@ broker_hosts = [
     # ('安信', '123.126.133.14', 7709),
     # ('安信', '123.126.133.21', 7709),
     # ('安信', '211.139.150.61', 7709),
-    ('安信', '59.36.5.11', 7709),
-    ('广发', '119.29.19.242', 7709),
+    ("安信", "59.36.5.11", 7709),
+    ("广发", "119.29.19.242", 7709),
     # ('广发', '123.138.29.107', 7709),
     # ('广发', '123.138.29.108', 7709),
     # ('广发', '124.232.142.29', 7709),
@@ -106,43 +106,43 @@ broker_hosts = [
     # ('广发', '183.57.72.22', 7709),
     # ('广发', '183.57.72.23', 7709),
     # ('广发', '183.57.72.24', 7709),
-    ('广发', '183.60.224.177', 7709),
-    ('广发', '183.60.224.178', 7709),
+    ("广发", "183.60.224.177", 7709),
+    ("广发", "183.60.224.178", 7709),
     # ('国泰君安', '113.105.92.100', 7709),
     # ('国泰君安', '113.105.92.101', 7709),
     # ('国泰君安', '113.105.92.102', 7709),
     # ('国泰君安', '113.105.92.103', 7709),
     # ('国泰君安', '113.105.92.104', 7709),
     # ('国泰君安', '113.105.92.99', 7709),
-    ('国泰君安', '117.34.114.13', 7709),
-    ('国泰君安', '117.34.114.14', 7709),
-    ('国泰君安', '117.34.114.15', 7709),
-    ('国泰君安', '117.34.114.16', 7709),
-    ('国泰君安', '117.34.114.17', 7709),
-    ('国泰君安', '117.34.114.18', 7709),
-    ('国泰君安', '117.34.114.20', 7709),
-    ('国泰君安', '117.34.114.27', 7709),
-    ('国泰君安', '117.34.114.30', 7709),
-    ('国泰君安', '117.34.114.31', 7709),
-    ('国信', '182.131.3.252', 7709),
+    ("国泰君安", "117.34.114.13", 7709),
+    ("国泰君安", "117.34.114.14", 7709),
+    ("国泰君安", "117.34.114.15", 7709),
+    ("国泰君安", "117.34.114.16", 7709),
+    ("国泰君安", "117.34.114.17", 7709),
+    ("国泰君安", "117.34.114.18", 7709),
+    ("国泰君安", "117.34.114.20", 7709),
+    ("国泰君安", "117.34.114.27", 7709),
+    ("国泰君安", "117.34.114.30", 7709),
+    ("国泰君安", "117.34.114.31", 7709),
+    ("国信", "182.131.3.252", 7709),
     # ('国信', '183.60.224.11', 7709),
     # ('国信', '58.210.106.91', 7709),
     # ('国信', '58.63.254.216', 7709),
     # ('国信', '58.63.254.219', 7709),
-    ('国信', '58.63.254.247', 7709),
-    ('海通', '123.125.108.90', 7709),
-    ('海通', '175.6.5.153', 7709),
-    ('海通', '182.118.47.151', 7709),
-    ('海通', '182.131.3.245', 7709),
-    ('海通', '202.100.166.27', 7709),
+    ("国信", "58.63.254.247", 7709),
+    ("海通", "123.125.108.90", 7709),
+    ("海通", "175.6.5.153", 7709),
+    ("海通", "182.118.47.151", 7709),
+    ("海通", "182.131.3.245", 7709),
+    ("海通", "202.100.166.27", 7709),
     # ('海通', '222.161.249.156', 7709),
     # ('海通', '42.123.69.62', 7709),
-    ('海通', '58.63.254.191', 7709),
-    ('海通', '58.63.254.217', 7709),
+    ("海通", "58.63.254.191", 7709),
+    ("海通", "58.63.254.217", 7709),
     # ('华林', '120.55.172.97', 7709),
     # ('华林', '139.217.20.27', 7709),
-    ('华林', '202.100.166.21', 7709),
-    ('华林', '202.96.138.90', 7709),
+    ("华林", "202.100.166.21", 7709),
+    ("华林", "202.96.138.90", 7709),
     # ('华林', '218.106.92.182', 7709),
     # ('华林', '218.106.92.183', 7709),
     # ('华林', '220.178.55.71', 7709),
@@ -168,99 +168,115 @@ ex_hosts = [
     ("扩展市场上海双线6", "118.89.69.202", 7727),
 ]
 
+# 并非所有服务端都有board相关的接口,似乎是单独的前置机提供服务
+board_hosts = [
+    # ("UNKNOW1", "120.76.1.198", 7709), #板块数据488
+    ("UNKNOW1", "121.36.248.138", 7709),  # 板块数据559
+    ("UNKNOW1", "121.37.207.165", 7709),
+]
+ex_board_hosts = [
+    ("扩展行情2", "121.37.232.167", 7727),
+    # ("扩展行情1", "116.205.135.205", 7727),
+]
+
+
 class MARKET(Enum):
     # 0 - 深圳， 1 - 上海
     SZ = 0
     SH = 1
     BJ = 2
 
+
 class CATEGORY(Enum):
-    SH = 0      # 上证A
-    SZ = 2      # 深证A
-    A = 6       # A股
-    B = 7       # B股
-    KCB = 8     # 科创板
-    BJ = 12     # 北证A
-    CYB = 14    # 创业板
+    SH = 0  # 上证A
+    SZ = 2  # 深证A
+    A = 6  # A股
+    B = 7  # B股
+    KCB = 8  # 科创板
+    BJ = 12  # 北证A
+    CYB = 14  # 创业板
+
 
 class PERIOD(Enum):
-    MIN_1   = 7     # 1 分钟K 线
-    MIN_5   = 0     # 5 分钟K 线
-    MIN_15  = 1     # 15分钟K 线
-    MIN_30  = 2     # 30分钟K 线
-    MIN_60  = 3     # 60分钟K 线
-    DAILY   = 4     # 日K 线
-    WEEKLY  = 5     # 周K 线
-    MONTHLY = 6     # 月K 线
-    MINS    = 8     # 多分钟K 线 e.g. 10分钟
-    DAYS    = 9     # 多日K 线 e.g. 45日
+    MIN_1 = 7  # 1 分钟K 线
+    MIN_5 = 0  # 5 分钟K 线
+    MIN_15 = 1  # 15分钟K 线
+    MIN_30 = 2  # 30分钟K 线
+    MIN_60 = 3  # 60分钟K 线
+    DAILY = 4  # 日K 线
+    WEEKLY = 5  # 周K 线
+    MONTHLY = 6  # 月K 线
+    MINS = 8  # 多分钟K 线 e.g. 10分钟
+    DAYS = 9  # 多日K 线 e.g. 45日
     QUARTERLY = 10  # 季K 线
-    YEARLY  = 11    # 年K 线
-    SECONDS = 13    # 多秒K 线 e.g. 5秒 15秒
+    YEARLY = 11  # 年K 线
+    SECONDS = 13  # 多秒K 线 e.g. 5秒 15秒
+
 
 class FILTER_TYPE(Enum):
     NEW = 1  # 未开板次新股
-    KC  = 2  # 科创板
-    ST  = 4  # ST股
-    CY  = 8  # 创业板
-    BJ  = 16 # 北证A股
+    KC = 2  # 科创板
+    ST = 4  # ST股
+    CY = 8  # 创业板
+    BJ = 16  # 北证A股
+
 
 class SORT_TYPE(Enum):
     CODE = 0
     NAME = 0x1
-    PRE_CLOSE = 0x2 # 昨收
-    OPEN = 0x3 # 今开
-    HIGH = 0x4 # 最高
-    LOW = 0x5 # 最低
-    PRICE = 0x6 # 现价
-    BID = 0x7 # 买价
-    ASK = 0x8 # 卖价
-    VOLUME = 0x9 # 总量
-    TOTAL_AMOUNT = 0xa # 总金额
-    LAST_VOLUME = 0xb # 现量
-    CHANGE = 0xc # 涨跌
+    PRE_CLOSE = 0x2  # 昨收
+    OPEN = 0x3  # 今开
+    HIGH = 0x4  # 最高
+    LOW = 0x5  # 最低
+    PRICE = 0x6  # 现价
+    BID = 0x7  # 买价
+    ASK = 0x8  # 卖价
+    VOLUME = 0x9  # 总量
+    TOTAL_AMOUNT = 0xA  # 总金额
+    LAST_VOLUME = 0xB  # 现量
+    CHANGE = 0xC  # 涨跌
 
-    CHANGE_PCT = 0xe # 涨幅%
-    AMPLITUDE_PCT = 0xf # 振幅%
-    AVG = 0x10 # 均价
-    PE_DYNAMIC = 0x11 # 市盈(动)
-    ENTRUST_RATIO = 0x12 # 委比%
-    INSIDE_VOLUME = 0x13 # 内盘
-    OUTSIDE_VOLUME = 0x14 # 外盘
-    IN_OUT_RATIO = 0x15 # 内外比
+    CHANGE_PCT = 0xE  # 涨幅%
+    AMPLITUDE_PCT = 0xF  # 振幅%
+    AVG = 0x10  # 均价
+    PE_DYNAMIC = 0x11  # 市盈(动)
+    ENTRUST_RATIO = 0x12  # 委比%
+    INSIDE_VOLUME = 0x13  # 内盘
+    OUTSIDE_VOLUME = 0x14  # 外盘
+    IN_OUT_RATIO = 0x15  # 内外比
 
-    BID_VOLUME = 0x17 # 买量
-    ASK_VOLUME = 0x18 # 卖量
+    BID_VOLUME = 0x17  # 买量
+    ASK_VOLUME = 0x18  # 卖量
 
-    LOCKED_RATIO = 0x1b # 封成比
-    LOCKED_AMOUNT = 0x1c # 封单额
-    OPEN_AMOUNT = 0x1d # 开盘金额
-    OPEN_TURNOVER_PCT = 0x1e # 开盘换手%
+    LOCKED_RATIO = 0x1B  # 封成比
+    LOCKED_AMOUNT = 0x1C  # 封单额
+    OPEN_AMOUNT = 0x1D  # 开盘金额
+    OPEN_TURNOVER_PCT = 0x1E  # 开盘换手%
 
-    VOL_RATIO = 0x23 # 量比
-    TURNOVER_RATE = 0x24 # 换手%
-    FLOAT_SHARES = 0x25 # 流通股(亿)
-    FLOAT_MARKET_CAP = 0x26 # 流通市值
-    TOTAL_MARKET_CAP_AB = 0x27 # AB股总市值
+    VOL_RATIO = 0x23  # 量比
+    TURNOVER_RATE = 0x24  # 换手%
+    FLOAT_SHARES = 0x25  # 流通股(亿)
+    FLOAT_MARKET_CAP = 0x26  # 流通市值
+    TOTAL_MARKET_CAP_AB = 0x27  # AB股总市值
 
-    UNMATCHED_VOLUME = 0x2a # 未匹配量
-    STRENGTH_PCT = 0x2d # 强弱度%
-    SPEED_PCT = 0x2e # 涨速%
-    ACTIVITY = 0x2f # 活跃度
+    UNMATCHED_VOLUME = 0x2A  # 未匹配量
+    STRENGTH_PCT = 0x2D  # 强弱度%
+    SPEED_PCT = 0x2E  # 涨速%
+    ACTIVITY = 0x2F  # 活跃度
 
-    SHORT_TURNOVER_PCT = 0xcc # 短换手%
-    VOL_SPEED_PCT = 0xd0 # 量涨速%
-    MAIN_NET_AMOUNT = 0xd4 # 主力净额
-    MAIN_NET_RATIO = 0xd7 # 主力净比%
-    AUCTION_LIMIT_BUY = 0x102 # 竞价涨停买
-    AMOUNT_2M = 0x10c # 2分钟金额
-    OPEN_SNATCH_PCT = 0x10a # 开盘抢筹%
-    OPEN_PCT = 0x119 # 开盘%
-    HIGH_PCT = 0x11a # 最高%
-    LOW_PCT = 0x11b # 最低%
-    AVG_CHANGE_PCT = 0x11c # 均涨幅%
-    DRAWDOWN_PCT = 0x11e # 回撤%
-    ATTACK_PCT = 0x11f # 攻击%
+    SHORT_TURNOVER_PCT = 0xCC  # 短换手%
+    VOL_SPEED_PCT = 0xD0  # 量涨速%
+    MAIN_NET_AMOUNT = 0xD4  # 主力净额
+    MAIN_NET_RATIO = 0xD7  # 主力净比%
+    AUCTION_LIMIT_BUY = 0x102  # 竞价涨停买
+    AMOUNT_2M = 0x10C  # 2分钟金额
+    OPEN_SNATCH_PCT = 0x10A  # 开盘抢筹%
+    OPEN_PCT = 0x119  # 开盘%
+    HIGH_PCT = 0x11A  # 最高%
+    LOW_PCT = 0x11B  # 最低%
+    AVG_CHANGE_PCT = 0x11C  # 均涨幅%
+    DRAWDOWN_PCT = 0x11E  # 回撤%
+    ATTACK_PCT = 0x11F  # 攻击%
 
     # INDUSTRY = 0x0 # 细分行业
     # REGION = 0x0 # 地区
@@ -297,7 +313,7 @@ class SORT_TYPE(Enum):
     # SHORT_TERM_PATTERN = 0x0 # 短期形态
     # MEDIUM_TERM_PATTERN = 0x0 # 中期形态
     # LONG_TERM_PATTERN = 0x0 # 长期形态
-   
+
     # FINANCIAL_UPDATE = 0x0 # 财务更新
     # LISTING_DATE = 0x0 # 上市日期
     # TOTAL_SHARES = 0x0 # 总股本(亿)
@@ -354,13 +370,14 @@ class SORT_TYPE(Enum):
     # WATCHLIST_DATE = 0x0 # 自选日
     # WATCHLIST_PRICE = 0x0 # 自选价
     # WATCHLIST_RETURN_PCT = 0x0 # 自选收益率%
-    
+
 
 class BLOCK_FILE_TYPE(Enum):
-    DEFAULT = 'block.dat'   # 一般板块
-    ZS = 'block_zs.dat'     # 指数板块
-    FG = 'block_fg.dat'     # 风格板块
-    GN = 'block_gn.dat'     # 概念板块
+    DEFAULT = "block.dat"  # 一般板块
+    ZS = "block_zs.dat"  # 指数板块
+    FG = "block_fg.dat"  # 风格板块
+    GN = "block_gn.dat"  # 概念板块
+
 
 class BOARD_TYPE(Enum):
     HY = 0
@@ -369,82 +386,93 @@ class BOARD_TYPE(Enum):
     GN = 3
     FG = 4
     DQ = 5
-    
-    UNKNOW = 6             #其他 397个
-    HY_OTHER = 7           #行业 30个
-    
-    OTHER11 = 8     #行业板块-其他     等同于0 可能是兼容
-    OTHER12 = 9     #行业板块-二级行业  等同于1 可能是兼容
-    ALL = 255       #全部板块
+
+    UNKNOW = 6  # 其他 397个
+    HY_OTHER = 7  # 行业 30个
+
+    OTHER11 = 8  # 行业板块-其他     等同于0 可能是兼容
+    OTHER12 = 9  # 行业板块-二级行业  等同于1 可能是兼容
+    ALL = 255  # 全部板块
+
+
+class EX_BOARD_TYPE(Enum):
+    HK_ALL = 0  # 港股板块
+    HK_GN = 1  # 港股概念板块
+    HK_HY = 2  # 港股行业板块
+    US_ALL = 3  # 美股板块
+    US_GN = 4  # 美股概念板块
+    US_HY = 5  # 美股行业板块
+
 
 class EX_MARKET(Enum):
-    STOCK = 1               # 股票
-    HK = 2                  # 香港
-    FUTURES = 3             # 期货
-    FX = 4                  # 汇率
-    INDEX = 5               # 指数
-    VALUATION = 6           # 估值
-    MONEY = 7               # 资金
-    FUND = 8                # 基金
-    MONETARY_FUND = 9       # 货币基金
-    INDICATOR = 10          # 指标
-    MIRROR = 11             # 镜像
-    OPTION = 12             # 期权
-    US = 13                 # 美国
-    DE = 14                 # 德国
-    SG = 15                 # 新加坡
+    STOCK = 1  # 股票
+    HK = 2  # 香港
+    FUTURES = 3  # 期货
+    FX = 4  # 汇率
+    INDEX = 5  # 指数
+    VALUATION = 6  # 估值
+    MONEY = 7  # 资金
+    FUND = 8  # 基金
+    MONETARY_FUND = 9  # 货币基金
+    INDICATOR = 10  # 指标
+    MIRROR = 11  # 镜像
+    OPTION = 12  # 期权
+    US = 13  # 美国
+    DE = 14  # 德国
+    SG = 15  # 新加坡
+
 
 class EX_CATEGORY(Enum):
-    TEMP_STOCK = 1                  # 临时股
-    ZZ_FUTURES_OPTION = 4           # 郑州商品期权
-    DL_FUTURES_OPTION = 5           # 大连商品期权
-    SH_FUTURES_OPTION = 6           # 上海商品期权
-    CFFEX_OPTION = 7                # 中金所期权
-    SH_STOCK_OPTION = 8             # 上海股票期权
-    SZ_STOCK_OPTION = 9             # 深圳股票期权
-    BASIC_FX = 10                   # 基本汇率
-    CROSS_FX = 11                   # 交叉汇率
-    INTL_INDEX = 12                 # 国际指数
-    COMEX_FUTURES = 16              # 纽约COMEX
-    NYMEX_FUTURES = 17              # 纽约NYMEX
-    CBOT_FUTURES = 18               # 芝加哥CBOT
-    HK_FINANCIAL_FUTURES = 23       # 香港金融期货
-    HK_FINANCIAL_OPTIONS = 24       # 香港金融期权
-    HK_STOCK_FUTURES = 25           # 香港股票期货
-    HK_STOCK_OPTIONS = 26           # 香港股票期权
-    HK_INDEX = 27                   # 香港指数
-    ZZ_FUTURES = 28                 # 郑州商品
-    DL_FUTURES = 29                 # 大连商品
-    SH_FUTURES = 30                 # 上海期货
-    HK_MAIN_BOARD = 31              # 香港主板
-    OPEN_END_FUND = 33              # 开放式基金
-    MONETARY_FUND = 34              # 货币型基金
-    MACRO_INDICATOR = 38            # 宏观指标
-    FUTURES_INDEX = 42              # 商品指数
-    B_TO_H = 43                     # B股转H股
-    NEEQ = 44                       # 股转系统
-    SH_GOLD = 46                    # 上海黄金
-    CFFEX_FUTURES = 47              # 中金所期货
-    HK_GEM = 48                     # 香港创业板
-    HK_FUND = 49                    # 香港基金
-    TREASURY_VALUATION = 54         # 国债预发行
-    SUNSHINE_PRIVATE_FUND = 56      # 阳光私募基金
+    TEMP_STOCK = 1  # 临时股
+    ZZ_FUTURES_OPTION = 4  # 郑州商品期权
+    DL_FUTURES_OPTION = 5  # 大连商品期权
+    SH_FUTURES_OPTION = 6  # 上海商品期权
+    CFFEX_OPTION = 7  # 中金所期权
+    SH_STOCK_OPTION = 8  # 上海股票期权
+    SZ_STOCK_OPTION = 9  # 深圳股票期权
+    BASIC_FX = 10  # 基本汇率
+    CROSS_FX = 11  # 交叉汇率
+    INTL_INDEX = 12  # 国际指数
+    COMEX_FUTURES = 16  # 纽约COMEX
+    NYMEX_FUTURES = 17  # 纽约NYMEX
+    CBOT_FUTURES = 18  # 芝加哥CBOT
+    HK_FINANCIAL_FUTURES = 23  # 香港金融期货
+    HK_FINANCIAL_OPTIONS = 24  # 香港金融期权
+    HK_STOCK_FUTURES = 25  # 香港股票期货
+    HK_STOCK_OPTIONS = 26  # 香港股票期权
+    HK_INDEX = 27  # 香港指数
+    ZZ_FUTURES = 28  # 郑州商品
+    DL_FUTURES = 29  # 大连商品
+    SH_FUTURES = 30  # 上海期货
+    HK_MAIN_BOARD = 31  # 香港主板
+    OPEN_END_FUND = 33  # 开放式基金
+    MONETARY_FUND = 34  # 货币型基金
+    MACRO_INDICATOR = 38  # 宏观指标
+    FUTURES_INDEX = 42  # 商品指数
+    B_TO_H = 43  # B股转H股
+    NEEQ = 44  # 股转系统
+    SH_GOLD = 46  # 上海黄金
+    CFFEX_FUTURES = 47  # 中金所期货
+    HK_GEM = 48  # 香港创业板
+    HK_FUND = 49  # 香港基金
+    TREASURY_VALUATION = 54  # 国债预发行
+    SUNSHINE_PRIVATE_FUND = 56  # 阳光私募基金
     BROKER_COLLECTIVE_FINANCE = 57  # 券商集合理财
-    BROKER_MONETARY_FINANCE = 58    # 券商货币理财
-    MAIN_FUTURES_CONTRACT = 60      # 主力期货合约
-    CSI_INDEX = 62                  # 中证指数
-    GZ_ARBITRAGE_FUTURES = 65       # 广州套利期货
-    GZ_FUTURES = 66                 # 广州期货
-    GZ_OPTIONS = 67                 # 广州期权
-    RISK_CONTROL_INDEX = 68         # 风控指数
-    HUAZHENG_INDEX = 69             # 华证指数
-    EXTENDED_SECTOR_INDEX = 70      # 扩展板块指数
-    HK_STOCK = 71                   # 港股
-    GE_STOCK = 73                   # 德国股票
-    US_STOCK = 74                   # 美国股票
-    SG_STOCK = 78                   # 新加坡股票
-    MONEY_MARKET = 91               # 资金市场
-    FUND_VALUATION = 93             # 基金估值
-    HK_DARK_POOL = 98               # 港股暗盘
-    CODE_MIRROR = 100               # 代码镜像
-    SZSE_INDEX = 102                # 国证指数
+    BROKER_MONETARY_FINANCE = 58  # 券商货币理财
+    MAIN_FUTURES_CONTRACT = 60  # 主力期货合约
+    CSI_INDEX = 62  # 中证指数
+    GZ_ARBITRAGE_FUTURES = 65  # 广州套利期货
+    GZ_FUTURES = 66  # 广州期货
+    GZ_OPTIONS = 67  # 广州期权
+    RISK_CONTROL_INDEX = 68  # 风控指数
+    HUAZHENG_INDEX = 69  # 华证指数
+    EXTENDED_SECTOR_INDEX = 70  # 扩展板块指数
+    HK_STOCK = 71  # 港股
+    GE_STOCK = 73  # 德国股票
+    US_STOCK = 74  # 美国股票
+    SG_STOCK = 78  # 新加坡股票
+    MONEY_MARKET = 91  # 资金市场
+    FUND_VALUATION = 93  # 基金估值
+    HK_DARK_POOL = 98  # 港股暗盘
+    CODE_MIRROR = 100  # 代码镜像
+    SZSE_INDEX = 102  # 国证指数
