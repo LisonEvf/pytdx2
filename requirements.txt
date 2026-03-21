@@ -1,5 +1,7 @@
-pandas
-numpy
+pandas>=2.0.0
+numpy>=1.24.0
+mcp>=1.0.0
+fastmcp>=0.1.0
 struct
 six
 zlib
