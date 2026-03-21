@@ -1,5 +1,4 @@
 import struct
-from typing import override
 
 from const import EX_CATEGORY
 from parser.baseParser import BaseParser, register_parser
@@ -15,7 +14,6 @@ class ChartSampling(BaseParser):
     def __init__(self, category: EX_CATEGORY, code: str):
         self.body = struct.pack('<H22sHH9x', category.value, code.encode('gbk'), 1, 20)
 
-    @override
     def deserialize(self, data):
         category, code, a,b,c,d,e,f,g,h, count = struct.unpack('<H22s9H', data[:42])
         print(a,b,c,d,e,f,g,h, count)

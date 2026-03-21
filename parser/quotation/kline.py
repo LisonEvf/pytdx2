@@ -1,5 +1,4 @@
 import struct
-from typing import override
 
 from const import MARKET, PERIOD
 from parser.baseParser import BaseParser, register_parser
@@ -13,7 +12,6 @@ class K_Line(BaseParser):
         
         self.period = period
         
-    @override
     def deserialize(self, data):
         data_len = len(data)
         count, = struct.unpack('<H', data[:2])

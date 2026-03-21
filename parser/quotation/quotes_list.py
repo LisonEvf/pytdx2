@@ -1,5 +1,4 @@
 import struct
-from typing import override
 
 from const import CATEGORY, FILTER_TYPE, MARKET, SORT_TYPE
 from parser.baseParser import BaseParser, register_parser
@@ -15,7 +14,6 @@ class QuotesList(BaseParser):
             filter_raw &= filter_type.value
 
         self.body = struct.pack('<9H', category.value, sortType.value, start, count,  sort_reverse, 5, filter_raw, 1, 0)
-    @override
     def deserialize(self, data):
         block, count = struct.unpack('<HH', data[:4])
         pos = 4

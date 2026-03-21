@@ -49,7 +49,6 @@ __all__ = [
 from const import MARKET
 from parser.baseParser import BaseParser, register_parser
 import struct
-from typing import override
 
 
     
@@ -58,7 +57,6 @@ class f452(BaseParser):
     def __init__(self, start:int = 0, count:int = 2000):
         self.body = struct.pack('<IIIH', start, count, 1, 0)
 
-    @override
     def deserialize(self, data):
         count, = struct.unpack('<H', data[:2])
         result = []
@@ -143,7 +141,6 @@ class TODO547(BaseParser):
             self.body.extend(struct.pack('<B6sHH', market.value, code.encode('gbk'), 22234, 2))
         print('body: ', self.body.hex())
 
-    @override
     def deserialize(self, data):
         print(struct.unpack('<H', data[:2]))
         print('data: ', data.hex())

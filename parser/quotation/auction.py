@@ -1,6 +1,5 @@
 from datetime import time
 import struct
-from typing import override
 
 from const import MARKET
 from parser.baseParser import BaseParser, register_parser
@@ -11,7 +10,6 @@ class Auction(BaseParser):
     def __init__(self, market: MARKET, code: str, start: int = 0, count: int = 500):
         self.body = struct.pack(u'<H6sIIIII', market.value, code.encode('gbk'), 0, 3, 0, start, count)
 
-    @override
     def deserialize(self, data):
         count, = struct.unpack('<H', data[:2])
 

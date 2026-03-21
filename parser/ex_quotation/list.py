@@ -1,5 +1,4 @@
 import struct
-from typing import override
 
 from parser.baseParser import BaseParser, register_parser
 
@@ -8,7 +7,6 @@ class List(BaseParser):
     def __init__(self, start, count):
         self.body = struct.pack('<IH', start, count)
 
-    @override
     def deserialize(self, data):
         start, count = struct.unpack('<IH', data[:6])
         

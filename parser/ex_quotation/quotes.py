@@ -1,5 +1,4 @@
 import struct
-from typing import override
 
 from const import EX_CATEGORY
 from parser.baseParser import BaseParser, register_parser
@@ -45,7 +44,6 @@ class Quotes(BaseParser):
         for category, code in code_list:
             self.body.extend(struct.pack('<B23s', category.value, code.encode('gbk')))
 
-    @override
     def deserialize(self, data):
         u, _, count = struct.unpack('<IIH', data[:10])
         results = []

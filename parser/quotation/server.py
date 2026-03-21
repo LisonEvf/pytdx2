@@ -1,6 +1,5 @@
 from datetime import date, datetime
 import struct
-from typing import override
 
 from parser.baseParser import BaseParser, register_parser
 
@@ -9,7 +8,6 @@ from parser.baseParser import BaseParser, register_parser
 # <b1cb7400 0c 07189500 00 0200 0200 0200 |0000
 @register_parser(0x2) # Login后
 class ExchangeAnnouncement(BaseParser):   
-    @override
     def deserialize(self, data):
         v, = struct.unpack('<B', data[:1])
         return {
@@ -21,7 +19,6 @@ class ExchangeAnnouncement(BaseParser):
 # <b1cb7400 0c 07189500 00 0400 0a00 0a00 |000000000000 a2ff3401
 @register_parser(0x4) # 心跳包15秒
 class HeartBeat(BaseParser):
-    @override
     def deserialize(self, data):
         (_, date) = struct.unpack('<6sI', data[:10])
         return date
@@ -30,7 +27,6 @@ class HeartBeat(BaseParser):
 class Announcement(BaseParser):
     def __init__(self):
         self.body = struct.pack('<54x')
-    @override
     def deserialize(self, data):
         had, = struct.unpack('<B', data[:1])
         if had == 0x01:
@@ -90,7 +86,6 @@ class TodoB(BaseParser):
         '749933ae27700357'\
         '7c8810a76fd73daf')
 
-    @override
     def deserialize(self, data):
         return data
 
@@ -109,7 +104,6 @@ class Login(BaseParser):
     def __init__(self):
         self.body = struct.pack('<B', 1)
 
-    @override
     def deserialize(self, data):
         (_, year, day, month, minute, hour, _, second, \
         unknown1, unknown2, unknown3, \
@@ -143,7 +137,6 @@ class Info(BaseParser):
     def __init__(self):
         self.body = bytearray()
                                       
-    @override
     def deserialize(self, data):
         # Region: 可能是大区？， 东区100：上海、深圳  北区90：北京  南区80：上海、广州 中区25：武汉  西区56：成都
         maybe_delay, unknown_aH, _, unknown_bH, info, unknown10s, content, server_sign, date1, unknown_cH, unknown_dH, unknown6s, \
@@ -171,7 +164,6 @@ class Info(BaseParser):
 # 690082500000b0620000130100000000
 @register_parser(0xfde)
 class TodoFDE(BaseParser):
-    @override
     def deserialize(self, data):
         (u1, u2, u3, u4) = struct.unpack('<IH165s16s', data[:187])
         return {
@@ -189,7 +181,6 @@ class UpgradeTip(BaseParser):
         # self.body = bytearray(struct.pack('<8s', '招商证券'.encode('gbk')))
         # self.body.extend(bytearray().fromhex(u'00 00 00 8f c2 25 40 13 00 00 d5 00 c9 cc bd f0 d7 ea 00 00 00 02'))
                                       
-    @override
     def deserialize(self, data):
         (had, unknow2, tips, unknow5, link) = struct.unpack('<BH50s5s120s', data[:178])
         tips = tips.decode('gbk').replace('\x00', '')

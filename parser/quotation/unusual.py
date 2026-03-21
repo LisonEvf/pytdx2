@@ -1,6 +1,5 @@
 from datetime import time
 import struct
-from typing import override
 
 from const import MARKET
 from parser.baseParser import BaseParser, register_parser
@@ -10,14 +9,13 @@ from parser.baseParser import BaseParser, register_parser
 class Unusual(BaseParser): # 主力监控
     def __init__(self, market: MARKET, start: int, count: int = 600):
         self.body = struct.pack('<HII', market.value, start, count)
-    @override
     def deserialize(self, data):
         def unpack_by_type(type: int, data: bytearray):
             v1, v2, v3, v4 = struct.unpack('<B3f', data)
             desc = ''
             val = ''
-            if type == 0x03: 
-                desc = f'主力{'买入' if v1 == 0x00 else '卖出'}' 
+            if type == 0x03:
+                desc = f'主力{"买入" if v1 == 0x00 else "卖出"}'
                 val = f'{v2:.2f}/{v3:.2f}'
             elif type == 0x04: 
                 desc = '加速拉升'
@@ -78,7 +76,7 @@ class Unusual(BaseParser): # 主力监控
                     desc = '尾盘打压'
                 val = f'{v2*100:.2f}%/{v3:.2f}'
             elif type == 0x16:
-                desc = f'盘中{'弱' if v2 < 0x00 else '强'}势'
+                desc = f'盘中{"弱" if v2 < 0x00 else "强"}势'
                 val = f'{v2*100:.2f}%'
             elif type == 0x1d:
                 desc = '急速拉升'

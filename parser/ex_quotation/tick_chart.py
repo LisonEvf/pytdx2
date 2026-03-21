@@ -1,6 +1,5 @@
 from datetime import time
 import struct
-from typing import override
 
 from const import EX_CATEGORY
 from parser.baseParser import BaseParser, register_parser
@@ -31,7 +30,6 @@ class TickChart(BaseParser):
     def __init__(self, category: EX_CATEGORY, code: str):
         self.body = struct.pack('<B23s8x', category.value, code.encode('gbk'))
     
-    @override
     def deserialize(self, data):
         category, code, count = struct.unpack('<B31sH', data[:34])
         # print(EX_CATEGORY(category), code.decode('gbk').replace('\x00', ''))

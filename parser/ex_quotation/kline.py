@@ -1,5 +1,4 @@
 import struct
-from typing import override
 
 from const import EX_CATEGORY, PERIOD
 from parser.baseParser import BaseParser, register_parser
@@ -10,7 +9,6 @@ class K_Line(BaseParser):
     def __init__(self, category: EX_CATEGORY, code: str, period: PERIOD, times: int = 1, start: int = 0, count: int = 800):
         self.body = struct.pack('<B9sHHIH', category.value, code.encode('gbk'), period.value, times, start, count)
         
-    @override
     def deserialize(self, data):
         category, name, period, times, _, count = struct.unpack('<B9sHHIH', data[:20])
 

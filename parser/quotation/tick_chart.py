@@ -1,5 +1,4 @@
 import struct
-from typing import override
 
 from const import MARKET
 from parser.baseParser import BaseParser, register_parser
@@ -11,7 +10,6 @@ class TickChart(BaseParser):
     def __init__(self, market: MARKET, code: str, start: int = 0, count: int = 0xba00):
         self.body = bytearray(struct.pack('<H6sHH', market.value, code.encode('gbk'), start, count))
         
-    @override
     def deserialize(self, data):
         num, _ = struct.unpack('<HH', data[:4])
 

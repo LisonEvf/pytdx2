@@ -1,5 +1,4 @@
 import struct
-from typing import override
 
 from const import MARKET
 from parser.baseParser import BaseParser, register_parser
@@ -10,7 +9,6 @@ class List(BaseParser):
     def __init__(self, market: MARKET, start: int = 0, count: int = 1600):
         self.body = struct.pack(u'<H3I', market.value, start, count, 0)
 
-    @override
     def deserialize(self, data):
         count, = struct.unpack('<H', data[:2])
         

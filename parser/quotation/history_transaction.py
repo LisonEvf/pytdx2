@@ -1,6 +1,5 @@
 from datetime import date, time
 import struct
-from typing import override
 
 from const import MARKET
 from parser.baseParser import BaseParser, register_parser
@@ -13,7 +12,6 @@ class HistoryTransaction(BaseParser):
         date = date.year * 10000 + date.month * 100 + date.day
         self.body = struct.pack(u'<IH6sHH', date, market.value, code.encode('gbk'), start, count)
 
-    @override
     def deserialize(self, data):
         count, pre_close = struct.unpack('<Hf', data[:6])
         pos = 6

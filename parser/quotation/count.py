@@ -1,6 +1,5 @@
 from datetime import date
 import struct
-from typing import override
 
 from const import MARKET
 from parser.baseParser import BaseParser, register_parser
@@ -12,6 +11,5 @@ class Count(BaseParser):
         today = date.today().year * 10000 + date.today().month * 100 + date.today().day
         self.body = struct.pack(u'<HI', market.value, today)
 
-    @override
     def deserialize(self, data):
         return struct.unpack('<H', data)[0]

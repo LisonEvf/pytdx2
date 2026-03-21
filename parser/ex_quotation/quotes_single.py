@@ -1,5 +1,4 @@
 import struct
-from typing import override
 
 from const import EX_CATEGORY
 from parser.baseParser import BaseParser, register_parser
@@ -10,6 +9,5 @@ class QuotesSingle(BaseParser):
     def __init__(self, category: EX_CATEGORY, code: str):
         self.body = struct.pack('<B9s', category.value, code.encode('gbk'))
     
-    @override
     def deserialize(self, data):
         return unpack_futures(data, 9)

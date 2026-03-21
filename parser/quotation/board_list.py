@@ -1,6 +1,5 @@
 # Contribute by @biner
 import struct
-from typing import override
 
 from const import BOARD_TYPE, MARKET
 from parser.baseParser import BaseParser, register_parser
@@ -13,7 +12,6 @@ class BoardList(BaseParser):
         sort_order = 1 # 不确定 sort_type 和 sort_order 具体如何联动
         self.body = struct.pack('<HHBBHH8x', page_size, board_type.value, sort_type,  sort_order, start, 1 )
 
-    @override
     def deserialize(self, data):
         _, count = struct.unpack('<HH', data[:4])
 

@@ -1,5 +1,4 @@
 import struct
-from typing import override
 
 from const import MARKET
 from parser.baseParser import BaseParser, register_parser
@@ -17,7 +16,6 @@ class QuotesDetail(BaseParser):
         for market, code in stocks:
             self.body.extend(struct.pack('<B6s', market.value, code.encode('gbk')))
 
-    @override
     def deserialize(self, data):
         _, count = struct.unpack('<HH', data[:4])
         pos = 4

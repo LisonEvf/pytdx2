@@ -1,5 +1,4 @@
 import struct
-from typing import override
 
 from const import MARKET
 from parser.baseParser import BaseParser, register_parser
@@ -11,7 +10,6 @@ class IndexMomentum(BaseParser):
     def __init__(self, market: MARKET, code: str):
         self.body = struct.pack(u'<H6s', market.value, code.encode('gbk'))
     
-    @override
     def deserialize(self, data):
         count, = struct.unpack('<H', data[:2])
         pos = 2

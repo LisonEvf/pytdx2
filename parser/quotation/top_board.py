@@ -1,5 +1,4 @@
 import struct
-from typing import override
 
 from const import CATEGORY, MARKET
 from parser.baseParser import BaseParser, register_parser
@@ -9,7 +8,6 @@ from parser.baseParser import BaseParser, register_parser
 class TopBoard(BaseParser):
     def __init__(self, category: CATEGORY, size: int = 20):
         self.body = struct.pack('<BB7sB', category.value, 5, bytes.fromhex('000000000100'), size)
-    @override
     def deserialize(self, data):
         size, = struct.unpack('<B', data[:1])
         pos = 1

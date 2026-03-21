@@ -1,6 +1,5 @@
 from datetime import date
 import math
-from typing import override
 from client.baseStockClient import BaseStockClient, update_last_ack_time
 from utils.block_reader import BlockReader, BlockReader_TYPE_FLAT
 from const import BLOCK_FILE_TYPE, CATEGORY, FILTER_TYPE, PERIOD, MARKET, SORT_TYPE, main_hosts
@@ -24,7 +23,6 @@ class QuotationClient(BaseStockClient):
             log.error("login failed: %s", e)
             return False
 
-    @override
     def doHeartBeat(self):
         result = self.call(server.HeartBeat())
         if self.heartbeat:
@@ -155,9 +153,9 @@ class QuotationClient(BaseStockClient):
             start += len(part)
             
         for quotes in results:
-            quotes['short_turnover'] = f'{(quotes['short_turnover'] / 100):.2f}%'
-            quotes['opening_rush'] = f'{(quotes['opening_rush'] / 100):.2f}%'
-            quotes['vol_rise_speed'] = f'{(quotes['vol_rise_speed']):.2f}%'
+            quotes['short_turnover'] = f'{(quotes["short_turnover"] / 100):.2f}%'
+            quotes['opening_rush'] = f'{(quotes["opening_rush"] / 100):.2f}%'
+            quotes['vol_rise_speed'] = f'{(quotes["vol_rise_speed"]):.2f}%'
             quotes['depth'] = f'{(quotes["depth"]):.2f}%'
 
         return self.quotes_adjustment(results)
@@ -173,9 +171,9 @@ class QuotationClient(BaseStockClient):
         quotes_list = self.call(stock.Quotes(all_stock))
 
         for quotes in quotes_list:
-            quotes['short_turnover'] = f'{(quotes['short_turnover'] / 100):.2f}%'
-            quotes['opening_rush'] = f'{(quotes['opening_rush'] / 100):.2f}%'
-            quotes['vol_rise_speed'] = f'{(quotes['vol_rise_speed']):.2f}%'
+            quotes['short_turnover'] = f'{(quotes["short_turnover"] / 100):.2f}%'
+            quotes['opening_rush'] = f'{(quotes["opening_rush"] / 100):.2f}%'
+            quotes['vol_rise_speed'] = f'{(quotes["vol_rise_speed"]):.2f}%'
             quotes['depth'] = f'{(quotes["depth"]):.2f}%'
 
         return self.quotes_adjustment(quotes_list)

@@ -1,6 +1,5 @@
 
 import struct
-from typing import override
 
 from const import EX_MARKET
 from parser.baseParser import BaseParser, register_parser
@@ -8,7 +7,6 @@ from parser.baseParser import BaseParser, register_parser
 
 @register_parser(0x23f4, 1)
 class CategoryList(BaseParser):
-    @override
     def deserialize(self, data):
         count, = struct.unpack('<H', data[:2])
 
