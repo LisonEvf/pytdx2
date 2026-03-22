@@ -336,6 +336,22 @@ class TdxClient:
         '''
         return self.q_client().get_quotes(code_list, code)
     
+    def stock_auction(self, market: MARKET, code: str):
+        '''
+        获取竞价数据
+        Args:
+            market: MARKET
+            code: str(code)
+        Return: 
+            [{
+                'time': time(time),
+                'price': float(code),
+                'matched': int(matched),
+                'unmatched': int(unmatched),
+            }, ...]
+        '''
+        return self.q_client().get_auction(market, code)
+    
     def stock_unusual(self, market: MARKET, start: int = 0, count: int = 0):
         '''
         获取异动数据
@@ -348,7 +364,7 @@ class TdxClient:
                 'index': int(index),
                 'market': MARKET,
                 'code': str(code),
-                'time': str(time),
+                'time': time(time),
                 'desc': str(desc),
                 'value': str(value),
             }, ...]
@@ -766,6 +782,7 @@ if __name__ == '__main__':
         print(pd.DataFrame(client.stock_quotes_list(CATEGORY.A, count = 0, sortType=SORT_TYPE.TOTAL_AMOUNT)))
         print(pd.DataFrame(client.stock_quotes(MARKET.SZ, '000001')))
         print(pd.DataFrame(client.stock_unusual(MARKET.SZ)))
+        print(pd.DataFrame(client.stock_auction(MARKET.SZ, '300308')))
         print(pd.DataFrame(client.stock_history_orders(MARKET.SZ, '000001', date(2026, 3, 16))))
         print(pd.DataFrame(client.stock_history_transaction(MARKET.SZ, '000001', date(2026, 3, 16))))
         print(pd.DataFrame(client.stock_transaction(MARKET.SZ, '000001')))
