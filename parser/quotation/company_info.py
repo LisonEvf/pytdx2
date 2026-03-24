@@ -30,7 +30,7 @@ class Category(BaseParser):
         for i in range(count):
             category_buf = data[2 + i * 152:2 + (i + 1) * 152]
 
-            (name, filename, start, length) = struct.unpack("<64s80sII", category_buf)
+            name, filename, start, length = struct.unpack("<64s80sII", category_buf)
             categories.append({
                 'name': get_str(name),
                 'filename': get_str(filename),
@@ -56,7 +56,7 @@ class Content(BaseParser):
 
     @override
     def deserialize(self, data):
-        (market, code, marketOR, length) = struct.unpack(u"<H6sHH", data[:12])
+        market, code, marketOR, length = struct.unpack(u"<H6sHH", data[:12])
 
         return {
             'market': market,
@@ -75,7 +75,7 @@ class Finance(BaseParser):
         self.body = struct.pack(u"<HB6s", 1, market.value, code)
 
     @override
-    def deserialize(self, data):
+    def deserialize(self, data) -> dict:
         (
             num,
             market,

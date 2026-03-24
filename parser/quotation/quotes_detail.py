@@ -65,13 +65,13 @@ class QuotesDetail(BaseParser):
                     'vol': ask_vol,
                 })
 
-            (unknown, _, rise_speed, active2) = struct.unpack('<h4shH', data[pos: pos + 10])
+            unknown, _, rise_speed, active2 = struct.unpack('<h4shH', data[pos: pos + 10])
             pos += 10
 
             quotes.append({
                 'market': MARKET(market),
                 'code': code.decode('gbk'),
-                'price': price,
+                'close': price,
                 'open': open + price,
                 'high': high + price,
                 'low': low + price,

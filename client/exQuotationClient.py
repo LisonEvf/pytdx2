@@ -29,19 +29,19 @@ class exQuotationClient(BaseStockClient):
             return None
     
     @update_last_ack_time
-    def get_count(self):
+    def get_count(self) -> int:
         return self.call(goods.Count())
     
     @update_last_ack_time
-    def get_category_list(self):
+    def get_category_list(self) -> list[dict]:
         return self.call(goods.CategoryList())
     
     @update_last_ack_time
-    def get_list(self, start: int = 0, count: int = 2000):
+    def get_list(self, start: int = 0, count: int = 2000) -> list[dict]:
         return self.call(goods.List(start, count))
 
     @update_last_ack_time
-    def get_quotes_list(self, category: EX_CATEGORY, start: int = 0, count: int = 100, sortType: SORT_TYPE = SORT_TYPE.CODE, reverse: bool = False):
+    def get_quotes_list(self, category: EX_CATEGORY, start: int = 0, count: int = 100, sortType: SORT_TYPE = SORT_TYPE.CODE, reverse: bool = False) -> list[dict]:
         MAX_QUOTE_COUNT = 100
         results = []
         # 如果 count 为 0，则设置 remaining 为无穷大，表示获取所有数据
@@ -58,11 +58,11 @@ class exQuotationClient(BaseStockClient):
         return results
     
     @update_last_ack_time
-    def get_quotes_single(self, category: EX_CATEGORY, code):
+    def get_quotes_single(self, category: EX_CATEGORY, code) -> dict:
         return self.call(goods.QuotesSingle(category, code))
     
     @update_last_ack_time
-    def get_quotes(self, code_list: list[tuple[EX_CATEGORY, str]], code = None):
+    def get_quotes(self, code_list: list[tuple[EX_CATEGORY, str]], code = None) -> list[dict]:
         if code is not None:
             code_list = [(code_list, code)]
         elif (isinstance(code_list, list) or isinstance(code_list, tuple))\
@@ -71,7 +71,7 @@ class exQuotationClient(BaseStockClient):
         return self.call(goods.Quotes(code_list))
     
     @update_last_ack_time
-    def get_quotes2(self, code_list: list[tuple[EX_CATEGORY, str]], code):
+    def get_quotes2(self, code_list: list[tuple[EX_CATEGORY, str]], code) -> list[dict]:
         if code is not None:
             code_list = [(code_list, code)]
         elif (isinstance(code_list, list) or isinstance(code_list, tuple))\
@@ -81,11 +81,11 @@ class exQuotationClient(BaseStockClient):
         return self.call(goods.Quotes2(code_list))
     
     @update_last_ack_time
-    def get_kline(self, category: EX_CATEGORY, code: str, period: PERIOD, start: int = 0, count: int = 800, times: int = 1):
+    def get_kline(self, category: EX_CATEGORY, code: str, period: PERIOD, start: int = 0, count: int = 800, times: int = 1) -> list[dict]:
         return self.call(goods.K_Line(category, code, period, times, start, count))
     
     @update_last_ack_time
-    def get_history_transaction(self, category: EX_CATEGORY, code: str, date: date):
+    def get_history_transaction(self, category: EX_CATEGORY, code: str, date: date) -> list[dict]:
         return self.call(goods.HistoryTransaction(category, code, date))
     
     @update_last_ack_time
@@ -113,15 +113,14 @@ class exQuotationClient(BaseStockClient):
         return str
     
     @update_last_ack_time
-    def get_tick_chart(self, category: EX_CATEGORY, code: str):
-        return self.call(goods.TickChart(category, code))
+    def get_tick_chart(self, category: EX_CATEGORY, code: str, date: date = None) -> list[dict]:
+        if date is None:
+            return self.call(goods.TickChart(category, code))
+        else:
+            return self.call(goods.HistoryTickChart(category, code, date))
     
     @update_last_ack_time
-    def get_history_tick_chart(self, category: EX_CATEGORY, code: str, date: date):
-        return self.call(goods.HistoryTickChart(category, code, date))
-    
-    @update_last_ack_time
-    def get_chart_sampling(self, category: EX_CATEGORY, code: str):
+    def get_chart_sampling(self, category: EX_CATEGORY, code: str) -> list[float]:
         return self.call(goods.ChartSampling(category, code))
 
     @update_last_ack_time

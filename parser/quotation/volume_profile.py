@@ -78,7 +78,7 @@ class VolumeProfile(BaseParser):
         return {
             'market': MARKET(market),
             'code': code.decode('gbk'),
-            'price': price,
+            'close': price,
             'open': open + price,
             'high': high + price,
             'low': low + price,
@@ -88,8 +88,8 @@ class VolumeProfile(BaseParser):
             'vol': vol,
             'cur_vol': cur_vol,
             'amount': amount,
-            's_vol': s_vol, # 内盘
-            'b_vol': b_vol, # 外盘
+            'in_vol': s_vol, # 内盘
+            'out_vol': b_vol, # 外盘
             's_amount': s_amount,
             'open_amount': open_amount,
             'handicap': {

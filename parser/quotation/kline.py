@@ -57,8 +57,8 @@ class K_Line(BaseParser):
                 'amount': amount,
             }
             if upCount != 0 or downCount != 0:
-                bar['upCount'] = upCount
-                bar['downCount'] = downCount
+                bar['up_count'] = upCount
+                bar['down_count'] = downCount
             bars.append(bar)
             
         return bars

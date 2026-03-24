@@ -37,8 +37,8 @@ class QuotesList(BaseParser):
             amount, = struct.unpack('<f', data[pos: pos + 4])
             pos += 4
 
-            s_vol, pos = get_price(data, pos)
-            b_vol, pos = get_price(data, pos)
+            in_vol, pos = get_price(data, pos)
+            out_vol, pos = get_price(data, pos)
             s_amount, pos = get_price(data, pos) #reversed_bytes2
             open_amount, pos = get_price(data, pos) #reversed_bytes3
 
@@ -68,7 +68,7 @@ class QuotesList(BaseParser):
             stocks.append({
                 'market': MARKET(market),
                 'code': code.decode('gbk'),
-                'price': price,
+                'close': price,
                 'open': open + price,
                 'high': high + price,
                 'low': low + price,
@@ -78,8 +78,8 @@ class QuotesList(BaseParser):
                 'vol': vol,
                 'cur_vol': cur_vol,
                 'amount': amount,
-                's_vol': s_vol, # 内盘
-                'b_vol': b_vol, # 外盘
+                'in_vol': in_vol, # 内盘
+                'out_vol': out_vol, # 外盘
                 's_amount': s_amount,
                 'open_amount': open_amount,
                 'handicap': {
@@ -93,7 +93,6 @@ class QuotesList(BaseParser):
                 'opening_rush': opening_rush, # 开盘抢筹
                 'vol_rise_speed': vol_rise_speed, # 量涨速
                 'depth': depth, # 委比
-                'active1': active1, # 活跃度
-                'active2': active2, # 活跃度
+                'active': active1, # 活跃度
             })
         return stocks

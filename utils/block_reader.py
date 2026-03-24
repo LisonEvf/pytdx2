@@ -114,7 +114,7 @@ class CustomerBlockReader(BaseReader):
             codes = open(bf).read().splitlines()
             if result_type == BlockReader_TYPE_FLAT:
                 for index,code in enumerate(codes):
-                    if code is not '':
+                    if code is not "":
                         result.append(
                             OrderedDict([
                                 ("blockname",n1),
@@ -125,7 +125,7 @@ class CustomerBlockReader(BaseReader):
                         )
 
             if result_type == BlockReader_TYPE_GROUP:
-                cc = [c[1:] for c in codes if c is not '']
+                cc = [c[1:] for c in codes if c is not ""]
                 result.append(
                     OrderedDict([
                         ("blockname",n1),

@@ -18,7 +18,7 @@ class ChartSampling(BaseParser):
     @override
     def deserialize(self, data):
         category, code, a,b,c,d,e,f,g,h, count = struct.unpack('<H22s9H', data[:42])
-        print(a,b,c,d,e,f,g,h, count)
+        # print(a,b,c,d,e,f,g,h, count)
         
         prices = []
         for i in range(count):

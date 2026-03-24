@@ -85,7 +85,6 @@ def stock_kline(market: MARKET, code: str, period: PERIOD, start = 0, count = 80
     '''
     return quotationClient.get_kline(market, code, period, start, count, times)
 
-
 @mcp.tool()
 def stock_top_board(category: CATEGORY = CATEGORY.A):
     '''
