@@ -2,11 +2,11 @@ import json
 from datetime import date as date_type
 from datetime import datetime
 
-from client.exQuotationClient import exQuotationClient
-from client.quotationClient import QuotationClient
+from tdx_mcp.client.exQuotationClient import exQuotationClient
+from tdx_mcp.client.quotationClient import QuotationClient
 from mcp.server.fastmcp import FastMCP
 
-from const import CATEGORY, EX_CATEGORY, FILTER_TYPE, MARKET, PERIOD, SORT_TYPE
+from tdx_mcp.const import CATEGORY, EX_CATEGORY, FILTER_TYPE, MARKET, PERIOD, SORT_TYPE
 
 mcp = FastMCP('TDX MCP Server')
 

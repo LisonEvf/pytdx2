@@ -1,6 +1,6 @@
 [project]
-name = "pytdx2"
-version = "0.1.0"
+name = "tdx-mcp"
+version = "0.1.5"
 description = "TDX stock data client with MCP server for AI assistants (Claude, Cursor, OpenClaw)"
 authors = [{ name = "LisonEvf", email = "lisonevf@gmail.com" }]
 readme = "README.md"
@@ -34,11 +34,4 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["tdx_mcp*", "client*", "parser*", "utils*"]
-
-[tool.setuptools]
-py-modules = ["const", "tdxClient"]
-
-# uvx 支持
-[project.entry-points."mcp.servers"]
-tdx = "tdx_mcp.mcpServer:main"
+include = ["tdx_mcp*"]
