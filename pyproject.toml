@@ -1,0 +1,44 @@
+[project]
+name = "pytdx2"
+version = "0.1.0"
+description = "TDX stock data client with MCP server for AI assistants (Claude, Cursor, OpenClaw)"
+authors = [{ name = "LisonEvf", email = "lisonevf@gmail.com" }]
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.12"
+keywords = ["stock", "tdx", "mcp", "quant", "finance", "claude", "trading"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business :: Financial",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "pandas",
+    "numpy",
+    "mcp[cli]",
+]
+
+[project.scripts]
+mcp-server-tdx = "tdx_mcp.mcpServer:main"
+
+[project.urls]
+Homepage = "https://github.com/LisonEvf/pytdx2"
+Repository = "https://github.com/LisonEvf/pytdx2.git"
+Issues = "https://github.com/LisonEvf/pytdx2/issues"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["tdx_mcp*", "client*", "parser*", "utils*"]
+
+[tool.setuptools]
+py-modules = ["const", "tdxClient"]
+
+# uvx 支持
+[project.entry-points."mcp.servers"]
+tdx = "tdx_mcp.mcpServer:main"

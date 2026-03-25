@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "tdx": {
+      "command": "uvx",
+      "args": ["--from", "git+https://github.com/LisonEvf/pytdx2.git", "mcp-server-tdx"]
+    }
+  }
+}
