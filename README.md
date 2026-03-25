@@ -14,6 +14,31 @@
 
 又因本项目在持续推进中，接口**难免会有大幅改动，带来的不便请予宽宥**。
 
+### 🔌 MCP 接入 Claude / Cursor
+
+> TIP: 把本项目直接交给你的claude或openclaw就行
+
+
+```bash
+# 安装
+pip install git+https://github.com/LisonEvf/pytdx2.git
+```
+
+在 Claude Desktop 或 Cursor 的 MCP 配置文件中添加：
+
+```json
+{
+  "mcpServers": {
+    "tdx": {
+      "command": "mcp-server-tdx",
+      "args": []
+    }
+  }
+}
+```
+
+> 确保 Python Scripts 目录在系统 PATH 中
+
 ### 🚀 1分钟快速上手
 
 ```python
