@@ -519,7 +519,7 @@ class TdxClient:
             sortType: SORT_TYPE       - 排序类型
             reverse: bool             - 倒序排序
         Return: 
-            List[Dict]: 股票信息列表，每个元素包含：
+            List[Dict]: 商品行情列表，每个元素包含：
                 - category: EX_CATEGORY - 扩展市场类别
                 - code: str             - 股票代码
                 - open: float           - 今开
@@ -567,7 +567,7 @@ class TdxClient:
                 - category: EX_CATEGORY - 扩展市场类别
                 - code: str             - 商品代码
         Return: 
-            List[Dict]: 股票信息列表，每个元素包含：
+            List[Dict]: 成交行情列表，每个元素包含：
                 - category: EX_CATEGORY - 扩展市场类别
                 - code: str             - 股票代码
                 - open: float           - 今开
@@ -632,7 +632,7 @@ class TdxClient:
             category: EX_CATEGORY   - 扩展市场类别
             date: date - 日期，默认为None（查询当日分时图）
         Return: 
-            List[Dict]: 股票历史列表，每个元素包含：
+            List[Dict]: 商品历史成交列表，每个元素包含：
                 - time: time        - 时间
                 - price: float      - 价格
                 - vol: int          - 成交量
