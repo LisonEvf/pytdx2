@@ -12,7 +12,7 @@ class QuotationClient(BaseStockClient):
         super().__init__(multithread, heartbeat, auto_retry, raise_exception)
         self.hosts = main_hosts
 
-    def login(self, show_info=False):
+    def login(self, show_info=False) -> bool:
         try:
             info = self.call(server.Login())
             if show_info:

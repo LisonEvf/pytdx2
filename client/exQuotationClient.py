@@ -10,7 +10,7 @@ class exQuotationClient(BaseStockClient):
         super().__init__(multithread, heartbeat, auto_retry, raise_exception)
         self.hosts = ex_hosts
 
-    def login(self, show_info=False):
+    def login(self, show_info=False) -> bool:
         try:
             info = self.call(ex_server.Login())
             if show_info:

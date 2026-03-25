@@ -4,7 +4,7 @@ from client.exQuotationClient import exQuotationClient
 from client.quotationClient import QuotationClient
 from mcp.server.fastmcp import FastMCP
 
-from const import CATEGORY, EX_CATEGORY, MARKET, PERIOD
+from const import CATEGORY, EX_CATEGORY, FILTER_TYPE, MARKET, PERIOD, SORT_TYPE
 
 mcp = FastMCP('TDX MCP Server')
 
@@ -22,55 +22,11 @@ def ex_hq():
     return ex_quotation_client
 
 @mcp.tool()
-def get_Index_Overview():
+def get_index_overview():
     ''' 获取指数概况
     :return: 上证、深证、北证、创业、科创、沪深指数数据的JSON字符串
     '''
     return hq().get_index_info([(MARKET.SH, '999999'), (MARKET.SZ, '399001'), (MARKET.SZ, '399006'), (MARKET.BJ, '899050'), (MARKET.SH, '000688'), (MARKET.SH, '000300')])
-
-@mcp.tool()
-def stock_quotes(code_list: MARKET | list[tuple[MARKET, str]], code: str = None):
-    '''
-    获取股票报价
-    支持三种形式的参数
-    get_stock_quotes(market, code )
-    get_stock_quotes((market, code))
-    get_stock_quotes([(market1, code1), (market2, code2)] )
-    Args:
-        [(market: MARKET(market), code: str(code)), ...]
-    Return: 
-        [{
-            'market': MARKET, # 市场
-            'code': str(code), # 股票代码
-            'name': str(name), # 股票名称
-            'open': float(open), # 今开
-            'high': float(high), # 最高
-            'low': float(low), # 最低
-            'price': float(price), # 最新价
-            'pre_close': float(pre_close), # 昨收
-            'server_time': str(server_time), # 服务器时间
-            'neg_price': int(neg_price), # 负数最新价
-            'vol': int(vol), # 总成交量
-            'cur_vol': int(cur_vol), # 当前成交量
-            'amount': int(amount), # 总成交额
-            's_vol': int(s_vol), # 内盘
-            'b_vol': int(b_vol), # 外盘
-            's_amount': int(s_amount),
-            'open_amount': int(open_amount), # 开盘金额
-            'handicap': {
-                'bid': [{'price': float(price), 'vol': int(vol)}, ...],
-                'ask': [{'price': float(price), 'vol': int(vol)}, ...],
-            }, # 一档盘口
-            'rise_speed': str(rise_speed_percent), # 涨速
-            'short_turnover': str(short_turnover_percent), # 短换手
-            'min2_amount': int(min2_amount), # 两分钟成交额
-            'opening_rush': str(opening_rush_percent), # 开盘抢筹
-            'vol_rise_speed': str(vol_rise_speed_percent), # 量涨速
-            'depth': str(depth_percent), # 委比
-            'active1': int(active), # 活跃度
-        }, ...]
-    '''
-    return hq().get_quotes(code_list, code)
 
 @mcp.tool()
 def stock_kline(market: MARKET, code: str, period: PERIOD, start = 0, count = 800, times: int = 1):
@@ -487,5 +443,9 @@ def goods_tick_chart(category: EX_CATEGORY, code: str, date: date = None) -> lis
     return ex_hq().get_tick_chart(category, code, date)
 
 
-if __name__ == '__main__':
+def main():
+    """MCP Server 入口点"""
     mcp.run()
+
+if __name__ == '__main__':
+    main()
