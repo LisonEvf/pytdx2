@@ -9,26 +9,25 @@ from const import BLOCK_FILE_TYPE, CATEGORY, EX_CATEGORY, FILTER_TYPE, MARKET, P
 
 class TdxClient:
     def __enter__(self):
-        self.quotation_client = QuotationClient(True, True, True, True)
-        self.ex_quotation_client = exQuotationClient(True, True, True, True)
-        self.quotation_client_connected = False
-        self.ex_quotation_client_connected = False
+        self.quotation_client = QuotationClient(True, True)
+        self.ex_quotation_client = exQuotationClient(True, True)
 
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if self.quotation_client_connected:
+        if self.quotation_client.connected:
             self.quotation_client.disconnect()
-        if self.ex_quotation_client_connected:
+        if self.ex_quotation_client.connected:
             self.ex_quotation_client.disconnect()
 
     def q_client(self):
-        if not self.quotation_client_connected:
-            self.quotation_client_connected = self.quotation_client.connect().login()
+        if not self.quotation_client.connected:
+            self.quotation_client.connect().login()
         return self.quotation_client
+    
     def eq_client(self):
-        if not self.ex_quotation_client_connected:
-            self.ex_quotation_client_connected = self.ex_quotation_client.connect().login()
+        if not self.ex_quotation_client.connected:
+            self.ex_quotation_client.connect().login()
         return self.ex_quotation_client
     
     def stock_count(self, market: MARKET) -> int:

@@ -42,7 +42,6 @@ def update_last_ack_time(func):
 
                 log.debug("perform auto retry on req ")
 
-            self.last_transaction_failed = True
             ret = None
             if self.raise_exception:
                 to_raise = Exception("calling function error")
@@ -83,7 +82,7 @@ class BaseStockClient():
         self.heartbeat = heartbeat
         self.heartbeat_thread = None
         self.stop_event = None
-        self.last_transaction_failed = False
+        self.connected = False
 
         # 是否重试
         self.auto_retry = auto_retry
@@ -167,6 +166,7 @@ class BaseStockClient():
                 raise Exception("other errors", e)
 
         log.debug("connected!")
+        self.connected = True
 
         if self.heartbeat and not (self.heartbeat_thread and self.heartbeat_thread.is_alive()):
             self.stop_event = threading.Event()
@@ -197,6 +197,7 @@ class BaseStockClient():
                 if self.raise_exception:
                     raise Exception("disconnect err")
             log.debug("disconnected")
+            self.connected = False
 
     def send(self, data):
         """
