@@ -26,11 +26,7 @@ class QuotationClient(BaseStockClient):
 
     @override
     def doHeartBeat(self):
-        result = self.call(server.HeartBeat())
-        if self.heartbeat:
-            self.heartbeat_thread.update_last_ack_time()
-
-        return result
+        return self.call(server.HeartBeat())
     
     def quotes_adjustment(self, quotes_list: list[dict]) -> list[dict]:
         for quotes in quotes_list:
