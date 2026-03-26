@@ -1,5 +1,4 @@
 from tdx_mcp.parser.quotation.auction import Auction
-from tdx_mcp.parser.quotation.board_list import BoardList
 from tdx_mcp.parser.quotation.chart_sampling import ChartSampling
 from tdx_mcp.parser.quotation.count import Count
 from tdx_mcp.parser.quotation.history_orders import HistoryOrders
@@ -23,7 +22,6 @@ from tdx_mcp.parser.quotation.volume_profile import VolumeProfile
 
 __all__ = [
     'Auction',
-    'BoardList',
     'ChartSampling',
     'Count',
     'HistoryOrders',
