@@ -1,13 +1,13 @@
 from datetime import date
 import math
-from typing import override, Literal
+from typing import override
 from .baseStockClient import BaseStockClient, update_last_ack_time
 from tdx_mcp.utils.block_reader import BlockReader, BlockReader_TYPE_FLAT
 from tdx_mcp.const import BLOCK_FILE_TYPE, CATEGORY, FILTER_TYPE, PERIOD, MARKET, SORT_TYPE, main_hosts
 from tdx_mcp.parser.quotation import file, stock, server, company_info
 from tdx_mcp.utils.log import log
 from tdx_mcp.utils.cache import xdxr_cache, finance_cache
-from tdx_mcp.utils.adjustment import apply_adjustment, add_turnover_to_kline, AdjustType, calc_turnover
+from tdx_mcp.utils.adjustment import apply_adjustment, AdjustType, calc_turnover
 
 class QuotationClient(BaseStockClient):
     def __init__(self, multithread=False, heartbeat=False, auto_retry=False, raise_exception=False):
@@ -42,6 +42,27 @@ class QuotationClient(BaseStockClient):
             for ask in quotes['handicap']['ask']:
                 ask['price'] /= 100
                 
+            market = quotes.get('market')
+            code = quotes.get('code')
+            vol = quotes.get('vol')
+
+            if market and code and vol:
+                cache_key = f"{market.value}_{code}"
+                try:
+                    # 尝试从缓存获取流通股本
+                    float_shares = finance_cache.get(cache_key)
+                    if float_shares is None:
+                        finance_data = self.call(company_info.Finance(market, code))
+                        if finance_data:
+                            float_shares = finance_data.get('liutongguben')
+                            if float_shares:
+                                finance_cache.set(cache_key, float_shares)
+
+                    if float_shares:
+                        quotes['turnover'] = calc_turnover(vol, float_shares)
+                except Exception as e:
+                    log.debug("获取流通股本失败 %s: %s", code, e)
+
         return quotes_list
     
     @update_last_ack_time

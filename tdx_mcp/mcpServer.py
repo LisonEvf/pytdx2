@@ -243,26 +243,12 @@ def stock_quotes_list(category: int, start:int = 0, count: int = 80, sortType: i
                 - close: float        - 现价
                 - pre_close: float    - 昨收
                 - server_time: str    - 服务器时间
-                - neg_price: float    - 价格负数
                 - vol: int            - 总量
                 - cur_vol: int        - 现量
                 - amount: int         - 总金额
-                - in_vol: int         - 内盘
-                - out_vol: int        - 外盘
-                - s_amount: int       - 上涨数
-                - open_amount: int    - 开盘金额
+                - turnover: float     - 换手率(%)
                 - handicap: Dict      - 1档盘口
-                    - bid: list[dict] - 买盘
-                        - price: float- 买价
-                        - vol: int    - 买量
-                    - ask: list[dict] - 卖盘
-                        - price: float- 卖价
-                        - vol: int    - 卖量
                 - rise_speed: int     - 涨速
-                - short_turnover: int - 短换手
-                - min2_amount: int    - 2分钟金额
-                - opening_rush: int   - 开盘抢筹
-                - vol_rise_speed: int - 量涨速
                 - depth: int          - 委比
                 - active: int         - 活跃度
     '''
@@ -278,7 +264,7 @@ def stock_quotes(code_list: int | list[tuple[int, str]], code: str = None) -> li
             code_list: int或元组列表 - ''' + _MARKET_DESC + '''
             code: str               - 股票代码（当code_list为market时使用）
         Return:
-            List[Dict]: 股票报价列表信息列表，每个元素包含：
+            List[Dict]: 股票报价列表，每个元素包含：
                 - market: MARKET      - 市场类型 (SZ: 深圳, SH: 上海, BJ: 北交所)
                 - code: str           - 股票代码
                 - name: str           - 股票名称
@@ -288,26 +274,12 @@ def stock_quotes(code_list: int | list[tuple[int, str]], code: str = None) -> li
                 - close: float        - 现价
                 - pre_close: float    - 昨收
                 - server_time: str    - 服务器时间
-                - neg_price: float    - 价格负数
                 - vol: int            - 总量
                 - cur_vol: int        - 现量
                 - amount: int         - 总金额
-                - in_vol: int         - 内盘
-                - out_vol: int        - 外盘
-                - s_amount: int       - 上涨数
-                - open_amount: int    - 开盘金额
+                - turnover: float     - 换手率(%)
                 - handicap: Dict      - 1档盘口
-                    - bid: list[dict] - 买盘
-                        - price: float- 买价
-                        - vol: int    - 买量
-                    - ask: list[dict] - 卖盘
-                        - price: float- 卖价
-                        - vol: int    - 卖量
                 - rise_speed: int     - 涨速
-                - short_turnover: int - 短换手
-                - min2_amount: int    - 2分钟金额
-                - opening_rush: int   - 开盘抢筹
-                - vol_rise_speed: int - 量涨速
                 - depth: int          - 委比
                 - active: int         - 活跃度
     '''
