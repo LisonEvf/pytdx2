@@ -112,29 +112,40 @@ def get_index_overview():
     return hq().get_index_info([(MARKET.SH, '999999'), (MARKET.SZ, '399001'), (MARKET.SZ, '399006'), (MARKET.BJ, '899050'), (MARKET.SH, '000688'), (MARKET.SH, '000300')])
 
 @mcp.tool()
-def stock_kline(market: int, code: str, period: int, start = 0, count = 800, times: int = 1):
+def stock_kline(market: int, code: str, period: int, adjust_type: str = "none", start = 0, count = 800, times: int = 1):
     '''
-    获取K线数据
+    获取K线数据（支持复权和换手率）
         Args:
-            market: int  - ''' + _MARKET_DESC + '''
-            code: str    - 股票代码(如 000001)
-            period: int  - ''' + _PERIOD_DESC + '''
-            start: int   - 起始位置，默认为0
-            count: int   - 获取数量，默认为800
-            times: int   - 多周期倍数，默认为1（配合period=8/9/13使用）
+            market: int       - ''' + _MARKET_DESC + '''
+            code: str         - 股票代码(如 000001)
+            period: int       - ''' + _PERIOD_DESC + '''
+            adjust_type: str  - 复权类型: none=不复权(默认), qfq=前复权, hfq=后复权
+            start: int        - 起始位置，默认为0
+            count: int        - 获取数量，默认为800
+            times: int        - 多周期倍数，默认为1（配合period=8/9/13使用）
         Returns:
-            List[Dict]: K线数据列表，每个元素包含：
-                - date_time: datetime   - 时间
-                - open: float           - 开盘价
-                - high: float           - 最高价
-                - low: float            - 最低价
-                - close: float          - 收盘价
-                - vol: int              - 成交量
-                - amount: int           - 成交额
-                - upCount?: int         - 上涨数（指数专有）
-                - downCount?: int       - 下跌数（指数专有）
+            Dict: {
+                "data": K线数据列表，每个元素包含：
+                    - datetime: datetime    - 时间
+                    - open: float           - 开盘价
+                    - high: float           - 最高价
+                    - low: float            - 最低价
+                    - close: float          - 收盘价
+                    - vol: int              - 成交量
+                    - amount: int           - 成交额
+                    - turnover: float       - 换手率(%)
+                    - adjust_factor?: float - 复权因子（复权时）
+                    - up_count?: int        - 上涨数（指数专有）
+                    - down_count?: int      - 下跌数（指数专有）
+                "float_shares": float       - 流通股本(万股)
+                "warning?: str              - 可选警告信息
+            }
     '''
-    return hq().get_kline(MARKET(market), code, PERIOD(period), start, count, times)
+    # 验证 adjust_type
+    if adjust_type not in ["none", "qfq", "hfq"]:
+        return {"data": [], "error": f"无效的复权类型: {adjust_type}，支持: none/qfq/hfq"}
+
+    return hq().get_kline(MARKET(market), code, PERIOD(period), adjust_type, start, count, times)
 
 @mcp.tool()
 def stock_tick_chart(market: int, code: str, date: str = None, start: int = 0, count: int = 0xba00) -> list[dict]:

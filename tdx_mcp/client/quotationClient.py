@@ -1,11 +1,13 @@
 from datetime import date
 import math
-from typing import override
+from typing import override, Literal
 from .baseStockClient import BaseStockClient, update_last_ack_time
 from tdx_mcp.utils.block_reader import BlockReader, BlockReader_TYPE_FLAT
 from tdx_mcp.const import BLOCK_FILE_TYPE, CATEGORY, FILTER_TYPE, PERIOD, MARKET, SORT_TYPE, main_hosts
 from tdx_mcp.parser.quotation import file, stock, server, company_info
 from tdx_mcp.utils.log import log
+from tdx_mcp.utils.cache import xdxr_cache, finance_cache
+from tdx_mcp.utils.adjustment import apply_adjustment, add_turnover_to_kline, AdjustType, calc_turnover
 
 class QuotationClient(BaseStockClient):
     def __init__(self, multithread=False, heartbeat=False, auto_retry=False, raise_exception=False):
@@ -89,7 +91,8 @@ class QuotationClient(BaseStockClient):
         return index_infos
     
     @update_last_ack_time
-    def get_kline(self, market: MARKET, code: str, period: PERIOD, start = 0, count = 800, times: int = 1) -> list[dict]:
+    def get_kline(self, market: MARKET, code: str, period: PERIOD, start: int = 0, count: int = 800, times: int = 1, adjust_type: AdjustType = "none") -> list[dict]:
+        # 1. 获取原始 K 线数据
         MAX_KLINE_COUNT = 800
         bars = []
         while len(bars) < count:
@@ -97,12 +100,44 @@ class QuotationClient(BaseStockClient):
             if not part:
                 break
             bars = [*part, *bars]
-        
+
+        if not bars:
+            return []
+
+        # 2. 获取流通股本（用于计算换手率）
+        cache_key = f"{market.value}_{code}"
+        float_shares = None
+        try:
+            float_shares = finance_cache.get(cache_key)
+            if float_shares is None:
+                finance_data = self.call(company_info.Finance(market, code))
+                float_shares = finance_data.get('liutongguben')
+                if float_shares:
+                    finance_cache.set(cache_key, float_shares)
+        except Exception as e:
+            log.warning("获取流通股本失败: %s", e)
+
+        # 3. 计算换手率
         for bar in bars:
             bar['open'] /= 1000
             bar['close'] /= 1000
             bar['high'] /= 1000
             bar['low'] /= 1000
+            bar['turnover'] = calc_turnover(bar['vol'], float_shares) if float_shares and bar['vol'] else 0
+
+        # 4. 应用复权（如果需要）
+        if adjust_type != "none":
+            try:
+                xdxr_data = xdxr_cache.get(cache_key)
+                if xdxr_data is None:
+                    xdxr_data = self.call(company_info.XDXR(market, code))
+                    if xdxr_data:
+                        xdxr_cache.set(cache_key, xdxr_data)
+
+                if xdxr_data:
+                    bars = apply_adjustment(bars, xdxr_data, adjust_type)
+            except Exception as e:
+                log.warning("获取除权数据失败: %s", e)
 
         return bars
     
