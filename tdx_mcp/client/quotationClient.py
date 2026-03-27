@@ -3,7 +3,7 @@ import math
 from typing import override
 from .baseStockClient import BaseStockClient, update_last_ack_time
 from tdx_mcp.utils.block_reader import BlockReader, BlockReader_TYPE_FLAT
-from tdx_mcp.const import BLOCK_FILE_TYPE, CATEGORY, FILTER_TYPE, PERIOD, MARKET, SORT_TYPE, main_hosts
+from tdx_mcp.const import BLOCK_FILE_TYPE, CATEGORY, FILTER_TYPE, PERIOD, MARKET, SORT_TYPE, ADJUST, main_hosts
 from tdx_mcp.parser.quotation import file, stock, server, company_info
 from tdx_mcp.utils.log import log
 from tdx_mcp.utils.cache import xdxr_cache, finance_cache
@@ -112,12 +112,12 @@ class QuotationClient(BaseStockClient):
         return index_infos
     
     @update_last_ack_time
-    def get_kline(self, market: MARKET, code: str, period: PERIOD, start: int = 0, count: int = 800, times: int = 1, adjust_type: AdjustType = "none") -> list[dict]:
+    def get_kline(self, market: MARKET, code: str, period: PERIOD, start: int = 0, count: int = 800, times: int = 1, adjust_type: AdjustType = "none", fq: ADJUST = ADJUST.NONE) -> list[dict]:
         # 1. 获取原始 K 线数据
         MAX_KLINE_COUNT = 800
         bars = []
         while len(bars) < count:
-            part = self.call(stock.K_Line(market, code, period, times, start + len(bars), min((count - len(bars)), MAX_KLINE_COUNT)))
+            part = self.call(stock.K_Line(market, code, period, times, start + len(bars), min((count - len(bars)), MAX_KLINE_COUNT), fq=fq))
             if not part:
                 break
             bars = [*part, *bars]

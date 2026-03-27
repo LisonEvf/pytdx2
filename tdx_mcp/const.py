@@ -198,6 +198,12 @@ class PERIOD(Enum):
     YEARLY  = 11    # 年K 线
     SECONDS = 13    # 多秒K 线 e.g. 5秒 15秒
 
+class ADJUST(Enum):
+    NONE = 0        #不复权
+    QFQ = 1         #前复权
+    HFQ = 2         #后复权
+
+
 class FILTER_TYPE(Enum):
     NEW = 1  # 未开板次新股
     KC  = 2  # 科创板
