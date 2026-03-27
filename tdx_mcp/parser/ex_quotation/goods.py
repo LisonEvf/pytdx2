@@ -34,11 +34,25 @@ __all__ = [
     'TickChart',
 ]
 
-from tdx_mcp.const import EX_CATEGORY
+from tdx_mcp.const import EX_CATEGORY, PERIOD
 from tdx_mcp.parser.baseParser import BaseParser, register_parser
 import struct
 from typing import override
 
+@register_parser(0x122e, 1)
+class kline2(BaseParser):
+    def __init__(self, category: EX_CATEGORY, code: str, period: PERIOD, times: int = 1, mode: int = 0):
+        self.body = struct.pack('<H22s11H', category.value, code.encode('gbk'), period.value, times, 0, 0, 700, mode, 257, 256, 0, 0, 0)
+
+    @override
+    def deserialize(self, data):
+        category, code, u1, u2, count, _ = struct.unpack('<H22sHbHI', data[:33])
+
+        for i in range(count):
+            date_raw, a, b, c, d, e, f, g, h = struct.unpack('<I8f', data[i * 36 + 33: i * 36 + 69])
+            print(date_raw, a, b, c, d, e, f, g, h)
+        # print(data.hex())
+        return None
 
 @register_parser(0x23f6, 1)
 class f23f6(BaseParser):
