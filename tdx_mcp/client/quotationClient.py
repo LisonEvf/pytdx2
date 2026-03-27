@@ -6,8 +6,8 @@ from tdx_mcp.utils.block_reader import BlockReader, BlockReader_TYPE_FLAT
 from tdx_mcp.const import BLOCK_FILE_TYPE, CATEGORY, FILTER_TYPE, PERIOD, MARKET, SORT_TYPE, ADJUST, main_hosts
 from tdx_mcp.parser.quotation import file, stock, server, company_info
 from tdx_mcp.utils.log import log
-from tdx_mcp.utils.cache import xdxr_cache, finance_cache
-from tdx_mcp.utils.adjustment import apply_adjustment, AdjustType, calc_turnover
+from tdx_mcp.utils.cache import finance_cache
+from tdx_mcp.utils.adjustment import calc_turnover
 
 class QuotationClient(BaseStockClient):
     def __init__(self, multithread=False, heartbeat=False, auto_retry=False, raise_exception=False):
@@ -112,12 +112,12 @@ class QuotationClient(BaseStockClient):
         return index_infos
     
     @update_last_ack_time
-    def get_kline(self, market: MARKET, code: str, period: PERIOD, start: int = 0, count: int = 800, times: int = 1, adjust_type: AdjustType = "none", fq: ADJUST = ADJUST.NONE) -> list[dict]:
+    def get_kline(self, market: MARKET, code: str, period: PERIOD, start: int = 0, count: int = 800, times: int = 1, adjust: ADJUST = ADJUST.NONE) -> list[dict]:
         # 1. 获取原始 K 线数据
         MAX_KLINE_COUNT = 800
         bars = []
         while len(bars) < count:
-            part = self.call(stock.K_Line(market, code, period, times, start + len(bars), min((count - len(bars)), MAX_KLINE_COUNT), fq=fq))
+            part = self.call(stock.K_Line(market, code, period, times, start + len(bars), min((count - len(bars)), MAX_KLINE_COUNT), adjust))
             if not part:
                 break
             bars = [*part, *bars]
@@ -145,20 +145,6 @@ class QuotationClient(BaseStockClient):
             bar['high'] /= 1000
             bar['low'] /= 1000
             bar['turnover'] = calc_turnover(bar['vol'], float_shares) if float_shares and bar['vol'] else 0
-
-        # 4. 应用复权（如果需要）
-        if adjust_type != "none":
-            try:
-                xdxr_data = xdxr_cache.get(cache_key)
-                if xdxr_data is None:
-                    xdxr_data = self.call(company_info.XDXR(market, code))
-                    if xdxr_data:
-                        xdxr_cache.set(cache_key, xdxr_data)
-
-                if xdxr_data:
-                    bars = apply_adjustment(bars, xdxr_data, adjust_type)
-            except Exception as e:
-                log.warning("获取除权数据失败: %s", e)
 
         return bars
     

@@ -6,7 +6,7 @@ from tdx_mcp.client.exQuotationClient import exQuotationClient
 from tdx_mcp.client.quotationClient import QuotationClient
 from mcp.server.fastmcp import FastMCP
 
-from tdx_mcp.const import CATEGORY, EX_CATEGORY, FILTER_TYPE, MARKET, PERIOD, SORT_TYPE
+from tdx_mcp.const import ADJUST, CATEGORY, EX_CATEGORY, FILTER_TYPE, MARKET, PERIOD, SORT_TYPE
 
 mcp = FastMCP('TDX MCP Server')
 
@@ -112,7 +112,7 @@ def get_index_overview():
     return hq().get_index_info([(MARKET.SH, '999999'), (MARKET.SZ, '399001'), (MARKET.SZ, '399006'), (MARKET.BJ, '899050'), (MARKET.SH, '000688'), (MARKET.SH, '000300')])
 
 @mcp.tool()
-def stock_kline(market: int, code: str, period: int, adjust_type: str = "none", start = 0, count = 800, times: int = 1):
+def stock_kline(market: int, code: str, period: int, start = 0, count = 800, times: int = 1, adjust_type: str = "none"):
     '''
     获取K线数据（支持复权和换手率）
         Args:
@@ -144,8 +144,14 @@ def stock_kline(market: int, code: str, period: int, adjust_type: str = "none", 
     # 验证 adjust_type
     if adjust_type not in ["none", "qfq", "hfq"]:
         return {"data": [], "error": f"无效的复权类型: {adjust_type}，支持: none/qfq/hfq"}
+    if adjust_type == "none":
+        adjust_type = ADJUST.NONE
+    elif adjust_type == "qfq":
+        adjust_type = ADJUST.QFQ
+    else:
+        adjust_type = ADJUST.HFQ
 
-    return hq().get_kline(MARKET(market), code, PERIOD(period), adjust_type, start, count, times)
+    return hq().get_kline(MARKET(market), code, PERIOD(period), start, count, times, adjust_type)
 
 @mcp.tool()
 def stock_tick_chart(market: int, code: str, date: str = None, start: int = 0, count: int = 0xba00) -> list[dict]:

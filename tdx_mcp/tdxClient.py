@@ -5,7 +5,7 @@ import pandas as pd
 
 from tdx_mcp.client.exQuotationClient import exQuotationClient
 from tdx_mcp.client.quotationClient import QuotationClient
-from tdx_mcp.const import BLOCK_FILE_TYPE, CATEGORY, EX_CATEGORY, FILTER_TYPE, MARKET, PERIOD, SORT_TYPE
+from tdx_mcp.const import ADJUST, BLOCK_FILE_TYPE, CATEGORY, EX_CATEGORY, FILTER_TYPE, MARKET, PERIOD, SORT_TYPE
 
 class TdxClient:
     def __enter__(self):
@@ -135,7 +135,7 @@ class TdxClient:
         '''
         return self.q_client().get_index_info(code_list, code)
     
-    def stock_kline(self, market: MARKET, code: str, period: PERIOD, start = 0, count = 800, times: int = 1) -> list[dict]:
+    def stock_kline(self, market: MARKET, code: str, period: PERIOD, start = 0, count = 800, times: int = 1, adjust: ADJUST = ADJUST.NONE) -> list[dict]:
         '''
         获取K线数据
         Args:
@@ -145,6 +145,7 @@ class TdxClient:
             start: int      - 起始位置，默认为0
             count: int      - 获取数量，默认为800
             times: int      - 多周期倍数，默认为1
+            adjust: ADJUST  - 复权类型
         Returns:
             List[Dict]: K线数据列表，每个元素包含：
                 - date_time: datetime   - 时间
@@ -157,7 +158,7 @@ class TdxClient:
                 - upCount?: int         - 上涨数（指数专有）
                 - downCount?: int       - 下跌数（指数专有）
         '''
-        return self.q_client().get_kline(market, code, period, start, count, times)
+        return self.q_client().get_kline(market, code, period, start, count, times, adjust)
     
     def stock_tick_chart(self, market: MARKET, code: str, date: date = None, start: int = 0, count: int = 0xba00) -> list[dict]:
         '''

@@ -8,8 +8,8 @@ from tdx_mcp.utils.help import get_price, to_datetime
 
 @register_parser(0x523)
 class K_Line(BaseParser):
-    def __init__(self, market: MARKET, code: str, period: PERIOD, times: int = 1, start: int = 0, count: int = 800, fq: ADJUST= ADJUST.NONE):
-        self.body = struct.pack(u'<H6sHHHHH8s', market.value, code.encode('gbk'), period.value, times, start, count, fq.value, b'')
+    def __init__(self, market: MARKET, code: str, period: PERIOD, times: int = 1, start: int = 0, count: int = 800, adjust: ADJUST= ADJUST.NONE):
+        self.body = struct.pack(u'<H6sHHHHH8s', market.value, code.encode('gbk'), period.value, times, start, count, adjust.value, b'')
         
         self.period = period
         
