@@ -7,7 +7,6 @@ from tdx_mcp.const import BLOCK_FILE_TYPE, CATEGORY, FILTER_TYPE, PERIOD, MARKET
 from tdx_mcp.parser.quotation import file, stock, server, company_info
 from tdx_mcp.utils.log import log
 from tdx_mcp.utils.cache import finance_cache
-from tdx_mcp.utils.adjustment import calc_turnover
 
 class QuotationClient(BaseStockClient):
     def __init__(self, multithread=False, heartbeat=False, auto_retry=False, raise_exception=False):
@@ -59,7 +58,7 @@ class QuotationClient(BaseStockClient):
                                 finance_cache.set(cache_key, float_shares)
 
                     if float_shares:
-                        quotes['turnover'] = calc_turnover(vol, float_shares)
+                        quotes['turnover'] = round(vol * 100 / float_shares * 100, 2)
                 except Exception as e:
                     log.debug("获取流通股本失败 %s: %s", code, e)
 
@@ -144,7 +143,7 @@ class QuotationClient(BaseStockClient):
             bar['close'] /= 1000
             bar['high'] /= 1000
             bar['low'] /= 1000
-            bar['turnover'] = calc_turnover(bar['vol'], float_shares) if float_shares and bar['vol'] else 0
+            bar['turnover'] = round(bar['vol'] / float_shares * 100, 2) if float_shares and bar['vol'] else 0
 
         return bars
     
