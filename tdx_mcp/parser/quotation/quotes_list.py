@@ -22,7 +22,7 @@ class QuotesList(BaseParser):
 
         stocks = []
         for _ in range(count):
-            (market, code, active1 ) = struct.unpack('<B6sH', data[pos: pos + 9])
+            market, code, active1 = struct.unpack('<B6sH', data[pos: pos + 9])
             pos += 9
             price, pos = get_price(data, pos)
             pre_close, pos = get_price(data, pos)

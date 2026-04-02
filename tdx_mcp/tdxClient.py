@@ -57,14 +57,14 @@ class TdxClient:
     
     def stock_vol_profile(self, market: MARKET, code: str) -> list[dict]:
         '''
-        获取指数动量
+        获取股票成交分布
         Args:
             market: MARKET - 市场类型 (SZ: 深圳, SH: 上海, BJ: 北交所)
-            code: str      - 指数代码
+            code: str      - 股票代码
         Return: 
             List[Dict]: 股票信息列表，每个元素包含：
                 - market: MARKET      - 市场类型 (SZ: 深圳, SH: 上海, BJ: 北交所)
-                - code: str           - 指数代码
+                - code: str           - 股票代码
                 - open: float         - 今开
                 - high: float         - 最高
                 - low: float          - 最低
