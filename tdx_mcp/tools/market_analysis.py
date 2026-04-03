@@ -33,7 +33,7 @@
 """
 
 from typing import Dict, List, Any
-from tdx_mcp.const import MARKET, CATEGORY
+from tdx_mcp.const import MARKET, CATEGORY, SORT_TYPE, SORT_TYPE
 from tdx_mcp.utils.log import log
 
 
@@ -116,8 +116,8 @@ def market_overview(client) -> Dict[str, Any]:
         }
     """
     try:
-        # 1. 获取主要指数行情
-        index_list = [(m.value, c) for m, c, _ in MAIN_INDICES]
+            # 1. 获取主要指数行情
+        index_list = [(m, c) for m, c, _ in MAIN_INDICES]
         indices_data = client.get_index_info(index_list)
 
         indices = []
@@ -139,11 +139,11 @@ def market_overview(client) -> Dict[str, Any]:
             }
             indices.append(index_info)
 
-            # 统计成交额
-            if market == 'SH':
-                sh_amount += idx_data.get('amount', 0)
-            elif market == 'SZ':
-                sz_amount += idx_data.get('amount', 0)
+            # 统计成交额（只统计上证指数和深证成指，避免重复）
+            if code == '999999':  # 上证指数
+                sh_amount = idx_data.get('amount', 0)
+            elif code == '399001':  # 深证成指
+                sz_amount = idx_data.get('amount', 0)
 
         # 2. 获取涨跌分布（采样统计）
         breadth = _calculate_breadth(client, sample_size=300)
@@ -214,7 +214,7 @@ def sector_rotation(client) -> Dict[str, Any]:
     """
     try:
         # 获取板块指数行情
-        sector_list = [(m.value, c) for m, c, _ in SECTOR_INDICES]
+        sector_list = [(m, c) for m, c, _ in SECTOR_INDICES]
         sectors_data = client.get_quotes(sector_list)
 
         sectors = []
@@ -481,9 +481,9 @@ def _calculate_breadth(client, sample_size: int = 300, detailed: bool = False) -
         breadth_ratio = up_count / (up_count + down_count) if (up_count + down_count) > 0 else 0
 
         result = {
-            'up_count': up_count,
-            'down_count': down_count,
-            'flat_count': flat_count,
+            'up': up_count,
+            'down': down_count,
+            'flat': flat_count,
             'limit_up': limit_up,
             'limit_down': limit_down,
             'strength': round(strength, 4),
@@ -532,7 +532,7 @@ def _sample_stock_stats(client, sample_size: int = 200) -> Dict[str, List[float]
             CATEGORY.A,
             start=0,
             count=sample_size,
-            sortType=0x24,  # 按换手率排序
+            sortType=SORT_TYPE.TURNOVER_RATE,  # 按换手率排序
             reverse=True
         )
 
