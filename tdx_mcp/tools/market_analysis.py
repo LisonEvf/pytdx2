@@ -25,7 +25,7 @@
 
     # 获取市场广度
     breadth = market_breadth(client)
-    print(f"上涨家数: {breadth['up_count']}")
+    print(f"上涨家数: {breadth['up']}")
 
     # 获取市场情绪
     sentiment = market_sentiment(client)
@@ -294,9 +294,9 @@ def market_breadth(client) -> Dict[str, Any]:
         log.error("获取市场广度失败: %s", e)
         return {
             'error': str(e),
-            'up_count': 0,
-            'down_count': 0,
-            'flat_count': 0,
+            'up': 0,
+            'down': 0,
+            'flat': 0,
             'limit_up': 0,
             'limit_down': 0,
             'distribution': {},
@@ -498,9 +498,9 @@ def _calculate_breadth(client, sample_size: int = 300, detailed: bool = False) -
     except Exception as e:
         log.error("计算市场广度失败: %s", e)
         return {
-            'up_count': 0,
-            'down_count': 0,
-            'flat_count': 0,
+            'up': 0,
+            'down': 0,
+            'flat': 0,
             'limit_up': 0,
             'limit_down': 0,
             'distribution': distribution,
