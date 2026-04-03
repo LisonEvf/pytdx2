@@ -1,6 +1,6 @@
 from datetime import time
 import struct
-from typing import override
+# from typing import override  # Python 3.12+ only
 
 from tdx_mcp.const import EX_CATEGORY
 from tdx_mcp.parser.baseParser import BaseParser, register_parser
@@ -31,7 +31,7 @@ class TickChart(BaseParser):
     def __init__(self, category: EX_CATEGORY, code: str):
         self.body = struct.pack('<B23s8x', category.value, code.encode('gbk'))
     
-    @override
+    # @override  # Python 3.12+ only
     def deserialize(self, data):
         category, code, count = struct.unpack('<B31sH', data[:34])
         # print(EX_CATEGORY(category), code.decode('gbk').replace('\x00', ''))

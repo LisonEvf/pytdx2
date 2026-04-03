@@ -1,5 +1,5 @@
 import struct
-from typing import override
+# from typing import override  # Python 3.12+ only
 
 from tdx_mcp.const import CATEGORY, MARKET
 from tdx_mcp.parser.baseParser import BaseParser, register_parser
@@ -9,7 +9,7 @@ from tdx_mcp.parser.baseParser import BaseParser, register_parser
 class TopBoard(BaseParser):
     def __init__(self, category: CATEGORY, size: int = 20):
         self.body = struct.pack('<BB7sB', category.value, 5, bytes.fromhex('000000000100'), size)
-    @override
+    # @override  # Python 3.12+ only
     def deserialize(self, data):
         size, = struct.unpack('<B', data[:1])
         pos = 1

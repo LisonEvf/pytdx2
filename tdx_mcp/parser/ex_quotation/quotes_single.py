@@ -1,5 +1,5 @@
 import struct
-from typing import override
+# from typing import override  # Python 3.12+ only
 
 from tdx_mcp.const import EX_CATEGORY
 from tdx_mcp.parser.baseParser import BaseParser, register_parser
@@ -10,6 +10,6 @@ class QuotesSingle(BaseParser):
     def __init__(self, category: EX_CATEGORY, code: str):
         self.body = struct.pack('<B9s', category.value, code.encode('gbk'))
     
-    @override
+    # @override  # Python 3.12+ only
     def deserialize(self, data):
         return unpack_futures(data, 9)

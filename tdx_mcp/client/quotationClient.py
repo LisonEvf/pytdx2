@@ -1,6 +1,7 @@
 from datetime import date
 import math
-from typing import override
+from typing import Union
+# # from typing import override  # Python 3.12+ only  # Python 3.12+ only
 from .baseStockClient import BaseStockClient, update_last_ack_time
 from tdx_mcp.utils.block_reader import BlockReader, BlockReader_TYPE_FLAT
 from tdx_mcp.const import BLOCK_FILE_TYPE, CATEGORY, FILTER_TYPE, PERIOD, MARKET, SORT_TYPE, main_hosts
@@ -26,7 +27,7 @@ class QuotationClient(BaseStockClient):
             log.error("login failed: %s", e)
             return False
 
-    @override
+    # @override  # Python 3.12+ only
     def doHeartBeat(self):
         return self.call(server.HeartBeat())
     
@@ -176,7 +177,7 @@ class QuotationClient(BaseStockClient):
         return data
     
     @update_last_ack_time
-    def get_stock_quotes_details(self, code_list: MARKET | list[tuple[MARKET, str]], code=None) -> list[dict]:
+    def get_stock_quotes_details(self, code_list: Union[MARKET, list[tuple[MARKET, str]]], code=None) -> list[dict]:
         if code is not None:
             code_list = [(code_list, code)]
         elif (isinstance(code_list, list) or isinstance(code_list, tuple))\

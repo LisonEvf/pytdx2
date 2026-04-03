@@ -1,5 +1,5 @@
 import struct
-from typing import override
+# from typing import override  # Python 3.12+ only
 
 from tdx_mcp.const import MARKET
 from tdx_mcp.parser.baseParser import BaseParser, register_parser
@@ -11,7 +11,7 @@ class IndexMomentum(BaseParser):
     def __init__(self, market: MARKET, code: str):
         self.body = struct.pack(u'<H6s', market.value, code.encode('gbk'))
     
-    @override
+    # @override  # Python 3.12+ only
     def deserialize(self, data):
         count, = struct.unpack('<H', data[:2])
         pos = 2

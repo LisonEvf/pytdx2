@@ -1,6 +1,6 @@
 
 import struct
-from typing import override
+# from typing import override  # Python 3.12+ only
 
 from tdx_mcp.const import EX_MARKET
 from tdx_mcp.parser.baseParser import BaseParser, register_parser
@@ -8,7 +8,7 @@ from tdx_mcp.parser.baseParser import BaseParser, register_parser
 
 @register_parser(0x23f4, 1)
 class CategoryList(BaseParser):
-    @override
+    # @override  # Python 3.12+ only
     def deserialize(self, data):
         count, = struct.unpack('<H', data[:2])
 

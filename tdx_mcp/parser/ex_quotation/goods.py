@@ -35,7 +35,7 @@ __all__ = [
 from tdx_mcp.const import EX_CATEGORY
 from tdx_mcp.parser.baseParser import BaseParser, register_parser
 import struct
-from typing import override
+# from typing import override  # Python 3.12+ only
 
 
 @register_parser(0x23f6, 1)
@@ -43,7 +43,7 @@ class f23f6(BaseParser):
     def __init__(self):
         self.body = struct.pack('<HHH', 0, 0, 500)
 
-    @override
+    # @override  # Python 3.12+ only
     def deserialize(self, data):
         start, count = struct.unpack('<IH', data[:6])
 
@@ -59,7 +59,7 @@ class f23f6(BaseParser):
 #     def __init__(self, category: EX_CATEGORY, code: str):
 #         self.body = struct.pack('<B9s', category.value, code.encode('gbk'))
 
-#     @override
+#     # @override  # Python 3.12+ only
 #     def deserialize(self, data):
 #         category, code, count = struct.unpack('<B9sH', data[:12])
 
@@ -85,7 +85,7 @@ class f2487(BaseParser):
     def __init__(self, category: EX_CATEGORY, code: str):
         self.body = struct.pack('<B23s', category.value, code.encode('gbk'))
 
-    @override
+    # @override  # Python 3.12+ only
     def deserialize(self, data):
         category, code = struct.unpack('<B23s', data[:24])
         
@@ -117,7 +117,7 @@ class f2488(BaseParser):
     def __init__(self, category: EX_CATEGORY, code: str):
         self.body = struct.pack('<B23sIHII', category.value, code.encode('gbk'), 0, 55, 0, 0)
 
-    @override
+    # @override  # Python 3.12+ only
     def deserialize(self, data):
         category, code, count = struct.unpack('<B35sH', data[:38])
         print(EX_CATEGORY(category), code.decode('gbk').replace('\x00', ''))
@@ -132,7 +132,7 @@ class f2562(BaseParser):
     def __init__(self, market: int, start: int = 0, count: int = 600):
         self.body = struct.pack(u'<HII', market, start, count)
 
-    @override
+    # @override  # Python 3.12+ only
     def deserialize(self, data):
         count, = struct.unpack('<H', data[:2])
         result = []

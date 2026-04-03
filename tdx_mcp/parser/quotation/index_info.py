@@ -1,5 +1,5 @@
 import struct
-from typing import override
+# from typing import override  # Python 3.12+ only
 
 from tdx_mcp.const import MARKET
 from tdx_mcp.parser.baseParser import BaseParser, register_parser
@@ -11,7 +11,7 @@ class IndexInfo(BaseParser):
     def __init__(self, market: MARKET, code: str):
         self.body = struct.pack(u'<H6sI', market.value, code.encode('gbk'), 0)
 
-    @override
+    # @override  # Python 3.12+ only
     def deserialize(self, data):
         count, market, code, active = struct.unpack('<IB6sH', data[:13])
         pos = 13

@@ -1,7 +1,7 @@
 from datetime import datetime
 from tdx_mcp.parser.baseParser import BaseParser, register_parser
 import struct
-from typing import override
+# from typing import override  # Python 3.12+ only
 
 @register_parser(0x2454, 1)
 class Login(BaseParser):
@@ -17,7 +17,7 @@ class Login(BaseParser):
         '1f32c6e5d53dfb41' \
         'a9325ac935dc0837' \
         '335a16e4ce17c1bb')
-    @override
+    # @override  # Python 3.12+ only
     def deserialize(self, data):
         _, _, year, month, day, minute, hour, ms, second, server_name, u1, u2, u3, u4, u5, desc, u6, u7, u8, ip = struct.unpack('<B52sHBBBBBB21sfBHHH151sBBB52s', data)
         # print({
@@ -37,7 +37,7 @@ class Login(BaseParser):
 
 @register_parser(0x2455, 1)
 class Info(BaseParser):
-    @override
+    # @override  # Python 3.12+ only
     def deserialize(self, data):
         maybe_delay, u2, u3, u4, info, version = struct.unpack('<4I25s29s', data[:70])
         u5, u6, u7, u8, u9, date_now, time_now, f1, f2, u15, u16, u17, u18, date2, date3, date4, u22 = struct.unpack('<HHHHHIIffHHHBIIIH', data[70:117])

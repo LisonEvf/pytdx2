@@ -1,3 +1,4 @@
+from typing import Optional
 from tdx_mcp.parser.quotation.auction import Auction
 from tdx_mcp.parser.quotation.board_list import BoardList
 from tdx_mcp.parser.quotation.chart_sampling import ChartSampling
@@ -51,7 +52,7 @@ __all__ = [
 from tdx_mcp.const import MARKET
 from tdx_mcp.parser.baseParser import BaseParser, register_parser
 import struct
-from typing import override
+# from typing import override  # Python 3.12+ only
 
 
     
@@ -60,7 +61,7 @@ class f452(BaseParser):
     def __init__(self, start:int = 0, count:int = 2000):
         self.body = struct.pack('<IIIH', start, count, 1, 0)
 
-    @override
+    # @override  # Python 3.12+ only
     def deserialize(self, data):
         count, = struct.unpack('<H', data[:2])
         result = []
@@ -234,7 +235,7 @@ class QuotesXor(BaseParser):
 
         return boundaries
 
-    @override
+    # @override  # Python 3.12+ only
     def deserialize(self, data: bytes) -> list[dict]:
         """
         反序列化响应数据
@@ -275,7 +276,7 @@ class QuotesXor(BaseParser):
 
         return results
 
-    def _parse_record(self, decoded: bytes, start: int, end: int) -> dict | None:
+    def _parse_record(self, decoded: bytes, start: int, end: int) -> Optional[dict]:
         """
         解析单条记录
 

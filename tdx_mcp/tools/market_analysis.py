@@ -33,7 +33,7 @@
 """
 
 from typing import Dict, List, Any
-from tdx_mcp.const import MARKET, CATEGORY, SORT_TYPE, SORT_TYPE
+from tdx_mcp.const import MARKET, CATEGORY, SORT_TYPE
 from tdx_mcp.utils.log import log
 
 
@@ -215,7 +215,7 @@ def sector_rotation(client) -> Dict[str, Any]:
     try:
         # 获取板块指数行情
         sector_list = [(m, c) for m, c, _ in SECTOR_INDICES]
-        sectors_data = client.get_quotes(sector_list)
+        sectors_data = client.get_index_info(sector_list)
 
         sectors = []
         for sector_data, (_, code, name) in zip(sectors_data, SECTOR_INDICES):

@@ -1,5 +1,5 @@
 import struct
-from typing import override
+# from typing import override  # Python 3.12+ only
 
 from tdx_mcp.parser.baseParser import BaseParser, register_parser
 
@@ -8,7 +8,7 @@ class List(BaseParser):
     def __init__(self, start, count):
         self.body = struct.pack('<IH', start, count)
 
-    @override
+    # @override  # Python 3.12+ only
     def deserialize(self, data):
         start, count = struct.unpack('<IH', data[:6])
         

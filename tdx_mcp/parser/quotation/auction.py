@@ -1,6 +1,6 @@
 from datetime import time
 import struct
-from typing import override
+# from typing import override  # Python 3.12+ only
 
 from tdx_mcp.const import MARKET
 from tdx_mcp.parser.baseParser import BaseParser, register_parser
@@ -11,7 +11,7 @@ class Auction(BaseParser):
     def __init__(self, market: MARKET, code: str, start: int = 0, count: int = 500):
         self.body = struct.pack(u'<H6sIIIII', market.value, code.encode('gbk'), 0, 3, 0, start, count)
 
-    @override
+    # @override  # Python 3.12+ only
     def deserialize(self, data):
         count, = struct.unpack('<H', data[:2])
 

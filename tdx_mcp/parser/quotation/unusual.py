@@ -1,6 +1,6 @@
 from datetime import time
 import struct
-from typing import override
+# from typing import override  # Python 3.12+ only
 
 from tdx_mcp.const import MARKET
 from tdx_mcp.parser.baseParser import BaseParser, register_parser
@@ -10,7 +10,7 @@ from tdx_mcp.parser.baseParser import BaseParser, register_parser
 class Unusual(BaseParser): # 主力监控
     def __init__(self, market: MARKET, start: int, count: int = 600):
         self.body = struct.pack('<HII', market.value, start, count)
-    @override
+    # @override  # Python 3.12+ only
     def deserialize(self, data):
         count,  = struct.unpack('<H', data[:2])
 

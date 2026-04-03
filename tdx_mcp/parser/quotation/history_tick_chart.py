@@ -1,6 +1,6 @@
 from datetime import date
 import struct
-from typing import override
+# from typing import override  # Python 3.12+ only
 
 from tdx_mcp.const import MARKET
 from tdx_mcp.parser.baseParser import BaseParser, register_parser
@@ -13,7 +13,7 @@ class HistoryTickChart(BaseParser):
         date = -date.year * 10000 - date.month * 100 - date.day
         self.body = struct.pack(u'<iB6s', date, market.value, code.encode('gbk'))
 
-    @override
+    # @override  # Python 3.12+ only
     def deserialize(self, data):
         count, m, n = struct.unpack('<HII', data[:10])
         pos = 10

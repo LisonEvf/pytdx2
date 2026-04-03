@@ -1,6 +1,6 @@
 """复权和换手率计算模块"""
 from datetime import datetime
-from typing import Literal
+from typing import Literal, Optional, Union
 from tdx_mcp.utils.log import log
 
 
@@ -160,7 +160,7 @@ def apply_adjustment(kline_data: list[dict], xdxr_list: list[dict],
     return adjusted_data
 
 
-def calc_turnover(vol: int | float, float_shares: float) -> float | None:
+def calc_turnover(vol: Union[int, float], float_shares: float) -> Optional[float]:
     """
     计算换手率
     换手率 = 成交量 / 流通股本 × 100

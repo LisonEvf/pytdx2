@@ -1,5 +1,5 @@
 import struct
-from typing import override
+# from typing import override  # Python 3.12+ only
 
 from tdx_mcp.const import MARKET
 from tdx_mcp.parser.baseParser import BaseParser, register_parser
@@ -17,7 +17,7 @@ class QuotesDetail(BaseParser):
         for market, code in stocks:
             self.body.extend(struct.pack('<B6s', market.value, code.encode('gbk')))
 
-    @override
+    # @override  # Python 3.12+ only
     def deserialize(self, data):
         _, count = struct.unpack('<HH', data[:4])
         pos = 4

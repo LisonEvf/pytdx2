@@ -1,5 +1,5 @@
 import struct
-from typing import override
+# from typing import override  # Python 3.12+ only
 from tdx_mcp.const import MARKET
 from tdx_mcp.parser.baseParser import BaseParser, register_parser
 import six
@@ -12,7 +12,7 @@ class Category(BaseParser):
             code = code.encode("utf-8")
         self.body = struct.pack("<H6sI", market.value, code, 0)
 
-    @override
+    # @override  # Python 3.12+ only
     def deserialize(self, data):
         (count,) = struct.unpack('<H', data[:2])
 
@@ -54,7 +54,7 @@ class Content(BaseParser):
 
         self.body = struct.pack(u"<H6sH80sIII", market.value, code, 0, filename, start, length, 0)
 
-    @override
+    # @override  # Python 3.12+ only
     def deserialize(self, data):
         market, code, marketOR, length = struct.unpack(u"<H6sHH", data[:12])
 
@@ -74,7 +74,7 @@ class Finance(BaseParser):
             code = code.encode("utf-8")
         self.body = struct.pack(u"<HB6s", 1, market.value, code)
 
-    @override
+    # @override  # Python 3.12+ only
     def deserialize(self, data) -> dict:
         (
             num,
@@ -165,7 +165,7 @@ class XDXR(BaseParser):
             code = code.encode("utf-8")
         self.body = struct.pack(u'<HB6s', 1, market.value, code)
 
-    @override
+    # @override  # Python 3.12+ only
     def deserialize(self, data):
         (market, marketOR, code, count) = struct.unpack('<HB6sH', data[:11])
 

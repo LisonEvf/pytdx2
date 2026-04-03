@@ -1,5 +1,5 @@
 import struct
-from typing import override
+# from typing import override  # Python 3.12+ only
 
 from tdx_mcp.const import EX_CATEGORY
 from tdx_mcp.parser.baseParser import BaseParser, register_parser
@@ -45,7 +45,7 @@ class Quotes(BaseParser):
         for category, code in code_list:
             self.body.extend(struct.pack('<B23s', category.value, code.encode('gbk')))
 
-    @override
+    # @override  # Python 3.12+ only
     def deserialize(self, data):
         u, _, count = struct.unpack('<IIH', data[:10])
         results = []

@@ -1,5 +1,5 @@
 import struct
-from typing import override
+# from typing import override  # Python 3.12+ only
 
 from tdx_mcp.const import MARKET
 from tdx_mcp.parser.baseParser import BaseParser, register_parser
@@ -13,7 +13,7 @@ class ChartSampling(BaseParser):
         
         self.body.extend(bytearray().fromhex('0000000000000000000000000000000001001400000000010000000000'))
     
-    @override
+    # @override  # Python 3.12+ only
     def deserialize(self, data):
         market, code = struct.unpack('<H6s', data[:8])
         num, pre_close, _ = struct.unpack('<HfH', data[34:42])

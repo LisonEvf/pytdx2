@@ -1,5 +1,5 @@
 import struct
-from typing import override
+# from typing import override  # Python 3.12+ only
 from tdx_mcp.const import BLOCK_FILE_TYPE
 from tdx_mcp.parser.baseParser import BaseParser, register_parser
 
@@ -8,7 +8,7 @@ class Download(BaseParser):
     def __init__(self, file_name: str, start: int = 0, size: int = 0x7530):
         self.body = struct.pack('<II300s', start, size, file_name.encode('gbk'))
 
-    @override
+    # @override  # Python 3.12+ only
     def deserialize(self, data):
         return {
             'size': struct.unpack('<I', data[:4])[0],
@@ -20,7 +20,7 @@ class Meta(BaseParser):
     def __init__(self, file_name: str):
         self.body = struct.pack('<40s', file_name.encode('gbk'))
 
-    @override
+    # @override  # Python 3.12+ only
     def deserialize(self, data):
         size, unknown1, hash_value, unknown2 = struct.unpack(u"<I1s32s1s", data)
         return {

@@ -1,6 +1,6 @@
 from datetime import date, time
 import struct
-from typing import override
+# from typing import override  # Python 3.12+ only
 
 from tdx_mcp.const import MARKET
 from tdx_mcp.parser.baseParser import BaseParser, register_parser
@@ -13,7 +13,7 @@ class HistoryTransactionWithTrans(BaseParser):
         date = date.year * 10000 + date.month * 100 + date.day
         self.body = struct.pack(u'<IH6sHH', date, market.value, code.encode('gbk'), start, count)
 
-    @override
+    # @override  # Python 3.12+ only
     def deserialize(self, data):
         count, pre_close = struct.unpack('<Hf', data[:6])
         pos = 6
