@@ -210,9 +210,9 @@ class QuotationClient(BaseStockClient):
             start += len(part)
             
         for quotes in results:
-            quotes['short_turnover'] = f'{(quotes['short_turnover'] / 100):.2f}%'
-            quotes['opening_rush'] = f'{(quotes['opening_rush'] / 100):.2f}%'
-            quotes['vol_rise_speed'] = f'{(quotes['vol_rise_speed']):.2f}%'
+            quotes['short_turnover'] = f'{(quotes["short_turnover"] / 100):.2f}%'
+            quotes['opening_rush'] = f'{(quotes["opening_rush"] / 100):.2f}%'
+            quotes['vol_rise_speed'] = f'{(quotes["vol_rise_speed"]):.2f}%'
             quotes['depth'] = f'{(quotes["depth"]):.2f}%'
 
         return self.quotes_adjustment(results)
@@ -228,9 +228,9 @@ class QuotationClient(BaseStockClient):
         quotes_list = self.call(stock.Quotes(all_stock))
 
         for quotes in quotes_list:
-            quotes['short_turnover'] = f'{(quotes['short_turnover'] / 100):.2f}%'
-            quotes['opening_rush'] = f'{(quotes['opening_rush'] / 100):.2f}%'
-            quotes['vol_rise_speed'] = f'{(quotes['vol_rise_speed']):.2f}%'
+            quotes['short_turnover'] = f'{(quotes["short_turnover"] / 100):.2f}%'
+            quotes['opening_rush'] = f'{(quotes["opening_rush"] / 100):.2f}%'
+            quotes['vol_rise_speed'] = f'{(quotes["vol_rise_speed"]):.2f}%'
             quotes['depth'] = f'{(quotes["depth"]):.2f}%'
 
         return self.quotes_adjustment(quotes_list)

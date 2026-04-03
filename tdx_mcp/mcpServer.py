@@ -756,6 +756,121 @@ def indicator_vol_ma(kline_data: list[dict], periods: list[int] = [5, 10, 20]) -
     return result
 
 
+# ============ 市场分析工具 ============
+
+@mcp.tool()
+def market_overview() -> dict:
+    '''
+    全市场概览 - 提供主要指数、涨跌分布、成交额等市场整体情况
+        Returns:
+            Dict: {
+                "indices": [
+                    {
+                        "name": "上证指数",
+                        "code": "999999",
+                        "market": "SH",
+                        "price": 3878.96,
+                        "change": -1.07,
+                        "change_pct": -0.03,
+                        "volume": 340000000,
+                        "amount": 49152000000
+                    },
+                    ...
+                ],
+                "breadth": {
+                    "up": 21,         # 上涨家数
+                    "down": 301,      # 下跌家数
+                    "flat": 1,        # 平盘家数
+                    "limit_up": 0,    # 涨停数
+                    "limit_down": 0   # 跌停数
+                },
+                "amount": {
+                    "sh": 4915.2,     # 上海成交额（亿）
+                    "sz": 6568.8,     # 深圳成交额（亿）
+                    "total": 11484    # 两市总成交额（亿）
+                }
+            }
+    '''
+    from tdx_mcp.tools.market_analysis import market_overview as _market_overview
+    return _market_overview(hq())
+
+@mcp.tool()
+def sector_rotation() -> dict:
+    '''
+    板块轮动分析 - 显示领涨和领跌的行业板块
+        Returns:
+            Dict: {
+                "top_gainers": [
+                    {
+                        "name": "信息技术",
+                        "code": "399239",
+                        "change_pct": 2.35
+                    },
+                    ...
+                ],
+                "top_losers": [
+                    {
+                        "name": "房地产",
+                        "code": "399241",
+                        "change_pct": -1.82
+                    },
+                    ...
+                ],
+                "all_sectors": [...]  # 所有板块按涨跌幅排序
+            }
+    '''
+    from tdx_mcp.tools.market_analysis import sector_rotation as _sector_rotation
+    return _sector_rotation(hq())
+
+@mcp.tool()
+def market_breadth() -> dict:
+    '''
+    市场广度分析 - 统计涨跌家数、涨跌幅分布、市场强度等
+        Returns:
+            Dict: {
+                "up_count": 21,           # 上涨家数
+                "down_count": 301,        # 下跌家数
+                "flat_count": 1,          # 平盘家数
+                "limit_up": 0,            # 涨停数
+                "limit_down": 0,          # 跌停数
+                "distribution": {
+                    "above_5": 2,         # 涨幅>5%
+                    "between_3_5": 5,     # 涨幅3-5%
+                    "between_0_3": 14,    # 涨幅0-3%
+                    "between_neg3_0": 180, # 跌幅0-3%
+                    "between_neg5_neg3": 90, # 跌幅3-5%
+                    "below_neg5": 31      # 跌幅<-5%
+                },
+                "strength": 0.065,        # 市场强度 = 上涨家数/总家数
+                "breadth_ratio": 0.065    # 涨跌比
+            }
+    '''
+    from tdx_mcp.tools.market_analysis import market_breadth as _market_breadth
+    return _market_breadth(hq())
+
+@mcp.tool()
+def market_sentiment() -> dict:
+    '''
+    市场情绪分析 - 提供成交额、换手率、量比、市场热度等情绪指标
+        Returns:
+            Dict: {
+                "total_amount": 11484,    # 两市总成交额（亿）
+                "turnover_median": 2.35,  # 换手率中位数(%)
+                "vol_ratio_avg": 1.05,    # 量比平均值
+                "market_heat": "偏冷",    # 市场热度
+                "heat_score": 25,         # 热度评分(0-100)
+                "sentiment_indicators": {
+                    "up_ratio": 0.065,    # 上涨比例
+                    "limit_up_ratio": 0,  # 涨停比例
+                    "turnover_level": "低", # 换手率水平
+                    "amount_level": "缩量"  # 成交额水平
+                }
+            }
+    '''
+    from tdx_mcp.tools.market_analysis import market_sentiment as _market_sentiment
+    return _market_sentiment(hq())
+
+
 def main():
     """MCP Server 入口点"""
     mcp.run()
