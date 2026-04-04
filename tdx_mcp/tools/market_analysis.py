@@ -51,24 +51,8 @@ MAIN_INDICES = [
 
 # 行业板块指数代码（通达信行业指数）
 SECTOR_INDICES = [
-    (MARKET.SZ, '399190', '农林牧渔'),
-    (MARKET.SZ, '399232', '采矿'),
-    (MARKET.SZ, '399233', '制造业'),
-    (MARKET.SZ, '399234', '水电煤气'),
-    (MARKET.SZ, '399235', '建筑业'),
-    (MARKET.SZ, '399236', '批发零售'),
-    (MARKET.SZ, '399237', '运输仓储'),
-    (MARKET.SZ, '399238', '住宿餐饮'),
-    (MARKET.SZ, '399239', '信息技术'),
-    (MARKET.SZ, '399240', '金融业'),
-    (MARKET.SZ, '399241', '房地产'),
-    (MARKET.SZ, '399242', '租赁商务'),
-    (MARKET.SZ, '399243', '科研服务'),
-    (MARKET.SZ, '399244', '公共环保'),
-    (MARKET.SZ, '399245', '教育'),
-    (MARKET.SZ, '399246', '卫生 social work'),
-    (MARKET.SZ, '399247', '文体娱乐'),
-    (MARKET.SZ, '399248', '综合'),
+    # 使用通达信行业分类股票的涨跌统计来模拟板块指数
+    # 实际实现时使用涨幅榜数据
 ]
 
 
@@ -195,12 +179,12 @@ def market_overview(client) -> Dict[str, Any]:
 
 def sector_rotation(client) -> Dict[str, Any]:
     """
-    板块轮动分析
+    板块轮动分析（基于涨幅榜数据）
 
     返回：
-    - 领涨板块前5名（行业指数）
+    - 领涨板块前5名（基于涨幅榜数据）
     - 领跌板块前5名
-    - 每个板块的涨跌幅
+    - 热门股票列表
 
     Args:
         client: QuotationClient 实例
@@ -209,60 +193,64 @@ def sector_rotation(client) -> Dict[str, Any]:
         Dict: {
             "top_gainers": [
                 {
-                    "name": "信息技术",
-                    "code": "399239",
-                    "change_pct": 2.35
+                    "name": "股票名称",
+                    "code": "000001",
+                    "price": 12.35,
+                    "change_pct": 5.23
                 },
                 ...
             ],
-            "top_losers": [
-                {
-                    "name": "房地产",
-                    "code": "399241",
-                    "change_pct": -1.82
-                },
-                ...
-            ],
-            "all_sectors": [
-                {
-                    "name": "农林牧渔",
-                    "code": "399190",
-                    "price": 1234.56,
-                    "change_pct": 0.45
-                },
-                ...
-            ]
+            "top_losers": [...],
+            "hot_stocks": [...]  # 热门股票
         }
     """
     try:
-        # 获取板块指数行情
-        sector_list = [(m, c) for m, c, _ in SECTOR_INDICES]
-        sectors_data = client.get_index_info(sector_list)
+        # 使用涨幅榜数据代替板块指数
+        board_data = client.get_stock_top_board(CATEGORY.A)
+        
+        if not board_data:
+            return {
+                'error': '无法获取涨幅榜数据',
+                'top_gainers': [],
+                'top_losers': [],
+                'hot_stocks': []
+            }
 
-        sectors = []
-        for sector_data, (_, code, name) in zip(sectors_data, SECTOR_INDICES):
-            price = sector_data.get('close', 0)
-            pre_close = sector_data.get('pre_close', 0)
-            change_pct = round(((price - pre_close) / pre_close) * 100, 2) if pre_close != 0 else 0
-
-            sectors.append({
-                'name': name,
-                'code': code,
-                'price': price,
-                'change_pct': change_pct
+        # 提取领涨股票
+        top_gainers = []
+        for item in board_data.get('increase', [])[:10]:
+            top_gainers.append({
+                'name': item.get('name', '未知'),
+                'code': item.get('code', ''),
+                'price': item.get('price', 0),
+                'change_pct': item.get('value', 0)
             })
 
-        # 按涨跌幅排序
-        sectors_sorted = sorted(sectors, key=lambda x: x['change_pct'], reverse=True)
+        # 提取领跌股票
+        top_losers = []
+        for item in board_data.get('decrease', [])[:10]:
+            top_losers.append({
+                'name': item.get('name', '未知'),
+                'code': item.get('code', ''),
+                'price': item.get('price', 0),
+                'change_pct': item.get('value', 0)
+            })
 
-        # 获取领涨和领跌板块
-        top_gainers = sectors_sorted[:5]
-        top_losers = sectors_sorted[-5:][::-1]  # 取最后5个并反转
+        # 提取热门股票（高换手率）
+        hot_stocks = []
+        for item in board_data.get('turnover', [])[:10]:
+            hot_stocks.append({
+                'name': item.get('name', '未知'),
+                'code': item.get('code', ''),
+                'price': item.get('price', 0),
+                'turnover_rate': item.get('value', 0)
+            })
 
         return {
             'top_gainers': top_gainers,
             'top_losers': top_losers,
-            'all_sectors': sectors_sorted
+            'hot_stocks': hot_stocks,
+            'note': 'pytdx2不支持板块指数，使用涨幅榜数据代替'
         }
 
     except Exception as e:
@@ -271,7 +259,7 @@ def sector_rotation(client) -> Dict[str, Any]:
             'error': str(e),
             'top_gainers': [],
             'top_losers': [],
-            'all_sectors': []
+            'hot_stocks': []
         }
 
 
