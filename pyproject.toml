@@ -1,15 +1,18 @@
 [project]
 name = "tdx-mcp"
-version = "0.1.5"
+version = "1.0.0"
 description = "TDX stock data client with MCP server for AI assistants (Claude, Cursor, OpenClaw)"
 authors = [{ name = "LisonEvf", email = "lisonevf@gmail.com" }]
 readme = "README.md"
 license = "MIT"
-requires-python = ">=3.12"
+requires-python = ">=3.9"
 keywords = ["stock", "tdx", "mcp", "quant", "finance", "claude", "trading"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Topic :: Office/Business :: Financial",
     "Topic :: Software Development :: Libraries :: Python Modules",
