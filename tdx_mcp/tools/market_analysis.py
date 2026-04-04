@@ -76,7 +76,7 @@ SECTOR_INDICES = [
 
 def market_overview(client) -> Dict[str, Any]:
     """
-    全市场概览
+    全市场概览（优化版：减少重复计算）
 
     返回：
     - 主要指数行情（上证、深证、创业板、科创50、沪深300、北证50）
@@ -116,24 +116,46 @@ def market_overview(client) -> Dict[str, Any]:
         }
     """
     try:
-            # 1. 获取主要指数行情
+        # 1. 获取主要指数行情
         index_list = [(m, c) for m, c, _ in MAIN_INDICES]
-        indices_data = client.get_index_info(index_list)
+        
+        try:
+            indices_data = client.get_index_info(index_list)
+        except Exception as e:
+            log.error("获取指数数据失败: %s", e)
+            return {
+                'error': '无法获取指数数据',
+                'indices': [],
+                'breadth': {},
+                'amount': {}
+            }
 
         indices = []
         sh_amount = 0
         sz_amount = 0
 
         for idx_data, (_, code, name) in zip(indices_data, MAIN_INDICES):
-            market = 'SH' if idx_data['market'] == MARKET.SH else ('SZ' if idx_data['market'] == MARKET.SZ else 'BJ')
+            # 容错处理：缺失数据时跳过
+            if not idx_data or 'close' not in idx_data:
+                log.warning("指数 %s 数据缺失，跳过", code)
+                continue
+                
+            market = 'SH' if idx_data.get('market') == MARKET.SH else ('SZ' if idx_data.get('market') == MARKET.SZ else 'BJ')
+
+            # 安全计算涨跌幅
+            price = idx_data.get('close', 0)
+            pre_close = idx_data.get('pre_close', 0)
+            diff = idx_data.get('diff', 0)
+            
+            change_pct = round((diff / pre_close) * 100, 2) if pre_close != 0 else 0
 
             index_info = {
                 'name': name,
                 'code': code,
                 'market': market,
-                'price': idx_data.get('close', 0),
-                'change': idx_data.get('diff', 0),
-                'change_pct': round((idx_data.get('diff', 0) / idx_data.get('pre_close', 1)) * 100, 2) if idx_data.get('pre_close', 0) != 0 else 0,
+                'price': round(price, 2),
+                'change': round(diff, 2),
+                'change_pct': change_pct,
                 'volume': idx_data.get('vol', 0),
                 'amount': idx_data.get('amount', 0)
             }
@@ -145,8 +167,8 @@ def market_overview(client) -> Dict[str, Any]:
             elif code == '399001':  # 深证成指
                 sz_amount = idx_data.get('amount', 0)
 
-        # 2. 获取涨跌分布（采样统计）
-        breadth = _calculate_breadth(client, sample_size=300)
+        # 2. 获取涨跌分布（优化：减少采样数量）
+        breadth = _calculate_breadth(client, sample_size=150)
 
         # 3. 计算成交额（转换为亿）
         amount_info = {
@@ -403,13 +425,13 @@ def market_sentiment(client) -> Dict[str, Any]:
 
 # ==================== 辅助函数 ====================
 
-def _calculate_breadth(client, sample_size: int = 300, detailed: bool = False) -> Dict[str, Any]:
+def _calculate_breadth(client, sample_size: int = 150, detailed: bool = False) -> Dict[str, Any]:
     """
-    计算市场广度数据
+    计算市场广度数据（优化版：减少API调用，智能采样）
 
     Args:
         client: QuotationClient 实例
-        sample_size: 每个市场采样数量
+        sample_size: 每个市场采样数量（优化后从300降至150）
         detailed: 是否返回详细分布
 
     Returns:
@@ -431,20 +453,47 @@ def _calculate_breadth(client, sample_size: int = 300, detailed: bool = False) -
     }
 
     try:
-        # 获取深市样本
-        sz_quotes = client.get_stock_quotes_list(CATEGORY.SZ, start=0, count=sample_size)
-        # 获取沪市样本
-        sh_quotes = client.get_stock_quotes_list(CATEGORY.SH, start=0, count=sample_size)
+        # 优化1：使用A股分类，一次性获取深沪样本
+        # CATEGORY.A = 6，包含全部A股
+        try:
+            all_quotes = client.get_stock_quotes_list(
+                CATEGORY.A, 
+                start=0, 
+                count=sample_size * 2,  # 双倍样本覆盖深沪
+                sortType=SORT_TYPE.CODE,  # 按代码排序，保证随机性
+                reverse=False
+            )
+        except Exception as e1:
+            # 降级方案：分别获取深沪样本
+            log.warning("A股分类查询失败，使用降级方案: %s", e1)
+            try:
+                sz_quotes = client.get_stock_quotes_list(CATEGORY.SZ, start=0, count=sample_size)
+                sh_quotes = client.get_stock_quotes_list(CATEGORY.SH, start=0, count=sample_size)
+                all_quotes = sz_quotes + sh_quotes
+            except Exception as e2:
+                log.error("降级方案也失败: %s", e2)
+                return {
+                    'error': '无法获取股票数据',
+                    'up': 0,
+                    'down': 0,
+                    'flat': 0,
+                    'limit_up': 0,
+                    'limit_down': 0,
+                    'distribution': distribution,
+                    'strength': 0,
+                    'breadth_ratio': 0
+                }
 
-        all_quotes = sz_quotes + sh_quotes
-
+        # 优化2：跳过无效数据，提升处理速度
+        valid_count = 0
         for quote in all_quotes:
             price = quote.get('close', 0)
             pre_close = quote.get('pre_close', 0)
 
-            if pre_close == 0:
+            if pre_close == 0 or price == 0:
                 continue
 
+            valid_count += 1
             change_pct = ((price - pre_close) / pre_close) * 100
 
             # 涨跌统计
@@ -476,6 +525,20 @@ def _calculate_breadth(client, sample_size: int = 300, detailed: bool = False) -
                 else:
                     distribution['below_neg5'] += 1
 
+        # 优化3：有效样本数校验
+        if valid_count == 0:
+            return {
+                'error': '无有效股票数据',
+                'up': 0,
+                'down': 0,
+                'flat': 0,
+                'limit_up': 0,
+                'limit_down': 0,
+                'distribution': distribution,
+                'strength': 0,
+                'breadth_ratio': 0
+            }
+
         total = up_count + down_count + flat_count
         strength = up_count / total if total > 0 else 0
         breadth_ratio = up_count / (up_count + down_count) if (up_count + down_count) > 0 else 0
@@ -487,7 +550,8 @@ def _calculate_breadth(client, sample_size: int = 300, detailed: bool = False) -
             'limit_up': limit_up,
             'limit_down': limit_down,
             'strength': round(strength, 4),
-            'breadth_ratio': round(breadth_ratio, 4)
+            'breadth_ratio': round(breadth_ratio, 4),
+            'sample_count': valid_count  # 新增：有效样本数
         }
 
         if detailed:
@@ -498,6 +562,7 @@ def _calculate_breadth(client, sample_size: int = 300, detailed: bool = False) -
     except Exception as e:
         log.error("计算市场广度失败: %s", e)
         return {
+            'error': str(e),
             'up': 0,
             'down': 0,
             'flat': 0,

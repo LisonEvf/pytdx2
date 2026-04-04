@@ -27,6 +27,7 @@
 from typing import Dict, List, Any
 from tdx_mcp.const import MARKET, CATEGORY
 from tdx_mcp.utils.log import log
+from tdx_mcp.utils.retry import safe_call, calculate_safely
 
 
 def stock_detail(client, market: MARKET, code: str) -> Dict[str, Any]:
@@ -90,20 +91,20 @@ def stock_detail(client, market: MARKET, code: str) -> Dict[str, Any]:
         change = price - pre_close
         change_pct = round((change / pre_close) * 100, 2) if pre_close != 0 else 0
 
-        # 4. 计算估值指标
+        # 4. 计算估值指标（使用安全除法）
         eps = finance_data.get('每股收益', 0)
         bvps = finance_data.get('每股净资产', 0)
-        total_shares = finance_data.get('总股本', 0) / 100000000  # 转换为亿
-        circulation_shares = finance_data.get('流通股本', 0) / 100000000
+        total_shares = calculate_safely(finance_data.get('总股本', 0), 100000000, 0)  # 转换为亿
+        circulation_shares = calculate_safely(finance_data.get('流通股本', 0), 100000000, 0)
 
-        pe_ratio = round(price / eps, 2) if eps != 0 else 0
-        pb_ratio = round(price / bvps, 2) if bvps != 0 else 0
+        pe_ratio = round(calculate_safely(price, eps, 0), 2)
+        pb_ratio = round(calculate_safely(price, bvps, 0), 2)
         market_cap = round(price * total_shares, 2) if total_shares > 0 else 0
         circulation_cap = round(price * circulation_shares, 2) if circulation_shares > 0 else 0
 
-        # 5. 计算换手率
+        # 5. 计算换手率（使用安全除法）
         volume = quote.get('vol', 0)
-        turnover_rate = round((volume / circulation_shares / 100000000) * 100, 2) if circulation_shares > 0 else 0
+        turnover_rate = round(calculate_safely(volume, circulation_shares * 100000000, 0) * 100, 2)
 
         # 6. 组装结果
         result = {
@@ -213,7 +214,12 @@ def capital_flow(client, market: MARKET, code: str, sample_days: int = 5) -> Dic
         total_net_inflow = super_large_total + large_total + medium_total + small_total
         main_ratio = round(main_net_inflow / abs(total_net_inflow), 2) if total_net_inflow != 0 else 0
 
-        # 4. 评估资金动向
+        # 4. 评估资金动向（使用安全除法）
+        main_net_inflow = super_large_total + large_total
+        total_net_inflow = super_large_total + large_total + medium_total + small_total
+        main_ratio = abs(calculate_safely(main_net_inflow, abs(total_net_inflow), 0))
+
+        # 5. 资金评估（基于净流入金额）
         if main_net_inflow > 10000000:  # >1000万
             assessment = "主力大幅流入"
         elif main_net_inflow > 1000000:  # >100万
@@ -231,7 +237,7 @@ def capital_flow(client, market: MARKET, code: str, sample_days: int = 5) -> Dic
             'large': int(large_total),
             'medium': int(medium_total),
             'small': int(small_total),
-            'main_ratio': abs(main_ratio),
+            'main_ratio': main_ratio,
             'assessment': assessment
         }
 
