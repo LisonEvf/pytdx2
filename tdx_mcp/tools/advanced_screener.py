@@ -98,14 +98,15 @@ def stock_screener(client,
                    market: int = 6,
                    filters: Dict[str, Any] = None,
                    sort_by: str = 'change_pct',
-                   limit: int = 50) -> Dict[str, Any]:
+                   limit: int = 50,
+                   **kwargs) -> Dict[str, Any]:
     """
     智能选股器
 
     Args:
         client: QuotationClient 实例
         market: 市场分类（0=上证A, 2=深证A, 6=A股, 8=科创板, 14=创业板）
-        filters: 筛选条件 {
+        filters: 筛选条件（可选，支持字典形式）{
             'price_min': 5.0,  # 最低价格
             'price_max': 100.0,  # 最高价格
             'change_pct_min': -5.0,  # 最低涨幅
@@ -116,6 +117,7 @@ def stock_screener(client,
         }
         sort_by: 排序字段（change_pct, volume, amount, turnover）
         limit: 返回数量
+        **kwargs: 直接传递筛选条件（如price_min=5.0），用于本地调用
 
     Returns:
         Dict: {
@@ -137,7 +139,13 @@ def stock_screener(client,
         }
     """
     try:
+        # 合并filters和kwargs
         filters = filters or {}
+        # 如果kwargs中有筛选条件，合并到filters中
+        for key in ['price_min', 'price_max', 'change_pct_min', 'change_pct_max', 
+                   'volume_min', 'turnover_min', 'amount_min']:
+            if key in kwargs:
+                filters[key] = kwargs[key]
         
         # 获取股票列表
         stocks = client.get_stock_quotes_list(
