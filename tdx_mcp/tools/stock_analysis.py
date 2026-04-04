@@ -16,8 +16,8 @@
 
     # 获取个股详情
     detail = stock_detail(client, MARKET.SZ, '000001')
-    print(f"股票名称: {detail['name']}")
-    print(f"市盈率: {detail['pe_ratio']}")
+    print(f"股票名称: {detail['basic']['name']}")
+    print(f"市盈率: {detail['quote']['pe_ratio']}")
 
     # 获取资金流向
     flow = capital_flow(client, MARKET.SZ, '000001')
@@ -80,18 +80,30 @@ def stock_detail(client, market: MARKET, code: str) -> Dict[str, Any]:
 
         quote = quotes_data[0] if isinstance(quotes_data, list) else quotes_data
 
-        # 2. 获取F10财务数据
-        finance_info = client.get_company_info(market, code)
+        # 2. 获取股票名称（从股票列表中查找）
+        name = code  # 默认使用代码
+        try:
+            # 从相应市场的股票列表中查找
+            category = CATEGORY.SH if market == MARKET.SH else CATEGORY.SZ
+            stock_list = client.get_stock_quotes_list(category, start=0, count=100)
+            for stock in stock_list:
+                if stock.get('code') == code:
+                    name = stock.get('name', code)
+                    break
+        except:
+            pass
+
+        # 3. 获取F10财务数据
+        finance_info = safe_call(client.get_company_info, [], market, code)
         finance_data = finance_info[0] if finance_info and isinstance(finance_info, list) else {}
 
-        # 3. 提取基础信息
-        name = quote.get('name', '')
+        # 4. 提取基础信息
         price = quote.get('close', 0)
         pre_close = quote.get('pre_close', 0)
         change = price - pre_close
         change_pct = round((change / pre_close) * 100, 2) if pre_close != 0 else 0
 
-        # 4. 计算估值指标（使用安全除法）
+        # 5. 计算估值指标（使用安全除法）
         eps = finance_data.get('每股收益', 0)
         bvps = finance_data.get('每股净资产', 0)
         total_shares = calculate_safely(finance_data.get('总股本', 0), 100000000, 0)  # 转换为亿
@@ -102,11 +114,11 @@ def stock_detail(client, market: MARKET, code: str) -> Dict[str, Any]:
         market_cap = round(price * total_shares, 2) if total_shares > 0 else 0
         circulation_cap = round(price * circulation_shares, 2) if circulation_shares > 0 else 0
 
-        # 5. 计算换手率（使用安全除法）
+        # 6. 计算换手率（使用安全除法）
         volume = quote.get('vol', 0)
         turnover_rate = round(calculate_safely(volume, circulation_shares * 100000000, 0) * 100, 2)
 
-        # 6. 组装结果
+        # 7. 组装结果
         result = {
             'basic': {
                 'name': name,
@@ -189,37 +201,32 @@ def capital_flow(client, market: MARKET, code: str, sample_days: int = 5) -> Dic
 
             # 根据成交额分类
             if amount > 1000000:  # 特大单
-                if direction == '买盘':
+                if direction == 'BUY':
                     super_large_total += amount
-                elif direction == '卖盘':
+                elif direction == 'SELL':
                     super_large_total -= amount
             elif amount > 200000:  # 大单
-                if direction == '买盘':
+                if direction == 'BUY':
                     large_total += amount
-                elif direction == '卖盘':
+                elif direction == 'SELL':
                     large_total -= amount
             elif amount > 50000:  # 中单
-                if direction == '买盘':
+                if direction == 'BUY':
                     medium_total += amount
-                elif direction == '卖盘':
+                elif direction == 'SELL':
                     medium_total -= amount
             else:  # 小单
-                if direction == '买盘':
+                if direction == 'BUY':
                     small_total += amount
-                elif direction == '卖盘':
+                elif direction == 'SELL':
                     small_total -= amount
 
         # 3. 计算主力资金（特大单+大单）
         main_net_inflow = super_large_total + large_total
         total_net_inflow = super_large_total + large_total + medium_total + small_total
-        main_ratio = round(main_net_inflow / abs(total_net_inflow), 2) if total_net_inflow != 0 else 0
-
-        # 4. 评估资金动向（使用安全除法）
-        main_net_inflow = super_large_total + large_total
-        total_net_inflow = super_large_total + large_total + medium_total + small_total
         main_ratio = abs(calculate_safely(main_net_inflow, abs(total_net_inflow), 0))
 
-        # 5. 资金评估（基于净流入金额）
+        # 4. 资金评估（基于净流入金额）
         if main_net_inflow > 10000000:  # >1000万
             assessment = "主力大幅流入"
         elif main_net_inflow > 1000000:  # >100万
@@ -277,24 +284,19 @@ def hot_concepts(client, top_n: int = 10) -> Dict[str, Any]:
         # 注意：board_list返回的是板块+成分股配对数据，需要过滤
         board_data = []
         try:
-            # 使用GN类型获取概念板块
-            raw_boards = client.get_stock_top_board(3)  # 3 = 概念板块
+            # 使用涨幅榜数据作为概念板块来源
+            increase_list = client.get_stock_top_board(CATEGORY.A).get('increase', [])
             
-            # 提取涨幅榜数据
-            if isinstance(raw_boards, dict):
-                increase_list = raw_boards.get('increase', [])
-                for item in increase_list[:top_n]:
-                    board_data.append({
-                        'name': item.get('name', '未知'),
-                        'code': item.get('code', ''),
-                        'price': item.get('price', 0),
-                        'change_pct': item.get('value', 0)  # value字段是涨跌幅
-                    })
+            # 提取前top_n个股票作为热门概念（简化版）
+            for item in increase_list[:top_n]:
+                board_data.append({
+                    'name': item.get('name', '未知'),
+                    'code': item.get('code', ''),
+                    'price': item.get('price', 0),
+                    'change_pct': item.get('value', 0)  # value字段是涨跌幅
+                })
         except Exception as e:
-            log.warning("获取概念板块失败，尝试备用方案: %s", e)
-            
-            # 备用方案：从涨幅榜中筛选概念相关的
-            # 这里简化处理，直接返回空列表
+            log.warning("获取涨幅榜失败: %s", e)
             return {
                 'error': '暂不支持概念板块数据',
                 'concepts': [],
