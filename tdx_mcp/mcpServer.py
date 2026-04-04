@@ -870,6 +870,62 @@ def market_sentiment() -> dict:
     from tdx_mcp.tools.market_analysis import market_sentiment as _market_sentiment
     return _market_sentiment(hq())
 
+@mcp.tool()
+def stock_detail(market: int, code: str) -> dict:
+    '''
+    个股详情 - 整合报价、F10数据、财务指标的个股全景分析
+        Args:
+            market: int - ''' + _MARKET_DESC + '''
+            code: str   - 股票代码(如 000001)
+        Returns:
+            Dict: {
+                "basic": {"name": "平安银行", "code": "000001", "market": "SZ", "industry": "银行"},
+                "quote": {"price": 12.35, "change_pct": 1.23, "pe_ratio": 6.5, "pb_ratio": 0.8, "market_cap": 2400.5},
+                "financial": {"eps": 1.85, "bvps": 15.23, "roe": 12.5, "total_shares": 194.05}
+            }
+    '''
+    from tdx_mcp.tools.stock_analysis import stock_detail as _stock_detail
+    return _stock_detail(hq(), MARKET(market), code)
+
+@mcp.tool()
+def capital_flow(market: int, code: str) -> dict:
+    '''
+    资金流向 - 基于成交数据分析主力资金动向
+        Args:
+            market: int - ''' + _MARKET_DESC + '''
+            code: str   - 股票代码
+        Returns:
+            Dict: {
+                "main_net_inflow": 12345678,  # 主力净流入（元）
+                "super_large": 5678901,       # 特大单净流入
+                "large": 6666777,             # 大单净流入
+                "medium": -123456,            # 中单净流入
+                "small": -234567,             # 小单净流入
+                "main_ratio": 0.65,           # 主力占比
+                "assessment": "主力流入"     # 评估结果
+            }
+    '''
+    from tdx_mcp.tools.stock_analysis import capital_flow as _capital_flow
+    return _capital_flow(hq(), MARKET(market), code)
+
+@mcp.tool()
+def hot_concepts(top_n: int = 10) -> dict:
+    '''
+    热门概念板块 - 基于涨幅和热度排序的概念板块分析
+        Args:
+            top_n: int - 返回前N个热门板块，默认10
+        Returns:
+            Dict: {
+                "concepts": [
+                    {"name": "DeepSeek概念", "code": "BK0888", "price": 1234.56, "change_pct": 5.23, "heat_score": 85},
+                    ...
+                ],
+                "market_heat": "活跃"  # 市场整体热度
+            }
+    '''
+    from tdx_mcp.tools.stock_analysis import hot_concepts as _hot_concepts
+    return _hot_concepts(hq(), top_n)
+
 
 def main():
     """MCP Server 入口点"""
