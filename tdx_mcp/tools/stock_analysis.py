@@ -171,7 +171,7 @@ def capital_flow(client, market: MARKET, code: str, sample_days: int = 5) -> Dic
         # 1. 获取当日分笔成交数据
         from datetime import date
         today = date.today()
-        transactions = client.get_stock_transaction(market, code, today)
+        transactions = client.get_transaction(market, code, today)
 
         if not transactions or len(transactions) == 0:
             return {'error': '无成交数据', 'code': code}
