@@ -926,6 +926,151 @@ def hot_concepts(top_n: int = 10) -> dict:
     from tdx_mcp.tools.stock_analysis import hot_concepts as _hot_concepts
     return _hot_concepts(hq(), top_n)
 
+# ============ 高级选股工具 ============
+
+@mcp.tool()
+def dragon_tiger(date: str = None) -> dict:
+    '''
+    龙虎榜数据 - 查看异动股票（涨停、跌停、大幅波动）
+        Args:
+            date: str - 日期（可选，格式YYYY-MM-DD，默认今日）
+        Returns:
+            Dict: {
+                "stocks": [
+                    {
+                        "code": "000001",
+                        "name": "平安银行",
+                        "reason": "日涨幅偏离值达7%",
+                        "value": 500000000
+                    },
+                    ...
+                ],
+                "total_count": 50,
+                "date": "2026-04-04"
+            }
+    '''
+    from tdx_mcp.tools.advanced_screener import dragon_tiger_list
+    return dragon_tiger_list(hq(), date)
+
+@mcp.tool()
+def stock_screener(
+    market: int = 6,
+    price_min: float = None,
+    price_max: float = None,
+    change_pct_min: float = None,
+    change_pct_max: float = None,
+    volume_min: int = None,
+    turnover_min: float = None,
+    amount_min: int = None,
+    sort_by: str = 'change_pct',
+    limit: int = 50
+) -> dict:
+    '''
+    智能选股器 - 多条件筛选股票
+        Args:
+            market: int - ''' + _CATEGORY_DESC + '''，默认6(A股)
+            price_min: float - 最低价格
+            price_max: float - 最高价格
+            change_pct_min: float - 最低涨幅(%)
+            change_pct_max: float - 最高涨幅(%)
+            volume_min: int - 最小成交量
+            turnover_min: float - 最小换手率(%)
+            amount_min: int - 最小成交额
+            sort_by: str - 排序字段(change_pct/volume/amount/turnover)
+            limit: int - 返回数量，默认50
+        Returns:
+            Dict: {
+                "stocks": [
+                    {
+                        "code": "000001",
+                        "name": "平安银行",
+                        "price": 12.35,
+                        "change_pct": 2.5,
+                        "volume": 12345678,
+                        "amount": 152345678,
+                        "turnover": 3.5
+                    },
+                    ...
+                ],
+                "filtered_count": 100,
+                "total_count": 3000
+            }
+    '''
+    from tdx_mcp.tools.advanced_screener import stock_screener as _stock_screener
+    
+    # 构建筛选条件
+    filters = {}
+    if price_min is not None:
+        filters['price_min'] = price_min
+    if price_max is not None:
+        filters['price_max'] = price_max
+    if change_pct_min is not None:
+        filters['change_pct_min'] = change_pct_min
+    if change_pct_max is not None:
+        filters['change_pct_max'] = change_pct_max
+    if volume_min is not None:
+        filters['volume_min'] = volume_min
+    if turnover_min is not None:
+        filters['turnover_min'] = turnover_min
+    if amount_min is not None:
+        filters['amount_min'] = amount_min
+    
+    return _stock_screener(hq(), market, filters, sort_by, limit)
+
+@mcp.tool()
+def top_gainers(limit: int = 20) -> dict:
+    '''
+    涨幅榜 - 涨幅最大的股票
+        Args:
+            limit: int - 返回数量，默认20
+        Returns:
+            Dict: {
+                "stocks": [
+                    {"code": "000001", "name": "平安银行", "price": 12.35, "change_pct": 10.0},
+                    ...
+                ],
+                "count": 20
+            }
+    '''
+    from tdx_mcp.tools.advanced_screener import top_gainers as _top_gainers
+    return _top_gainers(hq(), limit)
+
+@mcp.tool()
+def top_losers(limit: int = 20) -> dict:
+    '''
+    跌幅榜 - 跌幅最大的股票
+        Args:
+            limit: int - 返回数量，默认20
+        Returns:
+            Dict: {
+                "stocks": [
+                    {"code": "000001", "name": "平安银行", "price": 12.35, "change_pct": -10.0},
+                    ...
+                ],
+                "count": 20
+            }
+    '''
+    from tdx_mcp.tools.advanced_screener import top_losers as _top_losers
+    return _top_losers(hq(), limit)
+
+@mcp.tool()
+def high_turnover(limit: int = 20) -> dict:
+    '''
+    高换手率股票 - 换手率最高的股票
+        Args:
+            limit: int - 返回数量，默认20
+        Returns:
+            Dict: {
+                "stocks": [
+                    {"code": "000001", "name": "平安银行", "price": 12.35, "turnover_rate": 15.5},
+                    ...
+                ],
+                "count": 20
+            }
+    '''
+    from tdx_mcp.tools.advanced_screener import high_turnover as _high_turnover
+    return _high_turnover(hq(), limit)
+
 
 def main():
     """MCP Server 入口点"""
