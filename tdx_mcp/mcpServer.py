@@ -1072,6 +1072,84 @@ def high_turnover(limit: int = 20) -> dict:
     return _high_turnover(hq(), limit)
 
 
+# ========== 异动预警工具（5个）==========
+
+@mcp.tool()
+def alert_config_rule(
+    rule_id: str,
+    alert_type: str,
+    enabled: bool = True,
+    exclude_st: bool = True,
+    min_volume: int = None,
+    notify_channels: list = None
+) -> dict:
+    '''
+    配置预警规则
+        Args:
+            rule_id: str - 规则ID
+            alert_type: str - 预警类型(limit_up/limit_down/large_order/turnover_high)
+            enabled: bool - 是否启用，默认True
+            exclude_st: bool - 是否排除ST股票，默认True
+            min_volume: int - 最小成交量
+            notify_channels: list - 推送渠道列表，默认['wechat']
+        Returns:
+            Dict: {"success": true, "rule_id": "xxx"}
+    '''
+    from tdx_mcp.tools.alert_tool import alert_config_rule
+    return alert_config_rule(
+        rule_id, alert_type, enabled, exclude_st, 
+        min_volume, notify_channels
+    )
+
+@mcp.tool()
+def alert_start_monitoring(interval: int = 30) -> dict:
+    '''
+    启动异动监控
+        Args:
+            interval: int - 检查间隔（秒），默认30
+        Returns:
+            Dict: {"success": true, "message": "监控已启动"}
+    '''
+    from tdx_mcp.tools.alert_tool import alert_start_monitoring
+    return alert_start_monitoring(interval)
+
+@mcp.tool()
+def alert_stop_monitoring() -> dict:
+    '''
+    停止异动监控
+        Returns:
+            Dict: {"success": true, "message": "监控已停止"}
+    '''
+    from tdx_mcp.tools.alert_tool import alert_stop_monitoring
+    return alert_stop_monitoring()
+
+@mcp.tool()
+def alert_realtime_check(market: int = 6) -> dict:
+    '''
+    实时检查异动（单次）
+        Args:
+            market: int - ''' + _CATEGORY_DESC + '''，默认6(A股)
+        Returns:
+            Dict: {
+                "stocks_checked": 100,
+                "alerts_found": 5,
+                "alerts": [...]
+            }
+    '''
+    from tdx_mcp.tools.alert_tool import alert_realtime_check
+    return alert_realtime_check(market)
+
+@mcp.tool()
+def alert_list_rules() -> dict:
+    '''
+    列出所有预警规则
+        Returns:
+            Dict: {"rules": {...}, "count": 3}
+    '''
+    from tdx_mcp.tools.alert_tool import alert_list_rules
+    return alert_list_rules()
+
+
 def main():
     """MCP Server 入口点"""
     mcp.run()
