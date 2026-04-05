@@ -1,22 +1,27 @@
 # coding=utf-8
 """
-pytdx2 Tick级回测框架
-
-支持QMT代码兼容的tick级回测引擎
+回测框架模块
 """
+from .strategy_base import (
+    BaseStrategy,
+    SMAStrategy,
+    RSIStrategy,
+    MACDStrategy
+)
 
-from .engine import BacktestEngine
-from .strategy import BaseStrategy
-from .context import ContextInfo
-from .portfolio import Portfolio
-from .analyzer import PerformanceAnalyzer
+from .engine import (
+    BacktestEngine,
+    run_multi_stock_backtest
+)
 
 __all__ = [
-    'BacktestEngine',
+    # 策略基类
     'BaseStrategy',
-    'ContextInfo',
-    'Portfolio',
-    'PerformanceAnalyzer'
+    'SMAStrategy',
+    'RSIStrategy',
+    'MACDStrategy',
+    
+    # 回测引擎
+    'BacktestEngine',
+    'run_multi_stock_backtest'
 ]
-
-__version__ = '1.0.0'
