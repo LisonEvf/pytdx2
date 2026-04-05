@@ -29,6 +29,13 @@ from .risk_manager import (
     PortfolioRiskManager
 )
 
+from .ml_strategies import (
+    FeatureEngineer,
+    LSTMStrategy,
+    RandomForestStrategy,
+    XGBoostStrategy
+)
+
 __all__ = [
     # 基础策略
     'BaseStrategy',
@@ -42,6 +49,12 @@ __all__ = [
     'VolumePriceStrategy',
     'MultiFactorStrategy',
     'TurtleStrategy',
+    
+    # 机器学习策略
+    'LSTMStrategy',
+    'RandomForestStrategy',
+    'XGBoostStrategy',
+    'FeatureEngineer',
     
     # 回测引擎
     'BacktestEngine',
