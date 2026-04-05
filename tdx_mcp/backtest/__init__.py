@@ -14,6 +14,8 @@ from .engine import (
     run_multi_stock_backtest
 )
 
+from .visualization import ChartGenerator
+
 __all__ = [
     # 策略基类
     'BaseStrategy',
@@ -23,5 +25,8 @@ __all__ = [
     
     # 回测引擎
     'BacktestEngine',
-    'run_multi_stock_backtest'
+    'run_multi_stock_backtest',
+    
+    # 可视化
+    'ChartGenerator'
 ]
