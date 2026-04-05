@@ -1,3 +1,4 @@
 pandas
 numpy
+scipy
 mcp[cli]

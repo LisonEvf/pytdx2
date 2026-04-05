@@ -2,6 +2,7 @@
 
 from datetime import date
 import pandas as pd
+from typing import Union, List, Dict
 
 from tdx_mcp.client.exQuotationClient import exQuotationClient
 from tdx_mcp.client.quotationClient import QuotationClient
@@ -106,7 +107,7 @@ class TdxClient:
         '''
         return self.q_client().get_index_momentum(market, code)
     
-    def index_info(self, code_list: MARKET | list[tuple[MARKET, str]], code: str = None) -> list[int]:
+    def index_info(self, code_list: Union[MARKET, List[tuple[MARKET, str]]], code: str = None) -> list[int]:
         '''
         获取指数概况
         支持三种形式的参数
@@ -176,7 +177,7 @@ class TdxClient:
         '''
         return self.q_client().get_tick_chart(market, code, date, start, count)
 
-    def stock_quotes_detail(self, code_list: MARKET | list[tuple[MARKET, str]], code: str = None) -> list[dict]:
+    def stock_quotes_detail(self, code_list: Union[MARKET, List[tuple[MARKET, str]]], code: str = None) -> list[dict]:
         '''
         获取股票详细报价
         支持三种形式的参数
@@ -324,7 +325,7 @@ class TdxClient:
         '''
         return self.q_client().get_stock_quotes_list(category, start, count, sortType, reverse, filter)
     
-    def stock_quotes(self, code_list: MARKET | list[tuple[MARKET, str]], code: str = None) -> list[dict]:
+    def stock_quotes(self, code_list: Union[MARKET, List[tuple[MARKET, str]]], code: str = None) -> list[dict]:
         '''
         获取股票报价
         支持三种形式的参数
@@ -555,7 +556,7 @@ class TdxClient:
         '''
         return self.eq_client().get_quotes_list(category, start, count, sortType, reverse)
     
-    def goods_quotes(self, code_list: EX_CATEGORY | list[tuple[EX_CATEGORY, str]], code = None) -> list[dict]:
+    def goods_quotes(self, code_list: Union[EX_CATEGORY, List[tuple[EX_CATEGORY, str]]], code = None) -> list[dict]:
         '''
         获取多个期货商品行情
         支持三种形式的参数
