@@ -29,6 +29,13 @@ from .technical_indicators import (
     pattern_recognition
 )
 
+from .sector_analysis import (
+    sector_overview,
+    sector_capital_flow,
+    sector_rotation_signal,
+    sector_stock_correlation
+)
+
 __all__ = [
     # 市场分析
     'market_overview',
@@ -51,5 +58,11 @@ __all__ = [
     # 技术指标
     'bollinger_squeeze',
     'volume_price_divergence',
-    'pattern_recognition'
+    'pattern_recognition',
+    
+    # 板块分析
+    'sector_overview',
+    'sector_capital_flow',
+    'sector_rotation_signal',
+    'sector_stock_correlation'
 ]
