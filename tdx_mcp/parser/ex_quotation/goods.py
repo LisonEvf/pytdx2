@@ -1,4 +1,3 @@
-from tdx_mcp.parser.ex_quotation.board_list import BoardList
 from tdx_mcp.parser.ex_quotation.category_list import CategoryList 
 from tdx_mcp.parser.ex_quotation.chart_sampling import ChartSampling 
 from tdx_mcp.parser.ex_quotation.count import Count
@@ -16,7 +15,6 @@ from tdx_mcp.parser.ex_quotation.table import Table
 from tdx_mcp.parser.ex_quotation.tick_chart import TickChart 
 
 __all__ = [
-    'BoardList',
     'CategoryList',
     'ChartSampling',
     'Count',

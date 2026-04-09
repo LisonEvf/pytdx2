@@ -1,12 +1,11 @@
 from datetime import date
 
 from .baseStockClient import BaseStockClient, update_last_ack_time
-from .commonClientMixin import CommonClientMixin
 from tdx_mcp.parser.ex_quotation import file, server as ex_server, goods
 from tdx_mcp.const import EX_CATEGORY, PERIOD, SORT_TYPE, ex_hosts
 from tdx_mcp.utils.log import log
 
-class exQuotationClient(CommonClientMixin, BaseStockClient):
+class exQuotationClient(BaseStockClient):
     def __init__(self, multithread=False, heartbeat=False, auto_retry=False, raise_exception=False):
         super().__init__(multithread, heartbeat, auto_retry, raise_exception)
         self.hosts = ex_hosts

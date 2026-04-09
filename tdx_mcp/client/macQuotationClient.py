@@ -1,16 +1,16 @@
 from typing import Union
 
-import pandas as pd
-
-from tdx_mcp.client.baseStockClient import update_last_ack_time
-from tdx_mcp.const import ADJUST, BOARD_TYPE, EX_CATEGORY, MARKET, PERIOD, EX_BOARD_TYPE
-from tdx_mcp.parser.common import BoardCount, BoardList, BoardMembers, BoardMembersQuotes, SymbolBar, SymbolBelongBoard
+from .baseStockClient import BaseStockClient, update_last_ack_time
+from tdx_mcp.const import ADJUST, BOARD_TYPE, MARKET, PERIOD, EX_BOARD_TYPE, mac_hosts, mac_ex_hosts
+from tdx_mcp.parser.mac_quotation import BoardCount, BoardList, BoardMembers, BoardMembersQuotes, SymbolBar, SymbolBelongBoard
 from tdx_mcp.utils.log import log
 
+class macQuotationClient(BaseStockClient):
 
+    def __init__(self, multithread=False, heartbeat=False, auto_retry=False, raise_exception=False):
+        super().__init__(multithread, heartbeat, auto_retry, raise_exception)
+        self.hosts = mac_hosts
 
-# ---------------------- 公共接口  ----------------------
-class CommonClientMixin:
     @update_last_ack_time
     def get_board_count(self, market: Union[BOARD_TYPE, EX_BOARD_TYPE]):
         return self.call(BoardCount(market))
@@ -82,7 +82,7 @@ class CommonClientMixin:
         return security_list
 
     # @update_last_ack_time
-    def get_symbol_belong_board(self, symbol: str, market: MARKET) -> pd.DataFrame:
+    def get_symbol_belong_board(self, symbol: str, market: MARKET) -> list[dict]:
         parser = SymbolBelongBoard(symbol=symbol, market=market)
         df = self.call(parser)
         return df
@@ -90,7 +90,7 @@ class CommonClientMixin:
     @update_last_ack_time
     def get_symbol_bars(
         self, market: MARKET, code: str, period: PERIOD, times: int = 1, start: int = 0, count: int = 800, fq: ADJUST = ADJUST.NONE
-    ) -> pd.DataFrame:
+    ) -> list[dict]:
         MAX_LIST_COUNT = 700
         page_size = min(count, MAX_LIST_COUNT)
         security_list = []
@@ -114,3 +114,8 @@ class CommonClientMixin:
                 break
 
         return security_list
+    
+class macExQuotationClient(macQuotationClient):
+    def __init__(self, multithread=False, heartbeat=False, auto_retry=False, raise_exception=False):
+        super().__init__(multithread, heartbeat, auto_retry, raise_exception)
+        self.hosts = mac_ex_hosts

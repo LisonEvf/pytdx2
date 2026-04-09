@@ -2,14 +2,13 @@ from datetime import date
 import math
 from typing import override
 from .baseStockClient import BaseStockClient, update_last_ack_time
-from .commonClientMixin import CommonClientMixin
 from tdx_mcp.utils.block_reader import BlockReader, BlockReader_TYPE_FLAT
 from tdx_mcp.const import BLOCK_FILE_TYPE, CATEGORY, FILTER_TYPE, PERIOD, MARKET, SORT_TYPE, ADJUST, main_hosts
 from tdx_mcp.parser.quotation import file, stock, server, company_info
 from tdx_mcp.utils.log import log
 from tdx_mcp.utils.cache import finance_cache
 
-class QuotationClient(CommonClientMixin, BaseStockClient):
+class QuotationClient(BaseStockClient):
     def __init__(self, multithread=False, heartbeat=False, auto_retry=False, raise_exception=False):
         super().__init__(multithread, heartbeat, auto_retry, raise_exception)
         self.hosts = main_hosts

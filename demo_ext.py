@@ -1,11 +1,6 @@
-from datetime import date
-
 import pandas as pd
-from tdx_mcp.client import QuotationClient, exQuotationClient
-from tdx_mcp.const import ADJUST, BLOCK_FILE_TYPE, CATEGORY, EX_CATEGORY, FILTER_TYPE, MARKET, PERIOD, EX_BOARD_TYPE, BOARD_TYPE
-from tdx_mcp.const import mixin_hosts, ex_mixin_hosts
-from tdx_mcp.parser.ex_quotation import file, goods
-from tdx_mcp.parser.quotation import server, stock
+from tdx_mcp.client import macQuotationClient, macExQuotationClient
+from tdx_mcp.const import ADJUST, EX_CATEGORY, MARKET, PERIOD, EX_BOARD_TYPE, BOARD_TYPE
 
 
 if __name__ == "__main__":
@@ -13,29 +8,11 @@ if __name__ == "__main__":
     test_symbol_bars = True
     test_board = True
     
-    client = QuotationClient()
-    client.hosts = mixin_hosts
-    if client.connect().login():
-        symbol = '000100'
-        market = MARKET.SZ
-    
-        print("无复权   ", symbol, market)
-        print(pd.DataFrame(client.get_kline(market, symbol, PERIOD.DAILY, count=3)))
-        print("前复权   ", symbol, market)
-        print(pd.DataFrame(client.get_kline(market, symbol, PERIOD.DAILY, count=4, adjust=ADJUST.QFQ)))
-        print("后复权   ", symbol, market)
-        print(pd.DataFrame(client.get_kline(market, symbol, PERIOD.DAILY, count=3, adjust=ADJUST.HFQ)))
-        # part = client.call(stock.K_Line(MARKET.SZ, "000001", PERIOD.DAILY))
-        
+    client = macQuotationClient()
+    client.connect()
 
-    client = QuotationClient()
-    client.hosts = mixin_hosts
-    client.connect().login()
-
-        
-    exClient = exQuotationClient()
-    exClient.hosts = ex_mixin_hosts
-    exClient.connect().login()
+    exClient = macExQuotationClient()
+    exClient.connect()
 
     if test_board:
         print("板块列表查询 ")
