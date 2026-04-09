@@ -23,6 +23,34 @@ def query_market(code) -> MARKET:
         return None
 
 
+# 根据可视化的板块id获取到系统需要的真实板块code
+def exchange_board_code(board_symbol):
+    if board_symbol.startswith("US"):
+        # US0401 => 30401
+        board_code = 30000 + int(board_symbol.replace("US", ""))
+        print(f"board_code: {board_code}")
+    elif board_symbol.startswith("HK"):
+        # HK0283 => 20283
+        board_code = 20000 + int(board_symbol.replace("HK", ""))
+    elif board_symbol.startswith("000"):
+        # 000686 => 31686
+        board_code = 31000 + int(board_symbol)
+    elif board_symbol.startswith("399"):
+        # 399372 => 30399
+        board_code = int(board_symbol) - 399000 + 30000
+    elif board_symbol.startswith("899"):
+        # 899050 => 32050
+        board_code = int(board_symbol) - 899000 + 32000
+    elif board_symbol.startswith("88"):
+        # 880686 => 20686
+        board_code = int(board_symbol) - 880000 + 20000
+    else:
+        # 由于数字过大,可能查询到其他的板块
+        board_code = int(board_symbol)
+
+    return board_code
+
+
 #### XXX: 分析了一下，貌似是类似utf-8的编码方式保存有符号数字
 def get_price(data, pos):
     pos_byte = 6
