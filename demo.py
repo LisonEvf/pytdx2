@@ -69,6 +69,10 @@ if __name__ == "__main__":
         print(pd.DataFrame(client.get_stock_quotes_details([(MARKET.SZ, '000001'), (MARKET.SZ, '000002'), (MARKET.SZ, '000004'), (MARKET.SZ, '000006'), (MARKET.SZ, '000007'), (MARKET.SZ, '000008'), (MARKET.SZ, '000009')
         , (MARKET.SZ, '000010'), (MARKET.SZ, '000011'), (MARKET.SZ, '000012'), (MARKET.SZ, '000014'), (MARKET.SZ, '000016'), (MARKET.SZ, '000017')])))
         
+        print("加了层偏移的行情，没明白有什么区别")
+        print(pd.DataFrame(client.call(stock.QuotesEncrypt([(MARKET.SZ, '000001'), (MARKET.SZ, '000002')]))))
+        print(pd.DataFrame(client.call(stock.QuotesEncrypt([(MARKET.SH, '999999'), (MARKET.SZ, '399001'), (MARKET.BJ, '899050'), (MARKET.SZ, '399006'), (MARKET.SH, '000688'), (MARKET.SH, '000300'), (MARKET.SH, '880005')]))))
+
         print("获取行情全景")
         for name, board in client.get_stock_top_board(CATEGORY.A).items():
             print("榜单：%s", name)
@@ -193,12 +197,6 @@ if __name__ == "__main__":
         print(client.download_file('todayhf/sz000001.img')) # bytearray(b'')
         print(client.download_file('tdxfin/gpcw.txt')) # bytearray(b'')
         print(client.download_file('iwshop/0_000001.htm').decode("utf-8"))
-
-        client.call(stock.TODO547([(MARKET.SZ, '000001')]))
-        client.call(stock.TODO547([(MARKET.SZ, '000001'), (MARKET.SZ, '000002')]))
-        client.call(stock.TODO547([(MARKET.SH, '600009'), (MARKET.SH, '600009')]))
-        client.call(stock.TODO547([(MARKET.SH, '999999'), (MARKET.SZ, '399001'), (MARKET.BJ, '899050'), (MARKET.SZ, '399006'), (MARKET.SH, '000688'), (MARKET.SH, '000300'), (MARKET.SH, '880005')]))
-
 
     ex_client = exQuotationClient()
     # for host in market_hosts:
