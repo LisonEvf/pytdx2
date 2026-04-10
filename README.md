@@ -15,7 +15,7 @@
 又因本项目在持续推进中，接口**难免会有大幅改动，带来的不便请予宽宥**。
 
 > ### 应biner建议，本项目精简为基础数据接口库，mcp相关将移动到 [tdx_mcp](https://github.com/LisonEvf/tdx_mcp)
-> ### 又因pytdx2库名已经名花有主了，因此本库改名为opentdx
+> ### 又因pytdx2库名rainx已经用了，因此本库改名为opentdx，再次致敬rainx
 > ### 又又，协议基本完成解析了，后期就着力于 [tdx_mcp](https://github.com/LisonEvf/tdx_mcp)了和少量组合技接口
 
 
