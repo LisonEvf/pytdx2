@@ -26,7 +26,7 @@ class TDXMACDStrategy:
             print(f"市场: {self.market}, 代码: {self.code}, 周期: PERIOD.DAILY")
 
             # 获取日线数据 (PERIOD.DAILY)
-            self.data = self.client.get_KLine_data(
+            self.data = self.client.get_kline(
                 market=self.market,
                 code=self.code,
                 period=PERIOD.DAILY,

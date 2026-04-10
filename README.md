@@ -1,4 +1,4 @@
-# Pytdx2 - Python TDX量化数据接口
+# opentdx — Python TDX 量化行情数据接口
 
 项目创意来自[`pytdx`](https://github.com/rainx/pytdx)
 
@@ -14,48 +14,10 @@
 
 又因本项目在持续推进中，接口**难免会有大幅改动，带来的不便请予宽宥**。
 
+> ### 应biner建议，本项目精简为基础数据接口库，mcp相关将移动到 [tdx_mcp](https://github.com/LisonEvf/tdx_mcp)
+> ### 又因pytdx2库名已经名花有主了，因此本库改名为opentdx
+> ### 又又，协议基本完成解析了，后期就着力于 [tdx_mcp](https://github.com/LisonEvf/tdx_mcp)了和少量组合技接口
 
-## MCP Server 一键配置
-
-支持 Claude、Cursor、OpenClaw 等 AI 助手直接调用股票数据。
-
-### 方式一：uvx（推荐）
-
-```json
-{
-  "mcpServers": {
-    "tdx": {
-      "command": "uvx",
-      "args": ["--from", "tdx-mcp", "mcp-server-tdx"]
-    }
-  }
-}
-```
-
-### 方式二：pip 安装后直接运行
-
-```json
-{
-  "mcpServers": {
-    "tdx": {
-      "command": "mcp-server-tdx"
-    }
-  }
-}
-```
-
-### 方式三：本地开发
-
-```json
-{
-  "mcpServers": {
-    "tdx": {
-      "command": "uv",
-      "args": ["run", "--directory", "/path/to/pytdx2", "mcp-server-tdx"]
-    }
-  }
-}
-```
 
 ## 主要功能
 
@@ -63,24 +25,25 @@
 |------|------|
 | 股票行情 | A股、创业板、科创板、北交所 |
 | 扩展行情 | 期货、港股、美股、期权等 |
-| K线数据 | 支持多周期（1分/5分/日线/周线等） |
+| K线数据 | 多周期（1分/5分/日线/周线等），支持复权 |
 | 分时图 | 实时/历史分时数据 |
 | 排行榜 | 涨跌幅、振幅、换手率等 |
+| 板块数据 | 行业/地区/概念板块列表及成分股 |
 | 异动监控 | 主力监控精灵数据 |
 | F10资料 | 公司基本信息、财报 |
 
 ## 安装
 
 ```bash
-pip install tdx-mcp
+pip install opentdx
 ```
 
 ## 快速上手
 
-
 ```python
 import pandas as pd
-from tdx_mcp import TdxClient, MARKET, CATEGORY, EX_CATEGORY, PERIOD
+from tdxClient import TdxClient
+from const import MARKET, CATEGORY, EX_CATEGORY, PERIOD
 
 if __name__ == "__main__":
   with TdxClient() as client:
@@ -123,14 +86,9 @@ if __name__ == "__main__":
 - ✅ **主力监控**：新增异动消息的获取
 - ✅ **板块列表**：像 `通达信`一样根据板块获取股票列表，支持 `深市`、`沪市`、`创业板`、`科创板`、`北交所`
 - ✅ **扩展行情**：支持 `期货`、`期权`、`债券`、`基金`、`港股`、`美股`等行情的获取
-- ✅ **AI适配**：MCP模块也算是能跑了，agent还算不上，将会持续优化的
+- ✅ **交互式文档**：```python doc.py```一键开启项目探索
 
-### 📋 TODO List
-
-- [X] backtest模块
-- [X] 基于量价交易的LargeTradeModel
-
-#量化交易 #TDX接口 #Python金融 #MCP
+#量化交易 #TDX接口 #Python金融
 
 ---
 
