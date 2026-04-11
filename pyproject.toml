@@ -17,6 +17,7 @@ classifiers = [
 dependencies = [
     "pandas",
     "numpy",
+    "click"
 ]
 
 [project.urls]
@@ -28,10 +29,8 @@ Issues = "https://github.com/LisonEvf/pytdx2/issues"
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-py-modules = ["const", "tdxClient"]
-license-files = []
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["client*", "parser*", "utils*"]
+
+
+[project.scripts]
+opentdx = "opentdx.cli:cli"
