@@ -36,6 +36,13 @@
 
 ```bash
 pip install opentdx
+
+```
+
+## 指南
+
+```bash
+opentdx doc 
 ```
 
 ## 快速上手
