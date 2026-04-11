@@ -1,7 +1,7 @@
 import pytest
 
-from client.macQuotationClient import macQuotationClient, macExQuotationClient
-from const import *
+from opentdx.client.macQuotationClient import macQuotationClient, macExQuotationClient
+from opentdx.const import *
 from tests.conftest import make_mock_call
 
 
@@ -121,5 +121,5 @@ class TestMacExQuotationClient:
     def test_hosts_is_mac_ex(self):
         """macExQuotationClient 使用 mac_ex_hosts"""
         client = macExQuotationClient()
-        from const import mac_ex_hosts
+        from opentdx.const import mac_ex_hosts
         assert client.hosts == mac_ex_hosts

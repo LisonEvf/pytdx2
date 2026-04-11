@@ -3,8 +3,8 @@ from unittest.mock import patch, MagicMock
 
 import pytest
 
-from client.quotationClient import QuotationClient
-from const import *
+from opentdx.client.quotationClient import QuotationClient
+from opentdx.const import *
 from tests.conftest import make_mock_call
 
 
@@ -457,7 +457,7 @@ class TestQuotationClient:
 
     def test_quotes_adjustment_with_cache(self, qc):
         """测试流通股本缓存逻辑"""
-        from utils.cache import finance_cache
+        from opentdx.utils.cache import finance_cache
         finance_cache.set('0_000001', 100000000)
         mock_data = [{
             'market': MARKET.SZ, 'code': '000001',

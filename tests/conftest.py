@@ -7,10 +7,10 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from client.quotationClient import QuotationClient
-from client.exQuotationClient import exQuotationClient
-from client.macQuotationClient import macQuotationClient, macExQuotationClient
-from const import *
+from opentdx.client.quotationClient import QuotationClient
+from opentdx.client.exQuotationClient import exQuotationClient
+from opentdx.client.macQuotationClient import macQuotationClient, macExQuotationClient
+from opentdx.const import *
 
 
 @pytest.fixture

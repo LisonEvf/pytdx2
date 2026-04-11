@@ -43,7 +43,7 @@ pip install opentdx
 ```python
 import pandas as pd
 from tdxClient import TdxClient
-from const import MARKET, CATEGORY, EX_CATEGORY, PERIOD
+from opentdx.const import MARKET, CATEGORY, EX_CATEGORY, PERIOD
 
 if __name__ == "__main__":
   with TdxClient() as client:
