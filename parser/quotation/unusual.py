@@ -17,7 +17,7 @@ class Unusual(BaseParser): # 主力监控
         results = []
         for i in range(count):
             market, code, _, unusual_type, _, index, z = struct.unpack('<H6sBBBHH', data[32 * i + 2: 32 * i + 17])
-            desc, value = self.unpack_by_type(type, data[32 * i + 17: 32 * i + 30])
+            desc, value = self.unpack_by_type(unusual_type, data[32 * i + 17: 32 * i + 30])
             hour, minute_sec = struct.unpack('<BH', data[32 * i + 31: 32 * i + 34])
 
             results.append({
