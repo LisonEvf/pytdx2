@@ -115,7 +115,7 @@ class TestMacExQuotationClient:
 
     def test_get_symbol_bars(self, meqc):
         meqc.call = make_mock_call([{'date_time': '2026-01-01', 'open': 400.0, 'close': 410.0, 'vol': 1000}])
-        result = meqc.get_symbol_bars(EX_CATEGORY.HK_MAIN_BOARD, '09988', PERIOD.WEEKLY, count=1)
+        result = meqc.get_symbol_bars(EX_MARKET.HK_MAIN_BOARD, '09988', PERIOD.WEEKLY, count=1)
         assert len(result) == 1
 
     def test_hosts_is_mac_ex(self):

@@ -1,8 +1,5 @@
 from datetime import date
 
-import pytest
-
-from client.exQuotationClient import exQuotationClient
 from const import *
 from tests.conftest import make_mock_call
 
@@ -43,9 +40,9 @@ class TestExQuotationClient:
         assert len(result) == 1
 
     def test_get_quotes_list(self, eqc):
-        mock_data = [{'category': EX_CATEGORY.US_STOCK, 'code': 'TSLA', 'open': 200.0, 'close': 210.0}]
+        mock_data = [{'market': EX_MARKET.US_STOCK, 'code': 'TSLA', 'open': 200.0, 'close': 210.0}]
         eqc.call = make_mock_call(mock_data)
-        result = eqc.get_quotes_list(EX_CATEGORY.US_STOCK)
+        result = eqc.get_quotes_list(EX_MARKET.US_STOCK)
         assert len(result) == 1
 
     def test_get_quotes_list_pagination(self, eqc):
@@ -54,61 +51,61 @@ class TestExQuotationClient:
         def mock_call(parser):
             call_count[0] += 1
             if call_count[0] == 1:
-                return [{'category': EX_CATEGORY.US_STOCK, 'code': f'{i}'} for i in range(100)]
+                return [{'market': EX_MARKET.US_STOCK, 'code': f'{i}'} for i in range(100)]
             return []
         eqc.call = mock_call
-        result = eqc.get_quotes_list(EX_CATEGORY.US_STOCK, count=0)
+        result = eqc.get_quotes_list(EX_MARKET.US_STOCK, count=0)
         assert call_count[0] == 2
 
     def test_get_quotes_single(self, eqc):
-        eqc.call = make_mock_call({'category': EX_CATEGORY.US_STOCK, 'code': 'TSLA', 'close': 210.0})
-        result = eqc.get_quotes_single(EX_CATEGORY.US_STOCK, 'TSLA')
+        eqc.call = make_mock_call({'market': EX_MARKET.US_STOCK, 'code': 'TSLA', 'close': 210.0})
+        result = eqc.get_quotes_single(EX_MARKET.US_STOCK, 'TSLA')
         assert result['code'] == 'TSLA'
 
     def test_get_quotes_list_param(self, eqc):
         """传入 list[tuple] 形式"""
         mock_data = [
-            {'category': EX_CATEGORY.CFFEX_FUTURES, 'code': 'IC2602'},
-            {'category': EX_CATEGORY.CFFEX_FUTURES, 'code': 'IC2603'},
+            {'market': EX_MARKET.CFFEX_FUTURES, 'code': 'IC2602'},
+            {'market': EX_MARKET.CFFEX_FUTURES, 'code': 'IC2603'},
         ]
         eqc.call = make_mock_call(mock_data)
         result = eqc.get_quotes([
-            (EX_CATEGORY.CFFEX_FUTURES, 'IC2602'),
-            (EX_CATEGORY.CFFEX_FUTURES, 'IC2603'),
+            (EX_MARKET.CFFEX_FUTURES, 'IC2602'),
+            (EX_MARKET.CFFEX_FUTURES, 'IC2603'),
         ])
         assert len(result) == 2
 
     def test_get_quotes_code_param(self, eqc):
-        """传入 category, code 两个参数"""
-        eqc.call = make_mock_call([{'category': EX_CATEGORY.US_STOCK, 'code': 'TSLA'}])
-        result = eqc.get_quotes(EX_CATEGORY.US_STOCK, 'TSLA')
+        """传入 market, code 两个参数"""
+        eqc.call = make_mock_call([{'market': EX_MARKET.US_STOCK, 'code': 'TSLA'}])
+        result = eqc.get_quotes(EX_MARKET.US_STOCK, 'TSLA')
         assert len(result) == 1
 
     def test_get_quotes2(self, eqc):
         """get_quotes2 的 code 参数是必填的"""
-        mock_data = [{'category': EX_CATEGORY.CFFEX_FUTURES, 'code': 'IC2602'}]
+        mock_data = [{'market': EX_MARKET.CFFEX_FUTURES, 'code': 'IC2602'}]
         eqc.call = make_mock_call(mock_data)
-        result = eqc.get_quotes2(EX_CATEGORY.CFFEX_FUTURES, 'IC2602')
+        result = eqc.get_quotes2(EX_MARKET.CFFEX_FUTURES, 'IC2602')
         assert len(result) == 1
 
     def test_get_quotes2_list(self, eqc):
         """传入 list[tuple] 形式"""
-        mock_data = [{'category': EX_CATEGORY.CFFEX_FUTURES, 'code': 'IC2603'}]
+        mock_data = [{'market': EX_MARKET.CFFEX_FUTURES, 'code': 'IC2603'}]
         eqc.call = make_mock_call(mock_data)
-        result = eqc.get_quotes2([(EX_CATEGORY.CFFEX_FUTURES, 'IC2603')], None)
+        result = eqc.get_quotes2([(EX_MARKET.CFFEX_FUTURES, 'IC2603')], None)
         assert len(result) == 1
 
     def test_get_kline(self, eqc):
         mock_data = [{'date_time': '2026-01-01', 'open': 200.0, 'high': 210.0, 'low': 195.0, 'close': 205.0, 'vol': 1000, 'amount': 50000}]
         eqc.call = make_mock_call(mock_data)
-        result = eqc.get_kline(EX_CATEGORY.US_STOCK, 'TSLA', PERIOD.DAILY)
+        result = eqc.get_kline(EX_MARKET.US_STOCK, 'TSLA', PERIOD.DAILY)
         assert len(result) == 1
         assert result[0]['close'] == 205.0
 
     def test_get_history_transaction(self, eqc):
         mock_data = [{'time': '10:00:00', 'price': 200.0, 'vol': 100, 'action': 'BUY'}]
         eqc.call = make_mock_call(mock_data)
-        result = eqc.get_history_transaction(EX_CATEGORY.US_STOCK, 'TSLA', date(2025, 10, 28))
+        result = eqc.get_history_transaction(EX_MARKET.US_STOCK, 'TSLA', date(2025, 10, 28))
         assert len(result) == 1
 
     def test_get_table(self, eqc):
@@ -138,18 +135,18 @@ class TestExQuotationClient:
     def test_get_tick_chart_realtime(self, eqc):
         mock_data = [{'time': '10:00:00', 'price': 200.0, 'avg': 198.0, 'vol': 100}]
         eqc.call = make_mock_call(mock_data)
-        result = eqc.get_tick_chart(EX_CATEGORY.HK_MAIN_BOARD, '09988')
+        result = eqc.get_tick_chart(EX_MARKET.HK_MAIN_BOARD, '09988')
         assert len(result) == 1
 
     def test_get_tick_chart_history(self, eqc):
         mock_data = [{'time': '10:00:00', 'price': 200.0, 'avg': 198.0, 'vol': 100}]
         eqc.call = make_mock_call(mock_data)
-        result = eqc.get_tick_chart(EX_CATEGORY.US_STOCK, 'HIMS', date=date(2026, 3, 12))
+        result = eqc.get_tick_chart(EX_MARKET.US_STOCK, 'HIMS', date=date(2026, 3, 12))
         assert len(result) == 1
 
     def test_get_chart_sampling(self, eqc):
         eqc.call = make_mock_call([1.0, 2.0, 3.0, 4.0])
-        result = eqc.get_chart_sampling(EX_CATEGORY.HK_MAIN_BOARD, '09988')
+        result = eqc.get_chart_sampling(EX_MARKET.HK_MAIN_BOARD, '09988')
         assert result == [1.0, 2.0, 3.0, 4.0]
 
     def test_download_file(self, eqc):

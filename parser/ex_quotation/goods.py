@@ -32,19 +32,19 @@ __all__ = [
     'TickChart',
 ]
 
-from const import EX_CATEGORY, PERIOD
+from const import EX_MARKET, PERIOD
 from parser.baseParser import BaseParser, register_parser
 import struct
 from typing import override
 
 @register_parser(0x122e, 1)
 class kline2(BaseParser):
-    def __init__(self, category: EX_CATEGORY, code: str, period: PERIOD, times: int = 1, mode: int = 0):
-        self.body = struct.pack('<H22s11H', category.value, code.encode('gbk'), period.value, times, 0, 0, 700, mode, 257, 256, 0, 0, 0)
+    def __init__(self, market: EX_MARKET, code: str, period: PERIOD, times: int = 1, mode: int = 0):
+        self.body = struct.pack('<H22s11H', market.value, code.encode('gbk'), period.value, times, 0, 0, 700, mode, 257, 256, 0, 0, 0)
 
     @override
     def deserialize(self, data):
-        category, code, u1, u2, count, _ = struct.unpack('<H22sHbHI', data[:33])
+        market, code, u1, u2, count, _ = struct.unpack('<H22sHbHI', data[:33])
 
         for i in range(count):
             date_raw, a, b, c, d, e, f, g, h = struct.unpack('<I8f', data[i * 36 + 33: i * 36 + 69])
@@ -70,12 +70,12 @@ class f23f6(BaseParser):
 
 # @register_parser(0x240b, 1)
 # class Chart(BaseParser): # 疑似废弃旧接口
-#     def __init__(self, category: EX_CATEGORY, code: str):
-#         self.body = struct.pack('<B9s', category.value, code.encode('gbk'))
+#     def __init__(self, market: EX_MARKET, code: str):
+#         self.body = struct.pack('<B9s', market.value, code.encode('gbk'))
 
 #     @override
 #     def deserialize(self, data):
-#         category, code, count = struct.unpack('<B9sH', data[:12])
+#         market, code, count = struct.unpack('<B9sH', data[:12])
 
 #         result = []
 #         for i in range(count):
@@ -96,12 +96,12 @@ class f23f6(BaseParser):
 
 @register_parser(0x2487, 1)
 class f2487(BaseParser):
-    def __init__(self, category: EX_CATEGORY, code: str):
-        self.body = struct.pack('<B23s', category.value, code.encode('gbk'))
+    def __init__(self, market: EX_MARKET, code: str):
+        self.body = struct.pack('<B23s', market.value, code.encode('gbk'))
 
     @override
     def deserialize(self, data):
-        category, code = struct.unpack('<B23s', data[:24])
+        market, code = struct.unpack('<B23s', data[:24])
         
         active, pre_close, open, high, low, close, u1, price = struct.unpack('<I7f', data[24:56])
         vol, curr_vol, amount = struct.unpack('<IIf', data[56:68])
@@ -112,7 +112,7 @@ class f2487(BaseParser):
         print(data[84:164].hex())
         
         return {
-            'category': EX_CATEGORY(category), 
+            'market': EX_MARKET(market), 
             'code': code.decode('gbk').replace('\x00', ''), 
             'active': active, 
             'pre_close': pre_close, 
@@ -128,13 +128,13 @@ class f2487(BaseParser):
 # > 8824 22 3030303031300000000000000000000000000000000000 0000 0000 3700 0000000000000000
 @register_parser(0x2488, 1) # TODO
 class f2488(BaseParser):
-    def __init__(self, category: EX_CATEGORY, code: str):
-        self.body = struct.pack('<B23sIHII', category.value, code.encode('gbk'), 0, 55, 0, 0)
+    def __init__(self, market: EX_MARKET, code: str):
+        self.body = struct.pack('<B23sIHII', market.value, code.encode('gbk'), 0, 55, 0, 0)
 
     @override
     def deserialize(self, data):
-        category, code, count = struct.unpack('<B35sH', data[:38])
-        print(EX_CATEGORY(category), code.decode('gbk').replace('\x00', ''))
+        market, code, count = struct.unpack('<B35sH', data[:38])
+        print(EX_MARKET(market), code.decode('gbk').replace('\x00', ''))
 
         for i in range(count):
             z = struct.unpack('<I6H', data[i * 16 + 38: i * 16 + 54])

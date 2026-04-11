@@ -4,7 +4,7 @@ from parser.ex_quotation import file, goods
 
 from .baseStockClient import BaseStockClient, update_last_ack_time
 from parser.ex_quotation import server as ex_server
-from const import EX_CATEGORY, PERIOD, SORT_TYPE, ex_hosts
+from const import EX_MARKET, PERIOD, SORT_TYPE, ex_hosts
 from utils.log import log
 
 class exQuotationClient(BaseStockClient):
@@ -43,14 +43,14 @@ class exQuotationClient(BaseStockClient):
         return self.call(goods.List(start, count))
 
     @update_last_ack_time
-    def get_quotes_list(self, category: EX_CATEGORY, start: int = 0, count: int = 100, sortType: SORT_TYPE = SORT_TYPE.CODE, reverse: bool = False) -> list[dict]:
+    def get_quotes_list(self, market: EX_MARKET, start: int = 0, count: int = 100, sortType: SORT_TYPE = SORT_TYPE.CODE, reverse: bool = False) -> list[dict]:
         MAX_QUOTE_COUNT = 100
         results = []
         # 如果 count 为 0，则设置 remaining 为无穷大，表示获取所有数据
         remaining = count if count != 0 else float('inf')
         while remaining > 0:
             req_count = min(remaining, MAX_QUOTE_COUNT)
-            part = self.call(goods.QuotesList(category, start, req_count, sortType, reverse))
+            part = self.call(goods.QuotesList(market, start, req_count, sortType, reverse))
             results.extend(part)
             if len(part) < req_count:
                 break
@@ -60,11 +60,11 @@ class exQuotationClient(BaseStockClient):
         return results
     
     @update_last_ack_time
-    def get_quotes_single(self, category: EX_CATEGORY, code) -> dict:
-        return self.call(goods.QuotesSingle(category, code))
+    def get_quotes_single(self, market: EX_MARKET, code) -> dict:
+        return self.call(goods.QuotesSingle(market, code))
     
     @update_last_ack_time
-    def get_quotes(self, code_list: list[tuple[EX_CATEGORY, str]], code = None) -> list[dict]:
+    def get_quotes(self, code_list: list[tuple[EX_MARKET, str]], code = None) -> list[dict]:
         if code is not None:
             code_list = [(code_list, code)]
         elif (isinstance(code_list, list) or isinstance(code_list, tuple))\
@@ -73,7 +73,7 @@ class exQuotationClient(BaseStockClient):
         return self.call(goods.Quotes(code_list))
     
     @update_last_ack_time
-    def get_quotes2(self, code_list: list[tuple[EX_CATEGORY, str]], code) -> list[dict]:
+    def get_quotes2(self, code_list: list[tuple[EX_MARKET, str]], code) -> list[dict]:
         if code is not None:
             code_list = [(code_list, code)]
         elif (isinstance(code_list, list) or isinstance(code_list, tuple))\
@@ -83,12 +83,12 @@ class exQuotationClient(BaseStockClient):
         return self.call(goods.Quotes2(code_list))
     
     @update_last_ack_time
-    def get_kline(self, category: EX_CATEGORY, code: str, period: PERIOD, start: int = 0, count: int = 800, times: int = 1) -> list[dict]:
-        return self.call(goods.K_Line(category, code, period, times, start, count))
+    def get_kline(self, market: EX_MARKET, code: str, period: PERIOD, start: int = 0, count: int = 800, times: int = 1) -> list[dict]:
+        return self.call(goods.K_Line(market, code, period, times, start, count))
     
     @update_last_ack_time
-    def get_history_transaction(self, category: EX_CATEGORY, code: str, date: date) -> list[dict]:
-        return self.call(goods.HistoryTransaction(category, code, date))
+    def get_history_transaction(self, market: EX_MARKET, code: str, date: date) -> list[dict]:
+        return self.call(goods.HistoryTransaction(market, code, date))
     
     @update_last_ack_time
     def get_table(self):
@@ -115,15 +115,15 @@ class exQuotationClient(BaseStockClient):
         return str
     
     @update_last_ack_time
-    def get_tick_chart(self, category: EX_CATEGORY, code: str, date: date = None) -> list[dict]:
+    def get_tick_chart(self, market: EX_MARKET, code: str, date: date = None) -> list[dict]:
         if date is None:
-            return self.call(goods.TickChart(category, code))
+            return self.call(goods.TickChart(market, code))
         else:
-            return self.call(goods.HistoryTickChart(category, code, date))
+            return self.call(goods.HistoryTickChart(market, code, date))
     
     @update_last_ack_time
-    def get_chart_sampling(self, category: EX_CATEGORY, code: str) -> list[float]:
-        return self.call(goods.ChartSampling(category, code))
+    def get_chart_sampling(self, market: EX_MARKET, code: str) -> list[float]:
+        return self.call(goods.ChartSampling(market, code))
 
     @update_last_ack_time
     def download_file(self, filename: str, filesize=0, report_hook=None):

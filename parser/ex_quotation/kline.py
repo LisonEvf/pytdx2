@@ -1,18 +1,18 @@
 import struct
 from typing import override
 
-from const import EX_CATEGORY, PERIOD
+from const import EX_MARKET, PERIOD
 from parser.baseParser import BaseParser, register_parser
 from utils.help import to_datetime
 
 @register_parser(0x23ff, 1)
 class K_Line(BaseParser):
-    def __init__(self, category: EX_CATEGORY, code: str, period: PERIOD, times: int = 1, start: int = 0, count: int = 800):
-        self.body = struct.pack('<B9sHHIH', category.value, code.encode('gbk'), period.value, times, start, count)
+    def __init__(self, market: EX_MARKET, code: str, period: PERIOD, times: int = 1, start: int = 0, count: int = 800):
+        self.body = struct.pack('<B9sHHIH', market.value, code.encode('gbk'), period.value, times, start, count)
         
     @override
     def deserialize(self, data):
-        category, name, period, times, _, count = struct.unpack('<B9sHHIH', data[:20])
+        market, name, period, times, _, count = struct.unpack('<B9sHHIH', data[:20])
 
         minute_category = period < 4 or period == 7 or period == 8
 

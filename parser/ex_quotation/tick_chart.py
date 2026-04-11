@@ -2,7 +2,7 @@ from datetime import time
 import struct
 from typing import override
 
-from const import EX_CATEGORY
+from const import EX_MARKET
 from parser.baseParser import BaseParser, register_parser
 
 # > 8b24 0a 555344434e480000000000000000000000000000000000 0400010000000000
@@ -28,13 +28,13 @@ from parser.baseParser import BaseParser, register_parser
 # > 8b24 4e 4430350000000000000000000000000000000000000000 0000000000000000
 @register_parser(0x248b, 1) # TODO 后8位不明所以
 class TickChart(BaseParser):
-    def __init__(self, category: EX_CATEGORY, code: str):
-        self.body = struct.pack('<B23s8x', category.value, code.encode('gbk'))
+    def __init__(self, market: EX_MARKET, code: str):
+        self.body = struct.pack('<B23s8x', market.value, code.encode('gbk'))
     
     @override
     def deserialize(self, data):
-        category, code, count = struct.unpack('<B31sH', data[:34])
-        # print(EX_CATEGORY(category), code.decode('gbk').replace('\x00', ''))
+        market, code, count = struct.unpack('<B31sH', data[:34])
+        # print(EX_MARKET(market), code.decode('gbk').replace('\x00', ''))
 
         charts = []
         for i in range(count):

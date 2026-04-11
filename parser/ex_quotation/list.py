@@ -13,7 +13,7 @@ class List(BaseParser):
         start, count = struct.unpack('<IH', data[:6])
         
         instruments = []
-        for i in range(count):
+        for i in range(count):# TODO market, category 有疑问
             market, category, u3, u4, code, name, u5, u6, u7, u8, u9, u10, u11, u12, u13, u14 = struct.unpack('<BBBH9s26sffHHHHHHHH', data[i * 64 + 6: i * 64 + 70])
 
             instruments.append({

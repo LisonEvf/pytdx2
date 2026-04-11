@@ -1,7 +1,7 @@
 import struct
 from typing import override
 
-from const import EX_CATEGORY
+from const import EX_MARKET
 from parser.baseParser import BaseParser, register_parser
 
 # > 4d25 4a00 4352434c000000000000000000000000000000000000 0100 1400 000000000000000000
@@ -12,12 +12,12 @@ from parser.baseParser import BaseParser, register_parser
 
 @register_parser(0x254d, 1) # TODO 有时会跟一段莫名hex
 class ChartSampling(BaseParser):
-    def __init__(self, category: EX_CATEGORY, code: str):
-        self.body = struct.pack('<H22sHH9x', category.value, code.encode('gbk'), 1, 20)
+    def __init__(self, market: EX_MARKET, code: str):
+        self.body = struct.pack('<H22sHH9x', market.value, code.encode('gbk'), 1, 20)
 
     @override
     def deserialize(self, data):
-        category, code, a,b,c,d,e,f,g,h, count = struct.unpack('<H22s9H', data[:42])
+        market, code, a,b,c,d,e,f,g,h, count = struct.unpack('<H22s9H', data[:42])
         # print(a,b,c,d,e,f,g,h, count)
         
         prices = []

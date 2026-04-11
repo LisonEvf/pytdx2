@@ -69,13 +69,13 @@ if __name__ == "__main__":
     print(pd.DataFrame(client.stock_transaction(MARKET.SZ, '000001', date(2024, 1, 15))))
     
     # 期货K线
-    print(pd.DataFrame(client.goods_kline(EX_CATEGORY.SH_FUTURES, 'AUL8', PERIOD.DAILY)))
+    print(pd.DataFrame(client.goods_kline(EX_MARKET.SH_FUTURES, 'AUL8', PERIOD.DAILY)))
     # 获取期货行情
-    print(pd.DataFrame(client.goods_quotes_list([(EX_CATEGORY.SH_FUTURES, 'AUL8'), (EX_CATEGORY.SH_FUTURES, 'AGL8')])))
+    print(pd.DataFrame(client.goods_quotes_list([(EX_MARKET.SH_FUTURES, 'AUL8'), (EX_MARKET.SH_FUTURES, 'AGL8')])))
     # 获取美股K线
-    print(pd.DataFrame(client.goods_kline(EX_CATEGORY.US_STOCK, 'TSLA', PERIOD.DAILY)))
+    print(pd.DataFrame(client.goods_kline(EX_MARKET.US_STOCK, 'TSLA', PERIOD.DAILY)))
     # 美股行情
-    print(pd.DataFrame(client.goods_quotes(EX_CATEGORY.US_STOCK, 'TSLA')))
+    print(pd.DataFrame(client.goods_quotes(EX_MARKET.US_STOCK, 'TSLA')))
 ```
 
 ### 🌟 本项目亮点

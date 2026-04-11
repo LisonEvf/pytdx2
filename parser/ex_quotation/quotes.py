@@ -1,7 +1,7 @@
 import struct
 from typing import override
 
-from const import EX_CATEGORY
+from const import EX_MARKET
 from parser.baseParser import BaseParser, register_parser
 from utils.help import unpack_futures
 
@@ -36,14 +36,14 @@ from utils.help import unpack_futures
 # > 8a24 e9 0135011b434553 
 @register_parser(0x248a, 1) # TODO 前8位不明所以
 class Quotes(BaseParser):
-    def __init__(self, code_list: list[tuple[EX_CATEGORY, str]]):
+    def __init__(self, code_list: list[tuple[EX_MARKET, str]]):
         length = len(code_list)
         if length <= 0:
             raise Exception('futures count must > 0')
         self.body = bytearray(struct.pack('<B7xH', 5, length))
         
-        for category, code in code_list:
-            self.body.extend(struct.pack('<B23s', category.value, code.encode('gbk')))
+        for market, code in code_list:
+            self.body.extend(struct.pack('<B23s', market.value, code.encode('gbk')))
 
     @override
     def deserialize(self, data):

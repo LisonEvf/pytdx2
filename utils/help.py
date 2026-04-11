@@ -3,7 +3,7 @@
 from datetime import date, datetime
 import struct
 
-from const import EX_CATEGORY, MARKET
+from const import EX_MARKET, MARKET
 from utils.log import log
 
 def query_market(code) -> MARKET:
@@ -132,7 +132,7 @@ def unpack_futures(data, code_len: int = 23):
     if len(data) == 292 + code_len:
         raise Exception('')
     
-    category, code = struct.unpack(f'<B{code_len}s', data[:1 + code_len])
+    market, code = struct.unpack(f'<B{code_len}s', data[:1 + code_len])
     active, pre_close, open, high, low, close, open_position, add_position, vol, curr_vol, amount, in_vol, out_vol, u14, hold_position = struct.unpack(f'<I5f4If4I', data[1 + code_len: 61 + code_len])
     handicap_list = struct.unpack('<5f5I5f5I', data[61 + code_len: 141 + code_len])
     handicap = {
@@ -150,7 +150,7 @@ def unpack_futures(data, code_len: int = 23):
         date_obj = date(date_raw // 10000, date_raw % 10000 // 100, date_raw % 100)
 
     return {
-            'category': EX_CATEGORY(category), 
+            'market': EX_MARKET(market), 
             'code': code.decode('gbk').replace('\x00', ''), 
             'active': active, 
             'pre_close': pre_close, 

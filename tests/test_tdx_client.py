@@ -1,11 +1,9 @@
 from datetime import date
-from unittest.mock import MagicMock, patch, PropertyMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from tdxClient import TdxClient
-from client.quotationClient import QuotationClient
-from client.exQuotationClient import exQuotationClient
 from const import *
 
 
@@ -224,53 +222,53 @@ class TestTdxClientGoodsMethods:
 
     def test_goods_quotes_list(self, tdx):
         tdx.ex_quotation_client.connected = True
-        tdx.eq_client().get_quotes_list.return_value = [{'category': EX_CATEGORY.US_STOCK, 'code': 'TSLA'}]
-        result = tdx.goods_quotes_list(EX_CATEGORY.US_STOCK)
+        tdx.eq_client().get_quotes_list.return_value = [{'market': EX_MARKET.US_STOCK, 'code': 'TSLA'}]
+        result = tdx.goods_quotes_list(EX_MARKET.US_STOCK)
         assert len(result) == 1
 
     def test_goods_quotes(self, tdx):
         tdx.ex_quotation_client.connected = True
-        tdx.eq_client().get_quotes.return_value = [{'category': EX_CATEGORY.US_STOCK, 'code': 'TSLA'}]
-        result = tdx.goods_quotes(EX_CATEGORY.US_STOCK, 'TSLA')
+        tdx.eq_client().get_quotes.return_value = [{'market': EX_MARKET.US_STOCK, 'code': 'TSLA'}]
+        result = tdx.goods_quotes(EX_MARKET.US_STOCK, 'TSLA')
         assert len(result) == 1
 
     def test_goods_quotes_list_param(self, tdx):
         tdx.ex_quotation_client.connected = True
         tdx.eq_client().get_quotes.return_value = [
-            {'category': EX_CATEGORY.US_STOCK, 'code': 'TSLA'},
-            {'category': EX_CATEGORY.HK_MAIN_BOARD, 'code': '09988'},
+            {'market': EX_MARKET.US_STOCK, 'code': 'TSLA'},
+            {'market': EX_MARKET.HK_MAIN_BOARD, 'code': '09988'},
         ]
-        result = tdx.goods_quotes([(EX_CATEGORY.US_STOCK, 'TSLA'), (EX_CATEGORY.HK_MAIN_BOARD, '09988')])
+        result = tdx.goods_quotes([(EX_MARKET.US_STOCK, 'TSLA'), (EX_MARKET.HK_MAIN_BOARD, '09988')])
         assert len(result) == 2
 
     def test_goods_kline(self, tdx):
         tdx.ex_quotation_client.connected = True
         tdx.eq_client().get_kline.return_value = [{'date_time': '2026-01-01', 'open': 200.0, 'close': 205.0}]
-        result = tdx.goods_kline(EX_CATEGORY.US_STOCK, 'TSLA', PERIOD.DAILY)
+        result = tdx.goods_kline(EX_MARKET.US_STOCK, 'TSLA', PERIOD.DAILY)
         assert len(result) == 1
 
     def test_goods_history_transaction(self, tdx):
         tdx.ex_quotation_client.connected = True
         tdx.eq_client().get_history_transaction.return_value = [{'price': 200.0, 'vol': 100}]
-        result = tdx.goods_history_transaction(EX_CATEGORY.US_STOCK, 'TSLA', date(2026, 3, 3))
+        result = tdx.goods_history_transaction(EX_MARKET.US_STOCK, 'TSLA', date(2026, 3, 3))
         assert len(result) == 1
 
     def test_goods_tick_chart(self, tdx):
         tdx.ex_quotation_client.connected = True
         tdx.eq_client().get_tick_chart.return_value = [{'price': 200.0, 'avg': 198.0, 'vol': 100}]
-        result = tdx.goods_tick_chart(EX_CATEGORY.US_STOCK, 'TSLA')
+        result = tdx.goods_tick_chart(EX_MARKET.US_STOCK, 'TSLA')
         assert len(result) == 1
 
     def test_goods_tick_chart_history(self, tdx):
         tdx.ex_quotation_client.connected = True
         tdx.eq_client().get_tick_chart.return_value = [{'price': 200.0, 'avg': 198.0, 'vol': 100}]
-        result = tdx.goods_tick_chart(EX_CATEGORY.US_STOCK, 'TSLA', date=date(2026, 3, 3))
+        result = tdx.goods_tick_chart(EX_MARKET.US_STOCK, 'TSLA', date=date(2026, 3, 3))
         assert len(result) == 1
 
     def test_goods_chart_sampling(self, tdx):
         tdx.ex_quotation_client.connected = True
         tdx.eq_client().get_chart_sampling.return_value = [1.0, 2.0]
-        result = tdx.goods_chart_sampling(EX_CATEGORY.HK_MAIN_BOARD, '09988')
+        result = tdx.goods_chart_sampling(EX_MARKET.HK_MAIN_BOARD, '09988')
         assert result == [1.0, 2.0]
 
 

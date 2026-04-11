@@ -2,7 +2,7 @@
 import struct
 from typing import override
 
-from const import EX_MARKET
+from const import GOODS_TYPE
 from parser.baseParser import BaseParser, register_parser
 
 
@@ -14,11 +14,29 @@ class CategoryList(BaseParser):
 
         result = []
         for i in range(count):
-            market, name, code, abbr = struct.unpack('<B32sB30s', data[64 * i + 2: 64 * i + 66])
+            goods_type, name, code, abbr = struct.unpack('<B32sB30s', data[64 * i + 2: 64 * i + 66])
+            goods_type = ['STOCK', 'HK', 'FUTURES', 'FX', 'INDEX', 'VALUATION', 'MONEY', 'FUND', 'MONETARY_FUND', 'INDICATOR', 'MIRROR', 'OPTION', 'US', 'DE', 'SG'][goods_type - 1]
             result.append({
-                'market': EX_MARKET(market),
+                'goods_type': goods_type,
                 'name': name.decode('gbk').replace('\x00', ''),
                 'code': code,
                 'abbr': abbr.decode('gbk').replace('\x00', '')
             })
         return result
+    
+
+# STOCK = 1               # 股票
+# HK = 2                  # 香港
+# FUTURES = 3             # 期货
+# FX = 4                  # 汇率
+# INDEX = 5               # 指数
+# VALUATION = 6           # 估值
+# MONEY = 7               # 资金
+# FUND = 8                # 基金
+# MONETARY_FUND = 9       # 货币基金
+# INDICATOR = 10          # 指标
+# MIRROR = 11             # 镜像
+# OPTION = 12             # 期权
+# US = 13                 # 美国
+# DE = 14                 # 德国
+# SG = 15                 # 新加坡

@@ -2,7 +2,7 @@ from datetime import date, time
 import struct
 from typing import override
 
-from const import EX_CATEGORY
+from const import EX_MARKET
 from parser.baseParser import BaseParser, register_parser
 
 # > 8c24 e0013501 1c 434a4c3800000000000000000000000000000000000000 000000000000 2f49
@@ -13,13 +13,13 @@ from parser.baseParser import BaseParser, register_parser
 #        94013501 4a 46484e2d43000000000000000000000000000000000000 000000000000 0001
 @register_parser(0x248c, 1) # TODO 后8位不明所以
 class HistoryTickChart(BaseParser):
-    def __init__(self, category: EX_CATEGORY, code: str, date: date):
+    def __init__(self, market: EX_MARKET, code: str, date: date):
         date = date.year * 10000 + date.month * 100 + date.day
-        self.body = struct.pack('<IB23s6sH', date, category.value, code.encode('gbk'), b'', 0)
+        self.body = struct.pack('<IB23s6sH', date, market.value, code.encode('gbk'), b'', 0)
 
     @override
     def deserialize(self, data):
-        category, name, date, avg_price, _, _, count = struct.unpack('<B23sIfIIH', data[:42])
+        market, name, date, avg_price, _, _, count = struct.unpack('<B23sIfIIH', data[:42])
         charts = []
         for i in range(count):
             minutes, price, avg ,vol, u = struct.unpack('<HffII', data[42 + 18 * i : 42 + 18 * i + 18])

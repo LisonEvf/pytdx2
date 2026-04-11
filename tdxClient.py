@@ -5,7 +5,7 @@ import pandas as pd
 
 from client.exQuotationClient import exQuotationClient
 from client.quotationClient import QuotationClient
-from const import ADJUST, BLOCK_FILE_TYPE, CATEGORY, EX_CATEGORY, FILTER_TYPE, MARKET, PERIOD, SORT_TYPE
+from const import ADJUST, BLOCK_FILE_TYPE, CATEGORY, EX_MARKET, FILTER_TYPE, MARKET, PERIOD, SORT_TYPE
 
 class TdxClient:
     def __enter__(self):
@@ -511,18 +511,18 @@ class TdxClient:
         '''
         return self.eq_client().get_list(start, count)
     
-    def goods_quotes_list(self, category: EX_CATEGORY, start: int = 0, count: int = 100, sortType: SORT_TYPE = SORT_TYPE.CODE, reverse: bool = False) -> list[dict]:
+    def goods_quotes_list(self, market: EX_MARKET, start: int = 0, count: int = 100, sortType: SORT_TYPE = SORT_TYPE.CODE, reverse: bool = False) -> list[dict]:
         '''
         获取期货商品行情列表
         Args:
-            category: EX_CATEGORY     - 扩展市场类别
+            market: EX_MARKET     - 扩展市场
             start: int                - 起始位置
             count: int                - 获取数量
             sortType: SORT_TYPE       - 排序类型
             reverse: bool             - 倒序排序
         Return: 
             List[Dict]: 商品行情列表，每个元素包含：
-                - category: EX_CATEGORY - 扩展市场类别
+                - market: EX_MARKET - 扩展市场
                 - code: str             - 股票代码
                 - open: float           - 今开
                 - high: float           - 最高
@@ -555,9 +555,9 @@ class TdxClient:
                 - raise_speed: float    - 涨速
                 - active: int           - 活跃度
         '''
-        return self.eq_client().get_quotes_list(category, start, count, sortType, reverse)
+        return self.eq_client().get_quotes_list(market, start, count, sortType, reverse)
     
-    def goods_quotes(self, code_list: EX_CATEGORY | list[tuple[EX_CATEGORY, str]], code = None) -> list[dict]:
+    def goods_quotes(self, code_list: EX_MARKET | list[tuple[EX_MARKET, str]], code = None) -> list[dict]:
         '''
         获取多个期货商品行情
         支持三种形式的参数
@@ -566,11 +566,11 @@ class TdxClient:
         goods_quotes([(market1, code1), (market2, code2)] )
         Args:
             List[tuple]: 商品列表，每个元素包含：
-                - category: EX_CATEGORY - 扩展市场类别
+                - market: EX_MARKET - 扩展市场
                 - code: str             - 商品代码
         Return: 
             List[Dict]: 成交行情列表，每个元素包含：
-                - category: EX_CATEGORY - 扩展市场类别
+                - market: EX_MARKET - 扩展市场
                 - code: str             - 股票代码
                 - open: float           - 今开
                 - high: float           - 最高
@@ -605,12 +605,12 @@ class TdxClient:
         '''
         return self.eq_client().get_quotes(code_list, code)
     
-    def goods_kline(self, category: EX_CATEGORY, code: str, period: PERIOD, start: int = 0, count: int = 800, times: int = 1) -> list[dict]:
+    def goods_kline(self, market: EX_MARKET, code: str, period: PERIOD, start: int = 0, count: int = 800, times: int = 1) -> list[dict]:
         '''
         获取商品K线图
         Args:
-            category: EX_CATEGORY   - 扩展市场类别
-            code: str                   - 商品代码
+            market: EX_MARKET       - 扩展市场
+            code: str               - 商品代码
             period: PERIOD          - K线周期
             start: int              - 起始位置，默认为0
             count: int              - 获取数量，默认为800
@@ -625,14 +625,15 @@ class TdxClient:
                 - vol: int              - 成交量
                 - amount: float         - 成交额
         '''
-        return self.eq_client().get_kline(category, code, period, start, count, times)
-    
-    def goods_history_transaction(self, category: EX_CATEGORY, code: str, date: date) -> list[dict]:
+        return self.eq_client().get_kline(market, code, period, start, count, times)
+
+    def goods_history_transaction(self, market: EX_MARKET, code: str, date: date) -> list[dict]:
         '''
         获取商品历史成交
         Args:
-            category: EX_CATEGORY   - 扩展市场类别
-            date: date - 日期，默认为None（查询当日分时图）
+            market: EX_MARKET   - 扩展市场
+            code: str           - 商品代码
+            date: date          - 日期，默认为None（查询当日分时图）
         Return: 
             List[Dict]: 商品历史成交列表，每个元素包含：
                 - time: time        - 时间
@@ -640,15 +641,15 @@ class TdxClient:
                 - vol: int          - 成交量
                 - action: str       - 成交方向（SELL，BUY，NEUTRAL）
         '''
-        return self.eq_client().get_history_transaction(category, code, date)
+        return self.eq_client().get_history_transaction(market, code, date)
 
-    def goods_tick_chart(self, category: EX_CATEGORY, code: str, date: date = None) -> list[dict]:
+    def goods_tick_chart(self, market: EX_MARKET, code: str, date: date = None) -> list[dict]:
         '''
         获取商品分时图
         Args:
-            category: EX_CATEGORY - 市场类型
-            code: str  - 商品代码
-            date: date - 日期，默认为None（查询当日分时图）
+            market: EX_MARKET   - 扩展市场
+            code: str           - 商品代码
+            date: date          - 日期，默认为None（查询当日分时图）
         Return: 
             List[Dict]: 商品分时列表，每个元素包含：
                 - time: time        - 时间
@@ -656,18 +657,18 @@ class TdxClient:
                 - avg: float        - 均价
                 - vol: int          - 成交量
         '''
-        return self.eq_client().get_tick_chart(category, code, date)
+        return self.eq_client().get_tick_chart(market, code, date)
     
-    def goods_chart_sampling(self, category: EX_CATEGORY, code: str) -> list[float]:
+    def goods_chart_sampling(self, market: EX_MARKET, code: str) -> list[float]:
         '''
         获取商品分时图缩略
         Args:
-            category: EX_CATEGORY   - 市场类型
+            market: EX_MARKET       - 扩展市场
             code: str               - 商品代码
         Return: 
             List[float]             - 价格列表
         '''
-        return self.eq_client().get_chart_sampling(category, code)
+        return self.eq_client().get_chart_sampling(market, code)
     
 
 
@@ -700,11 +701,11 @@ if __name__ == '__main__':
         print(client.goods_count())
         print(pd.DataFrame(client.goods_category_list()))
         print(pd.DataFrame(client.goods_list()))
-        print(pd.DataFrame(client.goods_quotes_list(EX_CATEGORY.US_STOCK, sortType=SORT_TYPE.TOTAL_AMOUNT)))
-        print(pd.DataFrame([client.goods_quotes(EX_CATEGORY.US_STOCK, 'TSLA')]))
-        print(pd.DataFrame(client.goods_quotes([(EX_CATEGORY.US_STOCK, 'TSLA'), (EX_CATEGORY.HK_MAIN_BOARD, '09988')])))
-        print(pd.DataFrame(client.goods_kline(EX_CATEGORY.US_STOCK, 'TSLA', PERIOD.DAILY)))
-        print(pd.DataFrame(client.goods_history_transaction(EX_CATEGORY.US_STOCK, 'TSLA', date(2026, 3, 3))))
-        print(pd.DataFrame(client.goods_tick_chart(EX_CATEGORY.US_STOCK, 'TSLA')))
-        print(pd.DataFrame(client.goods_tick_chart(EX_CATEGORY.US_STOCK, 'TSLA', date(2026, 3, 3))))
-        print(pd.DataFrame(client.goods_chart_sampling(EX_CATEGORY.US_STOCK, 'TSLA')))
+        print(pd.DataFrame(client.goods_quotes_list(EX_MARKET.US_STOCK, sortType=SORT_TYPE.TOTAL_AMOUNT)))
+        print(pd.DataFrame([client.goods_quotes(EX_MARKET.US_STOCK, 'TSLA')]))
+        print(pd.DataFrame(client.goods_quotes([(EX_MARKET.US_STOCK, 'TSLA'), (EX_MARKET.HK_MAIN_BOARD, '09988')])))
+        print(pd.DataFrame(client.goods_kline(EX_MARKET.US_STOCK, 'TSLA', PERIOD.DAILY)))
+        print(pd.DataFrame(client.goods_history_transaction(EX_MARKET.US_STOCK, 'TSLA', date(2026, 3, 3))))
+        print(pd.DataFrame(client.goods_tick_chart(EX_MARKET.US_STOCK, 'TSLA')))
+        print(pd.DataFrame(client.goods_tick_chart(EX_MARKET.US_STOCK, 'TSLA', date(2026, 3, 3))))
+        print(pd.DataFrame(client.goods_chart_sampling(EX_MARKET.US_STOCK, 'TSLA')))

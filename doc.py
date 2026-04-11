@@ -261,27 +261,27 @@ def _(c):
 
 @demo('28', 'goods_quotes          单只商品报价')
 def _(c):
-    show("c.goods_quotes(EX_CATEGORY.CFFEX_FUTURES, 'IF2602')",
-         c.goods_quotes(EX_CATEGORY.CFFEX_FUTURES, 'IF2602'),
+    show("c.goods_quotes(EX_MARKET.CFFEX_FUTURES, 'IF2602')",
+         c.goods_quotes(EX_MARKET.CFFEX_FUTURES, 'IF2602'),
          comment="中金所 IF2602 报价")
 
 
 @demo('29', 'goods_quotes(batch)   批量商品报价')
 def _(c):
-    show("c.goods_quotes([(EX_CATEGORY.CFFEX_FUTURES,'IC2602'), ...])",
+    show("c.goods_quotes([(EX_MARKET.CFFEX_FUTURES,'IC2602'), ...])",
          pd.DataFrame(c.goods_quotes([
-             (EX_CATEGORY.CFFEX_FUTURES, 'IC2602'),
-             (EX_CATEGORY.HK_MAIN_BOARD, '09988'),
-             (EX_CATEGORY.US_STOCK, 'TSLA'),
+             (EX_MARKET.CFFEX_FUTURES, 'IC2602'),
+             (EX_MARKET.HK_MAIN_BOARD, '09988'),
+             (EX_MARKET.US_STOCK, 'TSLA'),
          ])),
          comment="批量报价")
 
 
 @demo('30', 'goods_quotes_list     商品行情列表(排序)')
 def _(c):
-    show("c.goods_quotes_list(EX_CATEGORY.US_STOCK, count=10, sortType=SORT_TYPE.TOTAL_AMOUNT)",
+    show("c.goods_quotes_list(EX_MARKET.US_STOCK, count=10, sortType=SORT_TYPE.TOTAL_AMOUNT)",
          pd.DataFrame(c.goods_quotes_list(
-             EX_CATEGORY.US_STOCK, count=10,
+             EX_MARKET.US_STOCK, count=10,
              sortType=SORT_TYPE.TOTAL_AMOUNT,
          )),
          comment="美股按总金额排序前10")
@@ -289,36 +289,36 @@ def _(c):
 
 @demo('31', 'goods_kline          商品K线')
 def _(c):
-    show("c.goods_kline(EX_CATEGORY.US_STOCK, 'TSLA', PERIOD.DAILY, count=5)",
-         pd.DataFrame(c.goods_kline(EX_CATEGORY.US_STOCK, 'TSLA', PERIOD.DAILY, count=5)),
+    show("c.goods_kline(EX_MARKET.US_STOCK, 'TSLA', PERIOD.DAILY, count=5)",
+         pd.DataFrame(c.goods_kline(EX_MARKET.US_STOCK, 'TSLA', PERIOD.DAILY, count=5)),
          comment="美股TSLA日K")
 
 
 @demo('32', 'goods_history_trans   商品历史成交')
 def _(c):
-    show("c.goods_history_transaction(EX_CATEGORY.US_STOCK, 'FHN-C', date(2025, 10, 28))",
-         pd.DataFrame(c.goods_history_transaction(EX_CATEGORY.US_STOCK, 'FHN-C', date(2025, 10, 28))),
+    show("c.goods_history_transaction(EX_MARKET.US_STOCK, 'FHN-C', date(2025, 10, 28))",
+         pd.DataFrame(c.goods_history_transaction(EX_MARKET.US_STOCK, 'FHN-C', date(2025, 10, 28))),
          comment="美股FHN-C历史成交")
 
 
 @demo('33', 'goods_tick_chart      商品实时分时')
 def _(c):
-    show("c.goods_tick_chart(EX_CATEGORY.HK_MAIN_BOARD, '09988')",
-         pd.DataFrame(c.goods_tick_chart(EX_CATEGORY.HK_MAIN_BOARD, '09988')),
+    show("c.goods_tick_chart(EX_MARKET.HK_MAIN_BOARD, '09988')",
+         pd.DataFrame(c.goods_tick_chart(EX_MARKET.HK_MAIN_BOARD, '09988')),
          comment="港股09988实时分时")
 
 
 @demo('34', 'goods_tick_chart(his) 商品历史分时')
 def _(c):
-    show("c.goods_tick_chart(EX_CATEGORY.US_STOCK, 'HIMS', date(2026, 3, 12))",
-         pd.DataFrame(c.goods_tick_chart(EX_CATEGORY.US_STOCK, 'HIMS', date(2026, 3, 12))),
+    show("c.goods_tick_chart(EX_MARKET.US_STOCK, 'HIMS', date(2026, 3, 12))",
+         pd.DataFrame(c.goods_tick_chart(EX_MARKET.US_STOCK, 'HIMS', date(2026, 3, 12))),
          comment="美股HIMS历史分时")
 
 
 @demo('35', 'goods_chart_sampling 商品分时缩略')
 def _(c):
-    chart = c.goods_chart_sampling(EX_CATEGORY.HK_MAIN_BOARD, '09988')
-    show("c.goods_chart_sampling(EX_CATEGORY.HK_MAIN_BOARD, '09988')",
+    chart = c.goods_chart_sampling(EX_MARKET.HK_MAIN_BOARD, '09988')
+    show("c.goods_chart_sampling(EX_MARKET.HK_MAIN_BOARD, '09988')",
          f"  共 {len(chart)} 个采样点, 范围: {min(chart):.2f} ~ {max(chart):.2f}",
          comment="港股09988分时缩略")
 
@@ -406,15 +406,15 @@ def _(_tdx=None):
 @demo('46', 'get_symbol_bars(hk)   港股K线')
 def _(_tdx=None):
     client = _get_mac_ex()
-    show("exClient.get_symbol_bars(EX_CATEGORY.HK_MAIN_BOARD, '00100', PERIOD.DAILY, count=3)",
-         pd.DataFrame(client.get_symbol_bars(EX_CATEGORY.HK_MAIN_BOARD, '00100', PERIOD.DAILY, count=3)))
+    show("exClient.get_symbol_bars(EX_MARKET.HK_MAIN_BOARD, '00100', PERIOD.DAILY, count=3)",
+         pd.DataFrame(client.get_symbol_bars(EX_MARKET.HK_MAIN_BOARD, '00100', PERIOD.DAILY, count=3)))
 
 
 @demo('47', 'get_symbol_bars(us)   美股K线')
 def _(_tdx=None):
     client = _get_mac_ex()
-    show("exClient.get_symbol_bars(EX_CATEGORY.US_STOCK, 'TSLA', PERIOD.WEEKLY, count=3)",
-         pd.DataFrame(client.get_symbol_bars(EX_CATEGORY.US_STOCK, 'TSLA', PERIOD.WEEKLY, count=3)))
+    show("exClient.get_symbol_bars(EX_MARKET.US_STOCK, 'TSLA', PERIOD.WEEKLY, count=3)",
+         pd.DataFrame(client.get_symbol_bars(EX_MARKET.US_STOCK, 'TSLA', PERIOD.WEEKLY, count=3)))
 
 
 # ======================== 底层客户端直调 ========================

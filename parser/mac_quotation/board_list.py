@@ -1,7 +1,7 @@
 import struct
 from typing import Union, override
 
-from const import BOARD_TYPE, EX_BOARD_TYPE, EX_CATEGORY, MARKET
+from const import BOARD_TYPE, EX_BOARD_TYPE, EX_MARKET, MARKET
 from parser.baseParser import BaseParser, register_parser
 
 
@@ -62,8 +62,8 @@ class BoardList(BaseParser):
         symbol_market_obj = MARKET
 
         if isinstance(self.board_type, EX_BOARD_TYPE):
-            market_obj = EX_CATEGORY
-            symbol_market_obj = EX_CATEGORY
+            market_obj = EX_MARKET
+            symbol_market_obj = EX_MARKET
 
         for i in range(count):
             row_data = data[

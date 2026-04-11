@@ -404,25 +404,8 @@ class EX_BOARD_TYPE(Enum):
     US_ALL = 3  # 美股板块
     US_GN = 4  # 美股概念板块
     US_HY = 5  # 美股行业板块
-    
-class EX_MARKET(Enum):
-    STOCK = 1               # 股票
-    HK = 2                  # 香港
-    FUTURES = 3             # 期货
-    FX = 4                  # 汇率
-    INDEX = 5               # 指数
-    VALUATION = 6           # 估值
-    MONEY = 7               # 资金
-    FUND = 8                # 基金
-    MONETARY_FUND = 9       # 货币基金
-    INDICATOR = 10          # 指标
-    MIRROR = 11             # 镜像
-    OPTION = 12             # 期权
-    US = 13                 # 美国
-    DE = 14                 # 德国
-    SG = 15                 # 新加坡
 
-class EX_CATEGORY(Enum):
+class EX_MARKET(Enum):
     TEMP_STOCK = 1                  # 临时股
     ZZ_FUTURES_OPTION = 4           # 郑州商品期权
     DL_FUTURES_OPTION = 5           # 大连商品期权

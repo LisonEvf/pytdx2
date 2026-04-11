@@ -2,7 +2,7 @@ from datetime import date, time
 import struct
 from typing import override
 
-from const import EX_CATEGORY
+from const import EX_MARKET
 from parser.baseParser import BaseParser, register_parser
 
 # >1224 e8013501 2a 543030390000000000000000000000000000000000000000000000000000000000000000000000 000000007800
@@ -14,13 +14,13 @@ from parser.baseParser import BaseParser, register_parser
 # >1224 ee013501 1f 303030323500000000000000000000000000000000000000000000000000000000000000000000 000000007800
 @register_parser(0x2412, 1)
 class HistoryTransaction(BaseParser):
-    def __init__(self, category: EX_CATEGORY, code: str, date: date):
+    def __init__(self, market: EX_MARKET, code: str, date: date):
         date = date.year * 10000 + date.month * 100 + date.day
-        self.body = struct.pack('<IB43sH', date, category.value, code.encode('gbk'), 0x78)
+        self.body = struct.pack('<IB43sH', date, market.value, code.encode('gbk'), 0x78)
         
     @override
     def deserialize(self, data):
-        category, name, date, start_price, _, _, count = struct.unpack('<B39sIfIIH', data[:58])
+        market, name, date, start_price, _, _, count = struct.unpack('<B39sIfIIH', data[:58])
 
         results = []
         for _ in range(count):
