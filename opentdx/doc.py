@@ -422,15 +422,15 @@ def _(_tdx=None):
 @demo('48', 'QuotationClient 直调 — HeartBeat/Info/公告')
 def _(_tdx=None):
     from opentdx.client.quotationClient import QuotationClient
-    from opentdx.parser.quotation import server
+    from opentdx.parser import quotation
 
     client = QuotationClient()
     if not client.connect().login():
         return
 
-    show("client.call(server.HeartBeat())", client.call(server.HeartBeat()), comment="服务器心跳")
-    show("client.call(server.Info())", client.call(server.Info()), comment="服务器信息")
-    show("client.call(server.ExchangeAnnouncement())", client.call(server.ExchangeAnnouncement()), comment="交易所公告")
+    show("client.call(quotation.HeartBeat())", client.call(quotation.HeartBeat()), comment="服务器心跳")
+    show("client.call(quotation.ServerInfo())", client.call(quotation.ServerInfo()), comment="服务器信息")
+    show("client.call(quotation.ExchangeAnnouncement())", client.call(quotation.ExchangeAnnouncement()), comment="交易所公告")
     client.disconnect()
 
 
@@ -468,14 +468,14 @@ def _(_tdx=None):
 @demo('50', 'QuotationClient — QuotesEncrypt / get_company_info')
 def _(_tdx=None):
     from opentdx.client.quotationClient import QuotationClient
-    from opentdx.parser.quotation import stock
+    from opentdx.parser import quotation
 
     client = QuotationClient()
     if not client.connect().login():
         return
 
-    show("client.call(stock.QuotesEncrypt([(MARKET.SH,'999999'), ...]))",
-         pd.DataFrame(client.call(stock.QuotesEncrypt([
+    show("client.call(quotation.QuotesEncrypt([(MARKET.SH,'999999'), ...]))",
+         pd.DataFrame(client.call(quotation.QuotesEncrypt([
              (MARKET.SH, '999999'), (MARKET.SZ, '399001'),
          ]))),
          comment="加密行情")

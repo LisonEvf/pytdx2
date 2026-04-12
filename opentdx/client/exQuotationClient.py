@@ -1,9 +1,8 @@
 from datetime import date
 
-from opentdx.parser.ex_quotation import file, goods
+from opentdx.parser import ex_quotation
 
 from .baseStockClient import BaseStockClient, update_last_ack_time, _paginate, _normalize_code_list
-from opentdx.parser.ex_quotation import server as ex_server
 from opentdx.const import EX_MARKET, PERIOD, SORT_TYPE, ex_hosts
 from opentdx.utils.log import log
 
@@ -14,7 +13,7 @@ class exQuotationClient(BaseStockClient):
 
     def login(self, show_info=False) -> bool:
         try:
-            info = self.call(ex_server.Login())
+            info = self.call(ex_quotation.Login())
             if show_info:
                 print(info)
             return True
@@ -24,7 +23,7 @@ class exQuotationClient(BaseStockClient):
 
     def server_info(self):
         try:
-            info = self.call(ex_server.Info())
+            info = self.call(ex_quotation.ServerInfo())
             return info
         except Exception as e:
             log.error("get server info failed: %s", e)
@@ -32,51 +31,51 @@ class exQuotationClient(BaseStockClient):
 
     @update_last_ack_time
     def get_count(self) -> int:
-        return self.call(goods.Count())
+        return self.call(ex_quotation.Count())
 
     @update_last_ack_time
     def get_category_list(self) -> list[dict]:
-        return self.call(goods.CategoryList())
+        return self.call(ex_quotation.CategoryList())
 
     @update_last_ack_time
     def get_list(self, start: int = 0, count: int = 2000) -> list[dict]:
-        return self.call(goods.List(start, count))
+        return self.call(ex_quotation.List(start, count))
 
     @update_last_ack_time
     def get_quotes_list(self, market: EX_MARKET, start: int = 0, count: int = 100, sortType: SORT_TYPE = SORT_TYPE.CODE, reverse: bool = False) -> list[dict]:
         return _paginate(
-            lambda s, c: self.call(goods.QuotesList(market, s, c, sortType, reverse)),
-            100, count,
+            lambda s, c: self.call(ex_quotation.QuotesList(market, s, c, sortType, reverse)),
+            100, count, start,
         )
 
     @update_last_ack_time
     def get_quotes_single(self, market: EX_MARKET, code) -> dict:
-        return self.call(goods.QuotesSingle(market, code))
+        return self.call(ex_quotation.QuotesSingle(market, code))
 
     @update_last_ack_time
     def get_quotes(self, code_list, code=None) -> list[dict]:
         code_list = _normalize_code_list(code_list, code)
-        return self.call(goods.Quotes(code_list))
+        return self.call(ex_quotation.Quotes(code_list))
 
     @update_last_ack_time
     def get_quotes2(self, code_list, code=None) -> list[dict]:
         code_list = _normalize_code_list(code_list, code)
-        return self.call(goods.Quotes2(code_list))
+        return self.call(ex_quotation.Quotes2(code_list))
 
     @update_last_ack_time
     def get_kline(self, market: EX_MARKET, code: str, period: PERIOD, start: int = 0, count: int = 800, times: int = 1) -> list[dict]:
-        return self.call(goods.K_Line(market, code, period, times, start, count))
+        return self.call(ex_quotation.K_Line(market, code, period, times, start, count))
 
     @update_last_ack_time
     def get_history_transaction(self, market: EX_MARKET, code: str, date: date) -> list[dict]:
-        return self.call(goods.HistoryTransaction(market, code, date))
+        return self.call(ex_quotation.HistoryTransaction(market, code, date))
 
     @update_last_ack_time
     def get_table(self):
         start = 0
         result = ''
         while True:
-            _, count, context = self.call(goods.Table(start))
+            _, count, context = self.call(ex_quotation.Table(start))
             start += count
             result += context
             if count <= 0:
@@ -88,7 +87,7 @@ class exQuotationClient(BaseStockClient):
         start = 0
         result = ''
         while True:
-            _, count, context = self.call(goods.TableDetail(start))
+            _, count, context = self.call(ex_quotation.TableDetail(start))
             start += count
             result += context
             if count <= 0:
@@ -98,14 +97,14 @@ class exQuotationClient(BaseStockClient):
     @update_last_ack_time
     def get_tick_chart(self, market: EX_MARKET, code: str, date: date = None) -> list[dict]:
         if date is None:
-            return self.call(goods.TickChart(market, code))
+            return self.call(ex_quotation.TickChart(market, code))
         else:
-            return self.call(goods.HistoryTickChart(market, code, date))
+            return self.call(ex_quotation.HistoryTickChart(market, code, date))
 
     @update_last_ack_time
     def get_chart_sampling(self, market: EX_MARKET, code: str) -> list[float]:
-        return self.call(goods.ChartSampling(market, code))
+        return self.call(ex_quotation.ChartSampling(market, code))
 
     @update_last_ack_time
     def download_file(self, filename: str, filesize=0, report_hook=None):
-        return super().download_file(file.Download, filename, filesize, report_hook)
+        return super().download_file(ex_quotation.FileDownload, filename, filesize, report_hook)

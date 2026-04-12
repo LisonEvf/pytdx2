@@ -54,11 +54,10 @@ def update_last_ack_time(func):
         return ret
     return wrapper
 
-def _paginate(fetch_fn, page_size, count):
+def _paginate(fetch_fn, page_size, count, start=0):
     """通用分页：fetch_fn(start, page_size) -> list，count=0 表示取全部"""
     results = []
     remaining = count if count != 0 else float('inf')
-    start = 0
     while remaining > 0:
         req_count = min(remaining, page_size)
         part = fetch_fn(start, req_count)
