@@ -23,12 +23,9 @@ class BaseParser:
 
 def register_parser(msg_id: int = 0, head: int = 0xc, customize: int = 0, need_zip: bool = False):
     def decorator(cls):
-        class Decorator(cls):
-            def __init__(self, *args, **kwargs):
-                super().__init__(*args, **kwargs)
-                self.msg_id = msg_id
-                self.head = head
-                self.customize = customize
-                self.need_zip = need_zip
-        return Decorator
+        cls.msg_id = msg_id
+        cls.head = head
+        cls.customize = customize
+        cls.need_zip = need_zip
+        return cls
     return decorator

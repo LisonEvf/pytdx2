@@ -54,6 +54,30 @@ def update_last_ack_time(func):
         return ret
     return wrapper
 
+def _paginate(fetch_fn, page_size, count):
+    """通用分页：fetch_fn(start, page_size) -> list，count=0 表示取全部"""
+    results = []
+    remaining = count if count != 0 else float('inf')
+    start = 0
+    while remaining > 0:
+        req_count = min(remaining, page_size)
+        part = fetch_fn(start, req_count)
+        results.extend(part)
+        if len(part) < req_count:
+            break
+        remaining -= len(part)
+        start += len(part)
+    return results
+
+def _normalize_code_list(code_list, code=None):
+    """将 (market, code) / [(m,c), ...] 统一为 [(m,c), ...]"""
+    if code is not None:
+        return [(code_list, code)]
+    if (isinstance(code_list, list) or isinstance(code_list, tuple)) \
+            and len(code_list) == 2 and type(code_list[0]) is int:
+        return [code_list]
+    return code_list
+
 class DefaultRetryStrategy():
     """
     默认的重试策略，您可以通过写自己的重试策略替代本策略, 改策略主要实现gen方法，该方法是一个生成器，
@@ -157,13 +181,16 @@ class BaseStockClient():
                 self.client.bind((bind_ip, bind_port))
             self.client.connect((ip, port))
         except socket.timeout as e:
-            # print(str(e))
+            self.client = None
             log.debug("connection expired")
             if self.raise_exception:
                 raise Exception("connection timeout error", e)
+            return self
         except Exception as e:
+            self.client = None
             if self.raise_exception:
                 raise Exception("other errors", e)
+            return self
 
         log.debug("connected!")
         self.connected = True
@@ -221,6 +248,7 @@ class BaseStockClient():
             log.debug("not connected")
             if self.raise_exception:
                 raise Exception("not connected")
+            return None
 
         # cunstomize: 自定义协议号
         # zipped: 0x1c 表示压缩，0xc 表示不压缩
@@ -253,3 +281,23 @@ class BaseStockClient():
             log.debug(str(e))
             if self.raise_exception:
                 raise Exception("send error")
+
+    @update_last_ack_time
+    def download_file(self, fetch_fn, filename: str, filesize=0, report_hook=None):
+        file_content = bytearray(filesize)
+        current_downloaded_size = 0
+        get_zero_length_package_times = 0
+        while current_downloaded_size < filesize or filesize == 0:
+            response = self.call(fetch_fn(filename, current_downloaded_size))
+            if response["size"] > 0:
+                current_downloaded_size += response["size"]
+                file_content.extend(response["data"])
+                if report_hook is not None:
+                    report_hook(current_downloaded_size, filesize)
+            else:
+                get_zero_length_package_times += 1
+                if filesize == 0:
+                    break
+                elif get_zero_length_package_times > 2:
+                    break
+        return file_content

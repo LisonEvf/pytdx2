@@ -2,7 +2,7 @@ from datetime import date
 
 from opentdx.parser.ex_quotation import file, goods
 
-from .baseStockClient import BaseStockClient, update_last_ack_time
+from .baseStockClient import BaseStockClient, update_last_ack_time, _paginate, _normalize_code_list
 from opentdx.parser.ex_quotation import server as ex_server
 from opentdx.const import EX_MARKET, PERIOD, SORT_TYPE, ex_hosts
 from opentdx.utils.log import log
@@ -21,7 +21,7 @@ class exQuotationClient(BaseStockClient):
         except Exception as e:
             log.error("login failed: %s", e)
             return False
-    
+
     def server_info(self):
         try:
             info = self.call(ex_server.Info())
@@ -29,125 +29,83 @@ class exQuotationClient(BaseStockClient):
         except Exception as e:
             log.error("get server info failed: %s", e)
             return None
-    
+
     @update_last_ack_time
     def get_count(self) -> int:
         return self.call(goods.Count())
-    
+
     @update_last_ack_time
     def get_category_list(self) -> list[dict]:
         return self.call(goods.CategoryList())
-    
+
     @update_last_ack_time
     def get_list(self, start: int = 0, count: int = 2000) -> list[dict]:
         return self.call(goods.List(start, count))
 
     @update_last_ack_time
     def get_quotes_list(self, market: EX_MARKET, start: int = 0, count: int = 100, sortType: SORT_TYPE = SORT_TYPE.CODE, reverse: bool = False) -> list[dict]:
-        MAX_QUOTE_COUNT = 100
-        results = []
-        # 如果 count 为 0，则设置 remaining 为无穷大，表示获取所有数据
-        remaining = count if count != 0 else float('inf')
-        while remaining > 0:
-            req_count = min(remaining, MAX_QUOTE_COUNT)
-            part = self.call(goods.QuotesList(market, start, req_count, sortType, reverse))
-            results.extend(part)
-            if len(part) < req_count:
-                break
-            remaining -= len(part)
-            start += len(part)
+        return _paginate(
+            lambda s, c: self.call(goods.QuotesList(market, s, c, sortType, reverse)),
+            100, count,
+        )
 
-        return results
-    
     @update_last_ack_time
     def get_quotes_single(self, market: EX_MARKET, code) -> dict:
         return self.call(goods.QuotesSingle(market, code))
-    
-    @update_last_ack_time
-    def get_quotes(self, code_list: list[tuple[EX_MARKET, str]], code = None) -> list[dict]:
-        if code is not None:
-            code_list = [(code_list, code)]
-        elif (isinstance(code_list, list) or isinstance(code_list, tuple))\
-                and len(code_list) == 2 and type(code_list[0]) is int:
-            code_list = [code_list]
-        return self.call(goods.Quotes(code_list))
-    
-    @update_last_ack_time
-    def get_quotes2(self, code_list: list[tuple[EX_MARKET, str]], code) -> list[dict]:
-        if code is not None:
-            code_list = [(code_list, code)]
-        elif (isinstance(code_list, list) or isinstance(code_list, tuple))\
-                and len(code_list) == 2 and type(code_list[0]) is int:
-            code_list = [code_list]
 
+    @update_last_ack_time
+    def get_quotes(self, code_list, code=None) -> list[dict]:
+        code_list = _normalize_code_list(code_list, code)
+        return self.call(goods.Quotes(code_list))
+
+    @update_last_ack_time
+    def get_quotes2(self, code_list, code=None) -> list[dict]:
+        code_list = _normalize_code_list(code_list, code)
         return self.call(goods.Quotes2(code_list))
-    
+
     @update_last_ack_time
     def get_kline(self, market: EX_MARKET, code: str, period: PERIOD, start: int = 0, count: int = 800, times: int = 1) -> list[dict]:
         return self.call(goods.K_Line(market, code, period, times, start, count))
-    
+
     @update_last_ack_time
     def get_history_transaction(self, market: EX_MARKET, code: str, date: date) -> list[dict]:
         return self.call(goods.HistoryTransaction(market, code, date))
-    
+
     @update_last_ack_time
     def get_table(self):
         start = 0
-        str = ''
+        result = ''
         while True:
             _, count, context = self.call(goods.Table(start))
             start += count
-            str += context
+            result += context
             if count <= 0:
                 break
-        return str
-    
+        return result
+
     @update_last_ack_time
     def get_table_detail(self):
         start = 0
-        str = ''
+        result = ''
         while True:
             _, count, context = self.call(goods.TableDetail(start))
             start += count
-            str += context
+            result += context
             if count <= 0:
                 break
-        return str
-    
+        return result
+
     @update_last_ack_time
     def get_tick_chart(self, market: EX_MARKET, code: str, date: date = None) -> list[dict]:
         if date is None:
             return self.call(goods.TickChart(market, code))
         else:
             return self.call(goods.HistoryTickChart(market, code, date))
-    
+
     @update_last_ack_time
     def get_chart_sampling(self, market: EX_MARKET, code: str) -> list[float]:
         return self.call(goods.ChartSampling(market, code))
 
     @update_last_ack_time
     def download_file(self, filename: str, filesize=0, report_hook=None):
-        '''
-        获取报告文件
-        :param filename: 报告文件名
-        :param filesize: 报告文件大小，如果不清楚可以传0
-        :param report_hook: 下载进度回调函数，函数原型 report_hook(downloaded_size, total_size)
-        :return: 文件内容字符串
-        '''
-        file_content = bytearray(filesize)
-        current_downloaded_size = 0
-        get_zero_length_package_times = 0
-        while current_downloaded_size < filesize or filesize == 0:
-            response = self.call(file.Download(filename, current_downloaded_size))
-            if response["size"] > 0:
-                current_downloaded_size = current_downloaded_size + response["size"]
-                file_content.extend(response["data"])
-                if report_hook is not None:
-                    report_hook(current_downloaded_size, filesize)
-            else:
-                get_zero_length_package_times = get_zero_length_package_times + 1
-                if filesize == 0:
-                    break
-                elif get_zero_length_package_times > 2:
-                    break
-        return file_content
+        return super().download_file(file.Download, filename, filesize, report_hook)
