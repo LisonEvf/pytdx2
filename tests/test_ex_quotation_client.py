@@ -2,8 +2,8 @@ from datetime import date
 
 import pytest
 
-from client.exQuotationClient import exQuotationClient
-from const import *
+from opentdx.client.exQuotationClient import exQuotationClient
+from opentdx.const import *
 from tests.conftest import make_mock_call
 
 

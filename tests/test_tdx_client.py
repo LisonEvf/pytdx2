@@ -4,9 +4,9 @@ from unittest.mock import MagicMock, patch, PropertyMock
 import pytest
 
 from tdxClient import TdxClient
-from client.quotationClient import QuotationClient
-from client.exQuotationClient import exQuotationClient
-from const import *
+from opentdx.client.quotationClient import QuotationClient
+from opentdx.client.exQuotationClient import exQuotationClient
+from opentdx.const import *
 
 
 @pytest.fixture
