@@ -1,0 +1,10 @@
+import struct
+
+from opentdx.const import EX_MARKET, SORT_TYPE
+from opentdx.parser.baseParser import register_parser
+from opentdx.parser.ex_quotation.quotes import Quotes
+
+@register_parser(0x2484, 1)
+class QuotesList(Quotes):
+    def __init__(self, market: EX_MARKET, start: int = 0, count: int = 100, sortType: SORT_TYPE = SORT_TYPE.CODE, reverse: bool = False):
+        self.body = struct.pack('<BHHHH', market.value, sortType.value, start, count, 2 if reverse else 1) 

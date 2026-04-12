@@ -3,8 +3,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from tdxClient import TdxClient
-from const import *
+from opentdx.tdxClient import TdxClient
+from opentdx.const import *
 
 
 @pytest.fixture

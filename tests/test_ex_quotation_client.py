@@ -1,6 +1,6 @@
 from datetime import date
 
-from const import *
+from opentdx.const import *
 from tests.conftest import make_mock_call
 
 
