@@ -8,9 +8,11 @@ from opentdx.client.quotationClient import QuotationClient
 from opentdx.const import ADJUST, BLOCK_FILE_TYPE, CATEGORY, EX_MARKET, FILTER_TYPE, MARKET, PERIOD, SORT_TYPE
 
 class TdxClient:
-    def __enter__(self):
+    def __init__(self):
         self.quotation_client = QuotationClient(True, True)
         self.ex_quotation_client = exQuotationClient(True, True)
+        
+    def __enter__(self):
         self.quotation_client.connect().login()
         self.ex_quotation_client.connect().login()
         return self

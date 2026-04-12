@@ -1,6 +1,6 @@
 [project]
 name = "opentdx"
-version = "0.1.0"
+version = "0.1.1"
 description = "TDX stock data client — A股/期货/港股/美股行情数据接口"
 authors = [{ name = "LisonEvf", email = "lisonevf@gmail.com" }]
 readme = "README.md"
