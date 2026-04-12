@@ -49,8 +49,8 @@ opentdx doc
 
 ```python
 import pandas as pd
-from tdxClient import TdxClient
-from opentdx.const import MARKET, CATEGORY, EX_CATEGORY, PERIOD
+from opentdx.tdxClient import TdxClient
+from opentdx.const import MARKET, CATEGORY, EX_MARKET, PERIOD, SORT_TYPE
 
 if __name__ == "__main__":
   with TdxClient() as client:
@@ -65,7 +65,7 @@ if __name__ == "__main__":
         log.info("榜单：%s", name)
         print(pd.DataFrame(board))
     # 获取k线
-    print(pd.DataFrame(client.stock_kline(MARKET.SZ, '000001', PERIOD.DAY)))
+    print(pd.DataFrame(client.stock_kline(MARKET.SZ, '000001', PERIOD.DAILY)))
     # 获取指数k线
     print(pd.DataFrame(client.stock_kline(MARKET.SH, '999999', PERIOD.MINS, times=10)))
     # 获取历史分时

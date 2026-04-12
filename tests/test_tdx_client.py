@@ -19,8 +19,8 @@ def tdx():
 class TestTdxClientContextManager:
 
     def test_enter(self):
-        with patch('tdxClient.QuotationClient') as MockQC, \
-             patch('tdxClient.exQuotationClient') as MockEQC:
+        with patch('opentdx.tdxClient.QuotationClient') as MockQC, \
+             patch('opentdx.tdxClient.exQuotationClient') as MockEQC:
             mock_qc = MagicMock()
             mock_eqc = MagicMock()
             MockQC.return_value = mock_qc
@@ -34,8 +34,8 @@ class TestTdxClientContextManager:
                 MockEQC.assert_called_once_with(True, True)
 
     def test_exit_disconnects(self):
-        with patch('tdxClient.QuotationClient') as MockQC, \
-             patch('tdxClient.exQuotationClient') as MockEQC:
+        with patch('opentdx.tdxClient.QuotationClient') as MockQC, \
+             patch('opentdx.tdxClient.exQuotationClient') as MockEQC:
             mock_qc = MagicMock(connected=True)
             mock_eqc = MagicMock(connected=True)
             MockQC.return_value = mock_qc
@@ -47,8 +47,8 @@ class TestTdxClientContextManager:
             mock_eqc.disconnect.assert_called_once()
 
     def test_exit_not_connected(self):
-        with patch('tdxClient.QuotationClient') as MockQC, \
-             patch('tdxClient.exQuotationClient') as MockEQC:
+        with patch('opentdx.tdxClient.QuotationClient') as MockQC, \
+             patch('opentdx.tdxClient.exQuotationClient') as MockEQC:
             mock_qc = MagicMock(connected=False)
             mock_eqc = MagicMock(connected=False)
             MockQC.return_value = mock_qc

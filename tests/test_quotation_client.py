@@ -395,7 +395,7 @@ class TestQuotationClient:
                 return {'data': b'\x00' * 100}
             return None
         qc.call = mock_call
-        with patch('client.quotationClient.BlockReader') as mock_reader_cls:
+        with patch('opentdx.client.quotationClient.BlockReader') as mock_reader_cls:
             mock_instance = MagicMock()
             mock_instance.get_data.return_value = [{'block_name': '测试', 'stocks': ['000001']}]
             mock_reader_cls.return_value = mock_instance
