@@ -203,9 +203,13 @@ class CATEGORY(Enum):
     HGT = 0x2af9    #沪股通
     SGT = 0x2b01    #深股通
     FXJS = 0x2aff   #风险警示
+    
+    @property
+    def code(self):
+        """返回真实的数字code,预留,避免结构变化"""
+        return self.value
 
-
-
+# TODO 添加扩展类别
 class EX_CATEGORY(Enum):
     HK = 0x001f    #香港主板
     HK_GEM = 0x0030 #香港创业板

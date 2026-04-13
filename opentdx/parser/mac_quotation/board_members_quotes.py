@@ -3,8 +3,8 @@ from typing import override
 
 from opentdx.parser.baseParser import BaseParser, register_parser
 from opentdx.utils.help import exchange_board_code
-from opentdx.const import MARKET,EX_MARKET
-
+from opentdx.const import MARKET,EX_MARKET, CATEGORY , EX_CATEGORY
+from opentdx.utils.log import log
 
 # 定义字段位图映射 (根据 TDX 协议定义)
 # 每一位代表一个4字节的字段是否存在
@@ -23,7 +23,7 @@ FIELD_BITMAP_MAP = {
     0x2: ("high", '<f', "最高价"),
     0x3: ("low", '<f', "最低价"),
     0x4: ("close", '<f', "收盘价"),
-    0x5: ("volume", '<I', "成交量"),
+    0x5: ("vol", '<I', "成交量"),
     0x6: ("vol_ratio", '<f', "量比"),
     0x7: ("total_amount", '<f', "总金额（单位：元，注意：港股单位不同）"),
     
@@ -216,8 +216,8 @@ def parse_dynamic_fields(row_data: bytes, field_bitmap: bytes) -> dict:
         
         if field_info is None:
             field_name = f"unknown_field_{bit_pos}"
-            field_format = '<I'  # 默认uint32
-            print(f"[INFO] 发现未知字段 位{bit_pos}，暂按uint32解析")
+            field_format = '<f'  # 默认uint32
+            # print(f"[INFO] 发现未知字段 位{bit_pos}，暂按uint32解析")
         else:
             field_name, field_format, _ = field_info
         
@@ -264,21 +264,25 @@ def parse_row_data(row_data: bytes, field_bitmap: bytes = None) -> dict:
 class BoardMembersQuotes(BaseParser):
     def __init__(
         self,
-        board_symbol: str = "881001",
+        board_symbol: str | CATEGORY | EX_CATEGORY = "881001",
         sort_type=0xe,
         start: int = 0,
         page_size: int = 80,
         sort_order: bool = 1,
         filter: int = 0
     ):
-        board_code = exchange_board_code(board_symbol)
+        if isinstance(board_symbol, str):
+            board_code = exchange_board_code(board_symbol)
+        else:
+            board_code = board_symbol.code
+
         self.body = struct.pack("<I9x", board_code)
         # 基础参数
         params = struct.pack("<HIBBBB", sort_type, start, page_size, 0, sort_order, 0)
         # 额外参数, 会根据传入的值不同,返回值的数量不同. 例如只传0,则只会返回 symbol 和 symbol_name
         # 位图配置：20字节，每一位代表一个字段是否存在
         
-        filter = (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4)
+        # filter = (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4)
 
         # 根据 filter 参数生成位图
         if filter == 0:
@@ -348,8 +352,8 @@ class BoardMembersQuotes(BaseParser):
         row_lenght = base_row_lenght + 4 * count_ones 
         
         # print(f"16进制!!!!:{len(data)}   {data.hex()} ")
-        print(f"位图激活字段数: {count_ones}")
-        print(f"每行长度: {row_lenght} 字节")
+        # print(f"位图激活字段数: {count_ones}")
+        # print(f"每行长度: {row_lenght} 字节")
         
         # 检测新字段：对比请求位图和已知字段映射
         request_bitmap_int = int.from_bytes(field_bitmap, 'little')
@@ -361,9 +365,9 @@ class BoardMembersQuotes(BaseParser):
                 new_fields_detected.append(bit_pos)
         
         if new_fields_detected:
-            print(f"\n[WARNING] 检测到 {len(new_fields_detected)} 个新字段（超出已知字段范围）:")
+            log.debug(f"\n[WARNING] 检测到 {len(new_fields_detected)} 个新字段（超出已知字段范围）:")
             for bit_pos in new_fields_detected:
-                print(f"  位{bit_pos}: 未知字段，需要进一步分析")
+                log.debug(f"  位{bit_pos}: 未知字段，需要进一步分析")
         
         stocks = []
         
@@ -372,10 +376,23 @@ class BoardMembersQuotes(BaseParser):
             # print(f"16进制 >>> :{len(row_data)}   {row_data.hex()} ")
             # 传入位图，进行动态解析
             stock_dict = parse_row_data(row_data, field_bitmap=field_bitmap)
+            
+            # 特殊字段处理：格式化 ah_code
+            if stock_dict.get("ah_code"):
+                market = stock_dict.get("market")
+                ah_code_raw = stock_dict.get("ah_code")
+                
+                # 判断当前股票的市场类型
+                if market in [MARKET.SZ, MARKET.SH, MARKET.BJ]:
+                    # 国内市场（A股）：ah_code 对应的是港股，需要格式化为5位，不足前面补0
+                    stock_dict["ah_code"] = str(ah_code_raw).zfill(5)
+                else:
+                    # 港股市场：ah_code 对应的是A股，需要格式化为6位，不足前面补0
+                    stock_dict["ah_code"] = str(ah_code_raw).zfill(6)
+            
+            
             stocks.append(stock_dict)
             
-
-
         result = {
             "field_bitmap": field_bitmap,
             "count": row_count,
