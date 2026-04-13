@@ -4,3 +4,4 @@ dist/
 *.egg-info/
 *.pyc
 venv/
+pip_install.sh
