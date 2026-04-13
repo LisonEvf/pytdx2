@@ -2,13 +2,12 @@ import struct
 from opentdx._typing import override
 from opentdx.const import MARKET
 from opentdx.parser.baseParser import BaseParser, register_parser
-import six
 from opentdx.utils.help import to_datetime
 
 @register_parser(0x2cf)
 class Category(BaseParser):
     def __init__(self, market: MARKET, code: str):
-        if type(code) is six.text_type:
+        if isinstance(code, str):
             code = code.encode("utf-8")
         self.body = struct.pack("<H6sI", market.value, code, 0)
 
@@ -16,13 +15,13 @@ class Category(BaseParser):
     def deserialize(self, data):
         (count,) = struct.unpack('<H', data[:2])
 
-        def get_str(str):
-            pos = str.find(b'\x00')
+        def get_str(raw_bytes):
+            pos = raw_bytes.find(b'\x00')
             if pos != -1:
-                str = str[:pos]
+                raw_bytes = raw_bytes[:pos]
             try:
-                return str.decode('gbk')
-            except:
+                return raw_bytes.decode('gbk')
+            except Exception:
                 return 'unknown str'
 
 
@@ -43,20 +42,20 @@ class Category(BaseParser):
 @register_parser(0x2d0)
 class Content(BaseParser):
     def __init__(self, market: MARKET, code: str, filename: str, start: int, length: int):
-        if type(code) is six.text_type:
+        if isinstance(code, str):
             code = code.encode("utf-8")
 
-        if type(filename) is six.text_type:
+        if isinstance(filename, str):
             filename = filename.encode("utf-8")
 
         if len(filename) != 80:
             filename = filename.ljust(80, b'\x00')
 
-        self.body = struct.pack(u"<H6sH80sIII", market.value, code, 0, filename, start, length, 0)
+        self.body = struct.pack("<H6sH80sIII", market.value, code, 0, filename, start, length, 0)
 
     @override
     def deserialize(self, data):
-        market, code, marketOR, length = struct.unpack(u"<H6sHH", data[:12])
+        market, code, marketOR, length = struct.unpack("<H6sHH", data[:12])
 
         return {
             'market': market,
@@ -70,9 +69,9 @@ class Content(BaseParser):
 @register_parser(0x10)
 class Finance(BaseParser):
     def __init__(self, market: MARKET, code: str):
-        if type(code) is six.text_type:
+        if isinstance(code, str):
             code = code.encode("utf-8")
-        self.body = struct.pack(u"<HB6s", 1, market.value, code)
+        self.body = struct.pack("<HB6s", 1, market.value, code)
 
     @override
     def deserialize(self, data) -> dict:
@@ -161,9 +160,9 @@ class Finance(BaseParser):
 @register_parser(0xf)
 class XDXR(BaseParser):
     def __init__(self, market: MARKET, code: str):
-        if type(code) is six.text_type:
+        if isinstance(code, str):
             code = code.encode("utf-8")
-        self.body = struct.pack(u'<HB6s', 1, market.value, code)
+        self.body = struct.pack('<HB6s', 1, market.value, code)
 
     @override
     def deserialize(self, data):

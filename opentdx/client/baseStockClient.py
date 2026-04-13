@@ -2,6 +2,7 @@
 import socket
 import threading
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from opentdx.parser.baseParser import BaseParser
 from opentdx.utils.log import log
 from opentdx.utils.heartbeat import HeartBeatThread
@@ -47,10 +48,7 @@ def update_last_ack_time(func):
                 to_raise = Exception("calling function error")
                 to_raise.original_exception = current_exception if current_exception else None
                 raise to_raise
-        """
-        如果raise_exception=True 抛出异常
-        如果raise_exception=False 返回None
-        """
+        # raise_exception=True 抛出异常, raise_exception=False 返回None
         return ret
     return wrapper
 
@@ -73,7 +71,7 @@ def _normalize_code_list(code_list, code=None):
     if code is not None:
         return [(code_list, code)]
     if (isinstance(code_list, list) or isinstance(code_list, tuple)) \
-            and len(code_list) == 2 and type(code_list[0]) is int:
+            and len(code_list) == 2 and isinstance(code_list[0], int):
         return [code_list]
     return code_list
 
@@ -83,8 +81,7 @@ class DefaultRetryStrategy():
     返回下次重试的间隔时间, 单位为秒，我们会使用 time.sleep在这里同步等待之后进行重新connect,然后再重新发起
     源请求，直到gen结束。
     """
-    @classmethod
-    def gen(cls):
+    def gen(self):
         # 默认重试4次 ... 时间间隔如下
         for time_interval in [0.1, 0.5, 1, 2]:
             yield time_interval
@@ -146,14 +143,15 @@ class BaseStockClient():
                             client.close()
                         except OSError:
                             pass
-            # 多线程赛跑
-            threads = []
-            for host in self.hosts:
-                t = threading.Thread(target=get_latency, args=(host[1], host[2], 1))
-                threads.append(t)
-                t.start()
-            for t in threads:
-                t.join()
+            # 限制并发数避免端口耗尽
+            max_workers = min(10, len(self.hosts))
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                futures = {
+                    executor.submit(get_latency, host[1], host[2], 1): host
+                    for host in self.hosts
+                }
+                for f in as_completed(futures):
+                    pass  # results collected via infos list
             
             infos.sort(key=lambda x: x['time'])
             if len(infos) == 0:
@@ -163,7 +161,7 @@ class BaseStockClient():
         else:
             return self._connect(ip, port, time_out, bind_port, bind_ip)
         
-    def _connect(self, ip='202.100.166.21', port=7709, time_out=CONNECT_TIMEOUT, bind_port=None, bind_ip='0.0.0.0'):
+    def _connect(self, ip, port=7709, time_out=CONNECT_TIMEOUT, bind_port=None, bind_ip='0.0.0.0'):
         """
 
         :param ip:  服务器ip 地址
@@ -189,15 +187,17 @@ class BaseStockClient():
             self.client.connect((ip, port))
         except socket.timeout as e:
             self.client = None
+            self.connected = False
             log.debug("connection expired")
             if self.raise_exception:
                 raise Exception("connection timeout error", e)
-            return self
+            return None
         except Exception as e:
             self.client = None
+            self.connected = False
             if self.raise_exception:
                 raise Exception("other errors", e)
-            return self
+            return None
 
         log.debug("connected!")
         self.connected = True
@@ -259,7 +259,7 @@ class BaseStockClient():
                 raise Exception("not connected")
             return None
 
-        # cunstomize: 自定义协议号
+        # customize: 自定义协议号
         # zipped: 0x1c 表示压缩，0xc 表示不压缩
         try:
             zipped, customize, control, zipsize, unzip_size, msg_id = struct.unpack('<BIBHHH', data[:12])
@@ -280,6 +280,8 @@ class BaseStockClient():
                 body_buf = bytearray()
                 while zipsize > 0:
                     data_buf = self.client.recv(zipsize)
+                    if not data_buf:
+                        raise Exception("connection closed while receiving data")
                     body_buf.extend(data_buf)
                     zipsize -= len(data_buf)
                 if need_unzip_size:
@@ -288,6 +290,8 @@ class BaseStockClient():
                 return body_buf
         except Exception as e:
             log.debug(str(e))
+            self.connected = False
+            self.client = None
             if self.raise_exception:
                 raise Exception("send error")
 

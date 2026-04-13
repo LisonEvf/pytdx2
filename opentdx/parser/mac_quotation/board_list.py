@@ -71,7 +71,6 @@ class BoardList(BaseParser):
                 i * row_length + header_length : (i + 1) * 160 + header_length
             ]
             if len(row_data) < row_length:
-                print(i, row_data)
                 continue
 
             fmt = "<H6s16x44sfff   H6s16x44sfff"

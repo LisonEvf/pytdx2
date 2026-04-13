@@ -1,6 +1,7 @@
 
 from opentdx.const import EX_MARKET, PERIOD
 from opentdx.parser.baseParser import BaseParser, register_parser
+from opentdx.utils.log import log
 import struct
 from opentdx._typing import override
 
@@ -15,7 +16,7 @@ class kline2(BaseParser):
 
         for i in range(count):
             date_raw, a, b, c, d, e, f, g, h = struct.unpack('<I8f', data[i * 36 + 33: i * 36 + 69])
-            print(date_raw, a, b, c, d, e, f, g, h)
+            log.debug("kline2 raw: date=%s, o=%.2f h=%.2f l=%.2f c=%.2f", date_raw, a, d, e, b)
         # print(data.hex())
         return None
 
@@ -31,7 +32,7 @@ class f23f6(BaseParser):
         result = []
         for i in range(count):
             z = struct.unpack('<B8sB12H', data[i * 34 + 6: i * 34 + 40])
-            print(z)
+            log.debug("f23f6 raw: %s", z)
 
         return None
 
@@ -75,8 +76,7 @@ class f2487(BaseParser):
         
         a = struct.unpack('<4I', data[68:84])
         b = struct.unpack('<HII24fB10fHB', data[164:])
-        print(a,b)
-        print(data[84:164].hex())
+        log.debug("f2487 raw: %s, hex: %s", a, data[84:164].hex())
         
         return {
             'market': EX_MARKET(market), 
@@ -101,17 +101,17 @@ class f2488(BaseParser):
     @override
     def deserialize(self, data):
         market, code, count = struct.unpack('<B35sH', data[:38])
-        print(EX_MARKET(market), code.decode('gbk').replace('\x00', ''))
+        log.debug("f2488 raw: %s %s", EX_MARKET(market), code.decode('gbk').replace('\x00', ''))
 
         for i in range(count):
             z = struct.unpack('<I6H', data[i * 16 + 38: i * 16 + 54])
-            print(z)
+            log.debug("f2488 row: %s", z)
         return None
     
 @register_parser(0x2562, 1)
 class f2562(BaseParser):
     def __init__(self, market: int, start: int = 0, count: int = 600):
-        self.body = struct.pack(u'<HII', market, start, count)
+        self.body = struct.pack('<HII', market, start, count)
 
     @override
     def deserialize(self, data):

@@ -21,7 +21,7 @@ class QuotationClient(BaseStockClient):
         try:
             info = self.call(quotation.Login())
             if show_info:
-                print(info)
+                log.info("login info: %s", info)
             return True
         except Exception as e:
             log.error("login failed: %s", e)

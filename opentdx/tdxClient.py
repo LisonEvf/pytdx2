@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from datetime import date
 from typing import Optional
-import pandas as pd
 
 from opentdx.client.exQuotationClient import exQuotationClient
 from opentdx.client.quotationClient import QuotationClient
@@ -112,7 +111,7 @@ class TdxClient:
         '''
         return self.q_client().get_index_momentum(market, code)
     
-    def index_info(self, code_list: MARKET | list[tuple[MARKET, str]], code: str = None) -> list[int]:
+    def index_info(self, code_list: MARKET | list[tuple[MARKET, str]], code: str = None) -> list[dict]:
         '''
         获取指数概况
         支持三种形式的参数
@@ -678,7 +677,8 @@ class TdxClient:
 
 
 if __name__ == '__main__':
-    
+    import pandas as pd
+
     with TdxClient() as client:
 
         print(client.stock_count(MARKET.SZ))

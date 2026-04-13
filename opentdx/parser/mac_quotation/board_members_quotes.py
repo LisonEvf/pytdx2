@@ -154,7 +154,7 @@ class BoardMembersQuotes(BaseParser):
         ) = struct.unpack("<HHHHHHHH4sIH", header)
         magic_num = (uk1, uk2, uk3, uk4, uk5, uk6, uk7, uk8)
 
-        print(f"16进制: {header.hex()} totol: {total} count:{row_count}")
+        # print(f"16进制: {header.hex()} totol: {total} count:{row_count}")
         pos += header_length
         row_lenght = 196
 

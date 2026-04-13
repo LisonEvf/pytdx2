@@ -6,13 +6,13 @@ import struct
 from opentdx.const import EX_MARKET, MARKET
 from opentdx.utils.log import log
 
-def query_market(code) -> MARKET:
+def query_market(code) -> MARKET | None:
     """
     0 - 深圳， 1 - 上海
     """
     if code.startswith(("50", "51", "60", "68", "90", "110", "113", "132", "204")):
         return MARKET.SH
-    elif code.startswith(("00", "12", "13", "18", "15", "16", "18", "20", "30", "39", "115", "1318")):
+    elif code.startswith(("00", "12", "13", "15", "16", "18", "20", "30", "39", "115", "1318")):
         return MARKET.SZ
     elif code.startswith(("5", "6", "7", "9")):
         return MARKET.SH
@@ -28,7 +28,6 @@ def exchange_board_code(board_symbol):
     if board_symbol.startswith("US"):
         # US0401 => 30401
         board_code = 30000 + int(board_symbol.replace("US", ""))
-        print(f"board_code: {board_code}")
     elif board_symbol.startswith("HK"):
         # HK0283 => 20283
         board_code = 20000 + int(board_symbol.replace("HK", ""))
@@ -113,20 +112,20 @@ def format_time(time_stamp):
     format time from reversed_bytes0
     by using method from https://github.com/rainx/pytdx/issues/187
     """
-    time = time_stamp[:-6] + ':'
+    time_str = time_stamp[:-6] + ':'
     if int(time_stamp[-6:-4]) < 60:
-        time += '%s:' % time_stamp[-6:-4]
-        time += '%06.3f' % (
+        time_str += '%s:' % time_stamp[-6:-4]
+        time_str += '%06.3f' % (
             int(time_stamp[-4:]) * 60 / 10000.0
         )
     else:
-        time += '%02d:' % (
+        time_str += '%02d:' % (
             int(time_stamp[-6:]) * 60 / 1000000
         )
-        time += '%06.3f' % (
+        time_str += '%06.3f' % (
             (int(time_stamp[-6:]) * 60 % 1000000) * 60 / 1000000.0
         )
-    return time
+    return time_str
 
 def unpack_futures(data, code_len: int = 23):
     if len(data) == 292 + code_len:

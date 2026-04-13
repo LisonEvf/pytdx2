@@ -4,6 +4,7 @@ from opentdx._typing import override
 from opentdx.const import MARKET
 from opentdx.parser.baseParser import BaseParser, register_parser
 from opentdx.utils.help import format_time, get_price
+from opentdx.utils.log import log
 
 
 @register_parser(0x51a)
@@ -57,7 +58,7 @@ class VolumeProfile(BaseParser):
         # 没明白是什么值
         unknown, = struct.unpack('<H', data[pos: pos + 2])
         pos += 2
-        print(unknown)
+        log.debug("volume_profile unknown: %s", unknown)
         
         vol_profile = []
         start_price = 0
