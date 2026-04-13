@@ -48,6 +48,8 @@ opentdx doc
 ## 快速上手
 
 ```python
+from datetime import date
+
 import pandas as pd
 from opentdx.tdxClient import TdxClient
 from opentdx.const import MARKET, CATEGORY, EX_MARKET, PERIOD, SORT_TYPE
@@ -62,7 +64,7 @@ if __name__ == "__main__":
     print(pd.DataFrame(client.stock_quotes(MARKET.SZ, '000001')))
     # 获取行情全景
     for name, board in client.stock_top_board().items():
-        log.info("榜单：%s", name)
+        print(f"榜单：{name}")
         print(pd.DataFrame(board))
     # 获取k线
     print(pd.DataFrame(client.stock_kline(MARKET.SZ, '000001', PERIOD.DAILY)))
@@ -77,8 +79,8 @@ if __name__ == "__main__":
     
     # 期货K线
     print(pd.DataFrame(client.goods_kline(EX_MARKET.SH_FUTURES, 'AUL8', PERIOD.DAILY)))
-    # 获取期货行情
-    print(pd.DataFrame(client.goods_quotes_list([(EX_MARKET.SH_FUTURES, 'AUL8'), (EX_MARKET.SH_FUTURES, 'AGL8')])))
+    # 获取扩展市场行情列表
+    print(pd.DataFrame(client.goods_quotes_list(EX_MARKET.SH_FUTURES, count=5)))
     # 获取美股K线
     print(pd.DataFrame(client.goods_kline(EX_MARKET.US_STOCK, 'TSLA', PERIOD.DAILY)))
     # 美股行情
@@ -99,4 +101,4 @@ if __name__ == "__main__":
 
 ---
 
-[![Star History Chart](https://api.star-history.com/svg?repos=LisonEvf/pytdx2&type=Date)](https://star-history.com/#LisonEvf/pytdx2&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=LisonEvf/opentdx&type=Date)](https://star-history.com/#LisonEvf/opentdx&Date)

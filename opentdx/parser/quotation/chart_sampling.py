@@ -15,11 +15,16 @@ class ChartSampling(BaseParser):
     
     @override
     def deserialize(self, data):
+        if len(data) < 42:
+            return []
+
         market, code = struct.unpack('<H6s', data[:8])
-        num, pre_close, _ = struct.unpack('<HfH', data[34:42])
+        interval, pre_close, count = struct.unpack('<HfH', data[34:42])
 
         prices = []
-        for i in range(num):
+        available_count = max(0, (len(data) - 42) // 4)
+        actual_count = min(count, available_count)
+        for i in range(actual_count):
             p, = struct.unpack('<f', data[i * 4 + 42: i * 4 + 46])
             prices.append(p)
             
