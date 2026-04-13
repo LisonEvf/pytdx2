@@ -44,7 +44,7 @@ if __name__ == "__main__":
     ah_code_filter = (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) | (1 << 0x4a)
     rs = client.get_board_members_quotes(board_symbol="881394",count=10, filter=ah_code_filter)
     df = pd.DataFrame(rs)
-    print(df[[ 'name', 'open', 'high', 'low', 'close', 'vol',  'ah_code']])
+    print(df)
 
     
     print("支持自定义字段 ohlc")
@@ -61,7 +61,7 @@ if __name__ == "__main__":
     ah_code_filter = (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) | (1 << 0x4a)
     rs = exClient.get_board_members_quotes(board_symbol="HK0266",count=10, filter=ah_code_filter)
     df = pd.DataFrame(rs)
-    print(df[[ 'name', 'open', 'high', 'low', 'close', 'vol',  'ah_code']])
+    print(df)
     
     
     board_symbol = "HK0281"
