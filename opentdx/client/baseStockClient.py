@@ -17,7 +17,7 @@ RSP_HEADER_LEN = 0x10
 def update_last_ack_time(func):
     @functools.wraps(func)
     def wrapper(self, *args, **kw):
-        if self.heartbeat:
+        if self.heartbeat and self.heartbeat_thread:
             self.heartbeat_thread.update_last_ack_time()
             
         current_exception = None
@@ -125,19 +125,27 @@ class BaseStockClient():
         if ip is None:
             # 选择延迟最低的服务器连接
             infos = []
-            def get_latency(ip, port, timeout):
+            def get_latency(target_ip, target_port, timeout):
+                client = None
                 try:
                     start_time = time.time()
-                    c = self._connect(ip, port, timeout)
-                    # info = c.call(server.Info())
+                    family = socket.AF_INET6 if ":" in target_ip else socket.AF_INET
+                    client = socket.socket(family, socket.SOCK_STREAM)
+                    client.settimeout(timeout)
+                    client.connect((target_ip, target_port))
                     infos.append({
-                        'ip': ip,
-                        'port': port,
-                        # 'delay': info['delay'],
+                        'ip': target_ip,
+                        'port': target_port,
                         'time': time.time() - start_time,
                     })
-                except Exception as e:
+                except Exception:
                     pass
+                finally:
+                    if client is not None:
+                        try:
+                            client.close()
+                        except OSError:
+                            pass
             # 多线程赛跑
             threads = []
             for host in self.hosts:
@@ -211,6 +219,8 @@ class BaseStockClient():
     def disconnect(self):
         if self.heartbeat_thread and self.heartbeat_thread.is_alive():
             self.stop_event.set()
+        self.heartbeat_thread = None
+        self.stop_event = None
 
         if self.client:
             log.debug("disconnecting")
@@ -283,11 +293,13 @@ class BaseStockClient():
 
     @update_last_ack_time
     def download_file(self, fetch_fn, filename: str, filesize=0, report_hook=None):
-        file_content = bytearray(filesize)
+        file_content = bytearray()
         current_downloaded_size = 0
         get_zero_length_package_times = 0
         while current_downloaded_size < filesize or filesize == 0:
             response = self.call(fetch_fn(filename, current_downloaded_size))
+            if not response:
+                break
             if response["size"] > 0:
                 current_downloaded_size += response["size"]
                 file_content.extend(response["data"])

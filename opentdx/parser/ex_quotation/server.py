@@ -1,7 +1,7 @@
 from datetime import datetime
 from opentdx.parser.baseParser import BaseParser, register_parser
 import struct
-from typing import override
+from opentdx._typing import override
 
 @register_parser(0x2454, 1)
 class Login(BaseParser):

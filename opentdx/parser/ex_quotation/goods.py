@@ -2,7 +2,7 @@
 from opentdx.const import EX_MARKET, PERIOD
 from opentdx.parser.baseParser import BaseParser, register_parser
 import struct
-from typing import override
+from opentdx._typing import override
 
 @register_parser(0x122e, 1)
 class kline2(BaseParser):

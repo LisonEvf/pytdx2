@@ -1,5 +1,6 @@
 import struct
-from typing import Union, override
+from typing import Union
+from opentdx._typing import override
 
 from opentdx.const import BOARD_TYPE, EX_BOARD_TYPE, EX_MARKET, MARKET
 from opentdx.parser.baseParser import BaseParser, register_parser

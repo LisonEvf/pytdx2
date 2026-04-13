@@ -1,6 +1,6 @@
 import json
 import struct
-from typing import override
+from opentdx._typing import override
 
 import pandas as pd
 from opentdx.const import  MARKET

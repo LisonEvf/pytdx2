@@ -1,6 +1,9 @@
 
+from __future__ import annotations
+
 
 from datetime import date
+from typing import Optional
 import pandas as pd
 
 from opentdx.client.exQuotationClient import exQuotationClient
@@ -282,7 +285,7 @@ class TdxClient:
         '''
         return self.q_client().get_stock_top_board(category)
     
-    def stock_quotes_list(self, category: CATEGORY, start:int = 0, count: int = 80, sortType: SORT_TYPE = SORT_TYPE.CODE, reverse: bool = False, filter: list[FILTER_TYPE] = []) -> list[dict]:
+    def stock_quotes_list(self, category: CATEGORY, start:int = 0, count: int = 80, sortType: SORT_TYPE = SORT_TYPE.CODE, reverse: bool = False, filter: Optional[list[FILTER_TYPE]] = None) -> list[dict]:
         '''
         获取各类股票行情列表
         Args:

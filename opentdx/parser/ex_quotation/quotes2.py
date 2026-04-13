@@ -1,4 +1,5 @@
 import struct
+from typing import Optional, Tuple, List
 
 from opentdx.const import EX_MARKET
 from opentdx.parser.baseParser import register_parser
@@ -6,7 +7,9 @@ from opentdx.parser.ex_quotation.quotes import Quotes
 
 @register_parser(0x23fb, 1)
 class Quotes2(Quotes):
-    def __init__(self, futures: list[EX_MARKET, str] = []):
+    def __init__(self, futures: Optional[List[Tuple[EX_MARKET, str]]] = None):
+        if futures is None:
+            futures = []
         length = len(futures)
         if length <= 0:
             raise Exception('futures count must > 0')

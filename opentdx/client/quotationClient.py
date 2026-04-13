@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 from datetime import date
 import math
-from typing import override
+from typing import Optional
+from opentdx._typing import override
 
 from .baseStockClient import BaseStockClient, update_last_ack_time, _paginate, _normalize_code_list
 from opentdx.utils.block_reader import BlockReader, BlockReader_TYPE_FLAT
@@ -64,9 +67,9 @@ class QuotationClient(BaseStockClient):
 
     def _adjust_quotes_list(self, results: list[dict]) -> list[dict]:
         for quotes in results:
-            quotes['short_turnover'] = f'{(quotes['short_turnover'] / 100):.2f}%'
-            quotes['opening_rush'] = f'{(quotes['opening_rush'] / 100):.2f}%'
-            quotes['vol_rise_speed'] = f'{(quotes['vol_rise_speed']):.2f}%'
+            quotes['short_turnover'] = f"{(quotes['short_turnover'] / 100):.2f}%"
+            quotes['opening_rush'] = f"{(quotes['opening_rush'] / 100):.2f}%"
+            quotes['vol_rise_speed'] = f"{quotes['vol_rise_speed']:.2f}%"
             quotes['depth'] = f'{(quotes["depth"]):.2f}%'
         return self.quotes_adjustment(results)
 
@@ -120,10 +123,11 @@ class QuotationClient(BaseStockClient):
         try:
             float_shares = finance_cache.get(cache_key)
             if float_shares is None:
-                finance_data = self.call(company_info.Finance(market, code))
-                float_shares = finance_data.get('liutongguben')
-                if float_shares:
-                    finance_cache.set(cache_key, float_shares)
+                finance_data = self.call(quotation.Finance(market, code))
+                if finance_data:
+                    float_shares = finance_data.get('liutongguben')
+                    if float_shares:
+                        finance_cache.set(cache_key, float_shares)
         except Exception as e:
             log.warning("获取流通股本失败: %s", e)
 
@@ -143,7 +147,7 @@ class QuotationClient(BaseStockClient):
         else:
             data = self.call(quotation.HistoryTickChart(market, code, date))
             if start != 0 or count != 0xba00:
-                data = data[start: min(start + count, len(data) - 1)]
+                data = data[start:start + count]
         for item in data:
             item['price'] /= 100
             item['avg'] /= 10000
@@ -164,7 +168,9 @@ class QuotationClient(BaseStockClient):
         return boards
 
     @update_last_ack_time
-    def get_stock_quotes_list(self, category: CATEGORY, start:int = 0, count: int = 80, sortType: SORT_TYPE = SORT_TYPE.CODE, reverse: bool = False, filter: list[FILTER_TYPE] = []) -> list[dict]:
+    def get_stock_quotes_list(self, category: CATEGORY, start:int = 0, count: int = 80, sortType: SORT_TYPE = SORT_TYPE.CODE, reverse: bool = False, filter: Optional[list[FILTER_TYPE]] = None) -> list[dict]:
+        if filter is None:
+            filter = []
         results = _paginate(
             lambda s, c: self.call(quotation.QuotesList(category, s, c, sortType, reverse, filter)),
             80, count, start,
@@ -249,7 +255,7 @@ class QuotationClient(BaseStockClient):
     @update_last_ack_time
     def get_block_file(self, block_file_type: BLOCK_FILE_TYPE):
         try:
-            meta = self.call(quotation.Meta(block_file_type.value))
+            meta = self.call(quotation.FileMeta(block_file_type.value))
         except Exception as e:
             log.error(e)
             return None

@@ -1,5 +1,6 @@
 import struct
-from typing import override
+from typing import Optional
+from opentdx._typing import override
 
 from opentdx.const import CATEGORY, FILTER_TYPE, MARKET, SORT_TYPE
 from opentdx.parser.baseParser import BaseParser, register_parser
@@ -7,12 +8,14 @@ from opentdx.utils.help import format_time, get_price
 
 @register_parser(0x54b) # TODO: 
 class QuotesList(BaseParser):
-    def __init__(self, category: CATEGORY, start: int = 0, count: int = 0x50, sortType: SORT_TYPE = SORT_TYPE.CODE, reverse: bool = False, filter: list[FILTER_TYPE] = []):
+    def __init__(self, category: CATEGORY, start: int = 0, count: int = 0x50, sortType: SORT_TYPE = SORT_TYPE.CODE, reverse: bool = False, filter: Optional[list[FILTER_TYPE]] = None):
         sort_reverse = 0 if sortType == SORT_TYPE.CODE else 2 if reverse else 1
 
         filter_raw = 0
+        if filter is None:
+            filter = []
         for filter_type in filter:
-            filter_raw &= filter_type.value
+            filter_raw |= filter_type.value
 
         self.body = struct.pack('<9H', category.value, sortType.value, start, count,  sort_reverse, 5, filter_raw, 1, 0)
     @override

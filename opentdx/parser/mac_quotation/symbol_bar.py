@@ -1,6 +1,7 @@
 import struct
 from datetime import datetime, timedelta
-from typing import Union, override
+from typing import Union
+from opentdx._typing import override
 
 from opentdx.const import EX_MARKET, MARKET, PERIOD, ADJUST
 from opentdx.parser.baseParser import BaseParser, register_parser
