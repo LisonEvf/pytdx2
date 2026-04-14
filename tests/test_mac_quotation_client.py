@@ -40,7 +40,7 @@ class TestMacQuotationClientBoard:
         assert len(result) > 0
 
     def test_get_symbol_bars_with_adjust(self, mqc):
-        result = mqc.get_symbol_bars(MARKET.SZ, '000100', PERIOD.DAILY, count=5, fq=ADJUST.QFQ)
+        result = mqc.get_symbol_bars(MARKET.SZ, '000100', PERIOD.DAILY, count=5, adjust=ADJUST.QFQ)
         assert isinstance(result, list)
         assert len(result) > 0
 

@@ -1,6 +1,6 @@
 from typing import Union
 
-from .baseStockClient import BaseStockClient, update_last_ack_time
+from .baseStockClient import BaseStockClient, update_last_ack_time, _paginate
 from opentdx.const import ADJUST, BOARD_TYPE, MARKET, PERIOD, EX_BOARD_TYPE, mac_hosts, mac_ex_hosts
 from opentdx.parser.mac_quotation import (
     BoardCount, BoardList, BoardMembers, BoardMembersQuotes,
@@ -9,13 +9,12 @@ from opentdx.parser.mac_quotation import (
     StockQuery, BatchStockData,
     StockDetail, StockBarCount, StockSmallInfo, KlineOffset,
 )
-from opentdx.utils.log import log
 
 class macQuotationClient(BaseStockClient):
 
-    def __init__(self, multithread=False, heartbeat=False, auto_retry=False, raise_exception=False):
+    def __init__(self, multithread=False, heartbeat=False, auto_retry=False, raise_exception=False, hosts=None):
         super().__init__(multithread, heartbeat, auto_retry, raise_exception)
-        self.hosts = mac_hosts
+        self.hosts = hosts or mac_hosts
 
     @update_last_ack_time
     def get_board_count(self, market: Union[BOARD_TYPE, EX_BOARD_TYPE]):
@@ -23,103 +22,37 @@ class macQuotationClient(BaseStockClient):
 
     @update_last_ack_time
     def get_board_list(self, market: Union[BOARD_TYPE, EX_BOARD_TYPE], count=10000):
-        MAX_LIST_COUNT = 150
-        security_list = []
-        page_size = min(count, MAX_LIST_COUNT)
-        
-        msg = f"TDX 板块列表：{market} 查询总量{count}"
-        log.debug(msg)
-        
-        for start in range(0, count, page_size):
-            current_count = min(page_size, count - start)
-            part = self.call(BoardList(board_type=market, start=start, page_size=current_count))
-            
-            if len(part) > 0:
-                security_list.extend(part)
-            
-            if len(part) < current_count:
-                log.debug(f"{msg} 数据量不足，获取结束")
-                break
-                
-        return security_list
+        return _paginate(
+            lambda s, c: self.call(BoardList(board_type=market, start=s, page_size=c)),
+            150, count,
+        )
 
     @update_last_ack_time
     def get_board_members_quotes(self, board_symbol: str, count=10000):
-        MAX_LIST_COUNT = 80
-        security_list = []
-        
-        msg = f"TDX 板块成分报价：{board_symbol} 查询总量{count}"
-        log.debug(msg)
-        
-        for start in range(0, count, MAX_LIST_COUNT):
-            current_count = min(MAX_LIST_COUNT, count - start)
-            rs = self.call(BoardMembersQuotes(board_symbol=board_symbol, start=start, page_size=current_count))
-            part = rs["stocks"]
-            
-            if len(part) > 0:
-                security_list.extend(part)
-            
-            if len(part) < current_count:
-                log.debug(f"{msg} 数据量不足，获取结束")
-                break
-                
-        return security_list
+        return _paginate(
+            lambda s, c: self.call(BoardMembersQuotes(board_symbol=board_symbol, start=s, page_size=c))["stocks"],
+            80, count,
+        )
 
-    # @update_last_ack_time
+    @update_last_ack_time
     def get_board_members(self, board_symbol: str, count=10000):
-        MAX_LIST_COUNT = 80
-        security_list = []
-        
-        msg = f"TDX 板块成员：{board_symbol} 查询总量{count}"
-        log.debug(msg)
-        
-        for start in range(0, count, MAX_LIST_COUNT):
-            current_count = min(MAX_LIST_COUNT, count - start)
-            rs = self.call(BoardMembers(board_symbol=board_symbol, start=start, page_size=current_count))
-            part = rs["stocks"]
-            
-            if len(part) > 0:
-                security_list.extend(part)
-            
-            if len(part) < current_count:
-                log.debug(f"{msg} 数据量不足，获取结束")
-                break
-                
-        return security_list
+        return _paginate(
+            lambda s, c: self.call(BoardMembers(board_symbol=board_symbol, start=s, page_size=c))["stocks"],
+            80, count,
+        )
 
-    # @update_last_ack_time
+    @update_last_ack_time
     def get_symbol_belong_board(self, symbol: str, market: MARKET) -> list[dict]:
-        parser = SymbolBelongBoard(symbol=symbol, market=market)
-        df = self.call(parser)
-        return df
+        return self.call(SymbolBelongBoard(symbol=symbol, market=market))
 
     @update_last_ack_time
     def get_symbol_bars(
-        self, market: MARKET, code: str, period: PERIOD, times: int = 1, start: int = 0, count: int = 800, fq: ADJUST = ADJUST.NONE
+        self, market: MARKET, code: str, period: PERIOD, times: int = 1, start: int = 0, count: int = 800, adjust: ADJUST = ADJUST.NONE
     ) -> list[dict]:
-        MAX_LIST_COUNT = 700
-        page_size = min(count, MAX_LIST_COUNT)
-        security_list = []
-        start = 0
-
-        msg = f"TDX bar :{market} {code} {period} 查询总量{count} {start}  "
-        log.debug(msg)
-
-        for start in range(0, count, page_size):
-            # 计算本次请求的实际数量，最后一次根据剩余数据减少
-            current_count = min(page_size, count - start)
-
-            parser = SymbolBar(market=market, code=code, period=period, times=times, start=start, count=current_count, fq=fq)
-            part = self.call(parser)
-
-            if len(part) > 0:
-                security_list.extend(part)
-
-            if len(part) < current_count:
-                log.debug(f"{msg} 数据量不足,获取结束")
-                break
-
-        return security_list
+        return _paginate(
+            lambda s, c: self.call(SymbolBar(market=market, code=code, period=period, times=times, start=s, count=c, fq=adjust)),
+            700, count, start,
+        )
 
     @update_last_ack_time
     def server_init(self) -> bool:
@@ -165,9 +98,3 @@ class macQuotationClient(BaseStockClient):
     def get_kline_offset(self, offset: int = 0, count: int = 128000) -> list:
         """获取K线偏移表（股票/指数列表）"""
         return self.call(KlineOffset(offset=offset, count=count))
-
-
-class macExQuotationClient(macQuotationClient):
-    def __init__(self, multithread=False, heartbeat=False, auto_retry=False, raise_exception=False):
-        super().__init__(multithread, heartbeat, auto_retry, raise_exception)
-        self.hosts = mac_ex_hosts

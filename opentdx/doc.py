@@ -363,14 +363,14 @@ def _(c):
 
 @demo('44', 'symbol_bars(stock)    股票K线')
 def _(c):
-    show("c.symbol_bars(MARKET.SZ, '000100', PERIOD.DAILY, count=3, fq=ADJUST.HFQ)",
-         pd.DataFrame(c.symbol_bars(MARKET.SZ, '000100', PERIOD.DAILY, count=3, fq=ADJUST.HFQ)))
+    show("c.symbol_bars(MARKET.SZ, '000100', PERIOD.DAILY, count=3, adjust=ADJUST.HFQ)",
+         pd.DataFrame(c.symbol_bars(MARKET.SZ, '000100', PERIOD.DAILY, count=3, adjust=ADJUST.HFQ)))
 
 
 @demo('45', 'symbol_bars(index)    指数K线')
 def _(c):
-    show("c.symbol_bars(MARKET.SH, '880310', PERIOD.DAILY, count=3, fq=ADJUST.QFQ)",
-         pd.DataFrame(c.symbol_bars(MARKET.SH, '880310', PERIOD.DAILY, count=3, fq=ADJUST.QFQ)))
+    show("c.symbol_bars(MARKET.SH, '880310', PERIOD.DAILY, count=3, adjust=ADJUST.QFQ)",
+         pd.DataFrame(c.symbol_bars(MARKET.SH, '880310', PERIOD.DAILY, count=3, adjust=ADJUST.QFQ)))
 
 
 @demo('46', 'symbol_bars(hk)       港股K线')
