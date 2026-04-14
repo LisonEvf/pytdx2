@@ -20,8 +20,9 @@ def combine_to_datetime(ymd, date_num, format_tdx_time=False):
     seconds = date_num
     hours = seconds // 3600
     minutes = (seconds % 3600) // 60
+    secs = seconds % 60
 
-    dt = datetime(year, month, day, hours, minutes)
+    dt = datetime(year, month, day, hours, minutes, secs)
     if format_tdx_time:
         if 0 <= dt.hour <= 5:
             dt = dt + timedelta(days=1)  # 或者 timedelta(hours=24)
@@ -58,7 +59,7 @@ class SymbolBar(BaseParser):
         #  4a 00 54 53 4c 41 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 03 00 01 0f 00 00 00 00 00
 
         # 判断是否是分钟K线
-        format_tdx_time = period < 4 or period == 7 or period == 8
+        format_tdx_time = period < 4 or period in (7, 8, 13)
 
         bars = []
         # print(f"总行数 {row_count}")

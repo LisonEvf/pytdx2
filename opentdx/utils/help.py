@@ -1,6 +1,6 @@
 # coding=utf-8
 
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 import struct
 
 from opentdx.const import EX_MARKET, MARKET
@@ -102,6 +102,12 @@ def to_datetime(num, with_time=False) -> datetime:
         raise ValueError("year is too large")
 
     return datetime(year, month, day, hour, minute)
+
+_TDX_EPOCH = datetime(2004, 1, 1)
+
+def to_datetime_seconds(seconds: int) -> datetime:
+    """解析秒级K线时间戳 (seconds from 2004-01-01 00:00:00)"""
+    return _TDX_EPOCH + timedelta(seconds=seconds)
 
 def format_time(time_stamp):
     if time_stamp == 0 or time_stamp == 100:

@@ -3,7 +3,7 @@ from opentdx._typing import override
 
 from opentdx.const import MARKET, PERIOD, ADJUST
 from opentdx.parser.baseParser import BaseParser, register_parser
-from opentdx.utils.help import get_price, to_datetime
+from opentdx.utils.help import get_price, to_datetime, to_datetime_seconds
 
 
 @register_parser(0x523)
@@ -19,13 +19,17 @@ class K_Line(BaseParser):
         count, = struct.unpack('<H', data[:2])
         pos = 2
 
-        minute_category = self.period.value < 4 or self.period.value == 7 or self.period.value == 8
+        is_seconds = self.period.value == 13
+        minute_category = not is_seconds and (self.period.value < 4 or self.period.value in (7, 8))
 
         bars = []
         for _ in range(count):
             date_num, = struct.unpack('<I', data[pos: pos + 4])
             pos += 4
-            date_time = to_datetime(date_num, minute_category)
+            if is_seconds:
+                date_time = to_datetime_seconds(date_num)
+            else:
+                date_time = to_datetime(date_num, minute_category)
             
             open, pos = get_price(data, pos)
             close, pos = get_price(data, pos)
@@ -40,7 +44,7 @@ class K_Line(BaseParser):
             if pos < data_len:
                 try:
                     try_date, = struct.unpack('<I', data[pos: pos + 4])
-                    try_date_time = to_datetime(try_date, minute_category)
+                    try_date_time = to_datetime_seconds(try_date) if is_seconds else to_datetime(try_date, minute_category)
                     if try_date_time.year < date_time.year:
                         raise ValueError()
                 except ValueError:
