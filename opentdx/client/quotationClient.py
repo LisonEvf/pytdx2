@@ -276,7 +276,7 @@ class QuotationClient(BaseStockClient):
 
     @update_last_ack_time
     def download_file(self, filename: str, filesize=0, report_hook=None) -> bytearray:
-        return super().download_file(quotation.Download, filename, filesize, report_hook)
+        return super().download_file(quotation.FileDownload, filename, filesize, report_hook)
 
     @update_last_ack_time
     def get_text_file(self, filename: str, sep: str = '|') -> list[str]:
