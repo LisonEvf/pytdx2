@@ -3,13 +3,28 @@ from datetime import date
 from opentdx.parser import ex_quotation
 
 from .baseStockClient import BaseStockClient, update_last_ack_time, _paginate, _normalize_code_list
-from opentdx.const import EX_MARKET, PERIOD, SORT_TYPE, ex_hosts
+from .commonClientMixin import CommonClientMixin
+from opentdx.const import EX_MARKET, PERIOD, SORT_TYPE, ex_hosts, mac_ex_hosts
 from opentdx.utils.log import log
 
-class exQuotationClient(BaseStockClient):
+class exQuotationClient(BaseStockClient, CommonClientMixin):
     def __init__(self, multithread=False, heartbeat=False, auto_retry=False, raise_exception=False):
         super().__init__(multithread, heartbeat, auto_retry, raise_exception)
         self.hosts = ex_hosts
+        self._sp_mode_enabled = False
+
+    def sp(self, hosts=mac_ex_hosts):
+        """启动sp模式,支持mac协议调用.
+
+        Args:
+            hosts (list of str): List of hosts to use.
+
+        Returns:
+            self
+        """
+        self.hosts = hosts
+        self._sp_mode_enabled = True
+        return self
 
     def login(self, show_info=False) -> bool:
         try:

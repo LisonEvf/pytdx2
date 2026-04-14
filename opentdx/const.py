@@ -196,7 +196,51 @@ class CATEGORY(Enum):
     KCB = 8     # 科创板
     BJ = 12     # 北证A
     CYB = 14    # 创业板
+    
+    #获取方式 tcpdump port 7709 or 7727 -X |grep 2c12 -C 10 |grep "000e"
+    #0x0040:  f92a 0000 0000 0000 0000 0000 000e 0000
+    #因为是小端数据, 所以把前4个字节复制 [f92a]下来,然后翻转 [2af9]
+    HGT = 0x2af9    #沪股通
+    SGT = 0x2b01    #深股通
+    FXJS = 0x2aff   #风险警示
+    
+    @property
+    def code(self):
+        """返回真实的数字code,预留,避免结构变化"""
+        return self.value
 
+# TODO 添加扩展类别
+class EX_CATEGORY(Enum):
+    HK = 0x001f    #香港主板
+    HK_GEM = 0x0030 #香港创业板
+    
+    GGT = 0x0047    #港股通 , 扩展行情查询
+    
+    HSI = 0x2ee1    #恒指成分股
+    HSHC = 0x2ee2    #恒生红筹
+    HSGQ = 0x2ee4    #恒生国企
+    HSGZ = 0x2ee7    #恒生国指
+    HSKJ = 0x2eec    #恒生科技
+   
+    USZGG = 0x32c9    #美股中概股
+    USZM = 0x32ca    #知名美股
+    
+    
+    @property
+    def code(self):
+        """返回真实的数字code,预留,避免结构变化"""
+        return self.value
+
+    @classmethod
+    def has_code(cls, code):
+        """
+        传入一个数字code，判断是否是枚举里的值
+        :return: True / False
+        """
+
+        return int(code) in (item.value for item in cls)
+
+    
 class PERIOD(Enum):
     MIN_1   = 7     # 1 分钟K 线
     MIN_5   = 0     # 5 分钟K 线
