@@ -6,17 +6,18 @@ from typing import Optional
 from opentdx._typing import override
 
 from .baseStockClient import BaseStockClient, update_last_ack_time, _paginate, _normalize_code_list
+from .commonClientMixin import CommonClientMixin
 from opentdx.utils.block_reader import BlockReader, BlockReader_TYPE_FLAT
-from opentdx.const import BLOCK_FILE_TYPE, CATEGORY, FILTER_TYPE, PERIOD, MARKET, SORT_TYPE, ADJUST, main_hosts
+from opentdx.const import BLOCK_FILE_TYPE, CATEGORY, FILTER_TYPE, PERIOD, MARKET, SORT_TYPE, ADJUST, main_hosts, mac_hosts
 from opentdx.parser import quotation
 from opentdx.utils.log import log
 from opentdx.utils.cache import finance_cache
 
-class QuotationClient(BaseStockClient):
+class QuotationClient(BaseStockClient, CommonClientMixin):
     def __init__(self, multithread=False, heartbeat=False, auto_retry=False, raise_exception=False):
         super().__init__(multithread, heartbeat, auto_retry, raise_exception)
         self.hosts = main_hosts
-
+        
     def login(self, show_info=False) -> bool:
         try:
             info = self.call(quotation.Login())
