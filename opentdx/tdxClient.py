@@ -6,17 +6,22 @@ from datetime import date
 from typing import Optional
 
 from opentdx.client.exQuotationClient import exQuotationClient
+from opentdx.client.macQuotationClient import macQuotationClient, macExQuotationClient
 from opentdx.client.quotationClient import QuotationClient
-from opentdx.const import ADJUST, BLOCK_FILE_TYPE, CATEGORY, EX_MARKET, FILTER_TYPE, MARKET, PERIOD, SORT_TYPE
+from opentdx.const import ADJUST, BLOCK_FILE_TYPE, BOARD_TYPE, CATEGORY, EX_BOARD_TYPE, EX_MARKET, FILTER_TYPE, MARKET, PERIOD, SORT_TYPE
 
 class TdxClient:
     def __init__(self):
         self.quotation_client = QuotationClient(True, True)
         self.ex_quotation_client = exQuotationClient(True, True)
+        self.mac_client = macQuotationClient(True, True)
+        self.mac_ex_client = macExQuotationClient(True, True)
         
     def __enter__(self):
         self.quotation_client.connect().login()
         self.ex_quotation_client.connect().login()
+        self.mac_client.connect()
+        self.mac_ex_client.connect()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -24,6 +29,10 @@ class TdxClient:
             self.quotation_client.disconnect()
         if self.ex_quotation_client.connected:
             self.ex_quotation_client.disconnect()
+        if self.mac_client.connected:
+            self.mac_client.disconnect()
+        if self.mac_ex_client.connected:
+            self.mac_ex_client.disconnect()
 
     def q_client(self):
         if not self.quotation_client.connected:
@@ -34,6 +43,16 @@ class TdxClient:
         if not self.ex_quotation_client.connected:
             self.ex_quotation_client.connect().login()
         return self.ex_quotation_client
+
+    def mac(self):
+        if not self.mac_client.connected:
+            self.mac_client.connect()
+        return self.mac_client
+
+    def mac_ex(self):
+        if not self.mac_ex_client.connected:
+            self.mac_ex_client.connect()
+        return self.mac_ex_client
     
     def stock_count(self, market: MARKET) -> int:
         '''
@@ -673,7 +692,192 @@ class TdxClient:
             List[float]             - 价格列表
         '''
         return self.eq_client().get_chart_sampling(market, code)
-    
+
+
+    ##########################MAC QUOTATION CLIENT##########################
+
+    def board_count(self, market: BOARD_TYPE | EX_BOARD_TYPE) -> int:
+        '''
+        获取板块数量
+        Args:
+            market: BOARD_TYPE | EX_BOARD_TYPE - 板块类型
+                BOARD_TYPE: A股板块 (HY: 行业, GN: 概念, FG: 风格, DQ: 地区)
+                EX_BOARD_TYPE: 扩展板块 (HK_ALL, US_ALL 等)
+        Return:
+            int - 板块数量
+        '''
+        if isinstance(market, EX_BOARD_TYPE):
+            return self.mac_ex().get_board_count(market)
+        return self.mac().get_board_count(market)
+
+    def board_list(self, market: BOARD_TYPE | EX_BOARD_TYPE, count: int = 10000) -> list[dict]:
+        '''
+        获取板块列表
+        Args:
+            market: BOARD_TYPE | EX_BOARD_TYPE - 板块类型
+            count: int - 获取数量，默认10000
+        Return:
+            List[Dict]: 板块列表，每个元素包含：
+                - code: str    - 板块代码
+                - name: str    - 板块名称
+        '''
+        if isinstance(market, EX_BOARD_TYPE):
+            return self.mac_ex().get_board_list(market, count)
+        return self.mac().get_board_list(market, count)
+
+    def board_members(self, board_symbol: str, count: int = 10000) -> list[dict]:
+        '''
+        获取板块成员
+        Args:
+            board_symbol: str - 板块代码
+            count: int        - 获取数量，默认10000
+        Return:
+            List[Dict]: 板块成员列表
+        '''
+        return self.mac().get_board_members(board_symbol, count)
+
+    def board_members_quotes(self, board_symbol: str, count: int = 10000) -> list[dict]:
+        '''
+        获取板块成分报价
+        Args:
+            board_symbol: str - 板块代码
+            count: int        - 获取数量，默认10000
+        Return:
+            List[Dict]: 板块成分报价列表
+        '''
+        return self.mac().get_board_members_quotes(board_symbol, count)
+
+    def board_belong(self, symbol: str, market: MARKET) -> list[dict]:
+        '''
+        查询股票所属板块
+        Args:
+            symbol: str   - 股票代码
+            market: MARKET - 市场类型
+        Return:
+            List[Dict]: 所属板块列表
+        '''
+        return self.mac().get_symbol_belong_board(symbol, market)
+
+    def symbol_bars(self, market, code: str, period: PERIOD, times: int = 1, start: int = 0, count: int = 800, fq: ADJUST = ADJUST.NONE) -> list[dict]:
+        '''
+        获取K线数据(MAC协议，支持A股/港股/美股)
+        Args:
+            market: MARKET | EX_MARKET - 市场类型
+            code: str       - 股票/商品代码
+            period: PERIOD  - K线周期
+            times: int      - 多周期倍数，默认为1
+            start: int      - 起始位置，默认为0
+            count: int      - 获取数量，默认为800
+            fq: ADJUST      - 复权类型
+        Returns:
+            List[Dict]: K线数据列表
+        '''
+        if isinstance(market, EX_MARKET):
+            return self.mac_ex().get_symbol_bars(market, code, period, times, start, count, fq)
+        return self.mac().get_symbol_bars(market, code, period, times, start, count, fq)
+
+    def mac_server_init(self) -> bool:
+        '''
+        MAC协议服务器初始化/订阅
+        Return:
+            bool - 是否成功
+        '''
+        return self.mac().server_init()
+
+    def mac_file_list(self, filename: str, offset: int = 0) -> dict:
+        '''
+        查询文件列表信息
+        Args:
+            filename: str - 文件名
+            offset: int   - 偏移量
+        Return:
+            Dict: offset/size/hash 等信息
+        '''
+        return self.mac().get_file_list(filename, offset)
+
+    def mac_download_file(self, filename: str, index: int = 1, offset: int = 0, size: int = 30000) -> dict:
+        '''
+        下载文件内容
+        Args:
+            filename: str - 文件名
+            index: int    - 索引，默认1
+            offset: int   - 偏移量
+            size: int     - 大小，默认30000
+        Return:
+            Dict: index/size/content
+        '''
+        return self.mac().download_file(filename, index, offset, size)
+
+    def mac_stock_query(self, market: MARKET, code: str, flag: int = 1, unk: int = 0) -> dict:
+        '''
+        查询股票行情信息
+        Args:
+            market: MARKET - 市场类型
+            code: str      - 股票代码
+            flag: int      - 标志位
+            unk: int       - 未知参数
+        Return:
+            Dict: 股票行情 (market/code/name/last_close/open/high/low/close)
+        '''
+        return self.mac().get_stock_query(market, code, flag, unk)
+
+    def mac_batch_stock_data(self, market: MARKET, code: str) -> dict:
+        '''
+        获取批量股票数据(OHLCV)
+        Args:
+            market: MARKET - 市场类型
+            code: str      - 股票代码
+        Return:
+            Dict: 股票数据 (market/code/name/open/high/low/close)
+        '''
+        return self.mac().get_batch_stock_data(market, code)
+
+    def mac_stock_detail(self, market: MARKET, code: str) -> list:
+        '''
+        获取股票分笔明细(tick数据)
+        Args:
+            market: MARKET - 市场类型
+            code: str      - 股票代码
+        Return:
+            List[Dict]: 分笔明细列表 (time/price/vol/direction)
+        '''
+        return self.mac().get_stock_detail(market, code)
+
+    def mac_stock_bar_count(self, market: MARKET, code: str, count: int = 500) -> list:
+        '''
+        获取股票K线柱数据
+        Args:
+            market: MARKET - 市场类型
+            code: str      - 股票代码
+            count: int     - 获取数量，默认500
+        Return:
+            List[Dict]: K线柱数据 (offset/price/vol/change)
+        '''
+        return self.mac().get_stock_bar_count(market, code, count)
+
+    def mac_stock_small_info(self, market: MARKET, code: str, period: int = 5, flag: int = 1) -> list:
+        '''
+        获取股票分钟级数据
+        Args:
+            market: MARKET - 市场类型
+            code: str      - 股票代码
+            period: int    - 周期(分钟)，默认5
+            flag: int      - 标志位，默认1
+        Return:
+            List[Dict]: 分钟级数据 (index/price/avg/vol)
+        '''
+        return self.mac().get_stock_small_info(market, code, period, flag)
+
+    def mac_kline_offset(self, offset: int = 0, count: int = 128000) -> list:
+        '''
+        获取K线偏移表(股票/指数列表)
+        Args:
+            offset: int - 偏移量，默认0
+            count: int  - 获取数量，默认128000
+        Return:
+            List[Dict]: 股票/指数列表 (market/code/name)
+        '''
+        return self.mac().get_kline_offset(offset, count)
 
 
 if __name__ == '__main__':

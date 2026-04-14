@@ -325,96 +325,124 @@ def _(c):
 
 # ======================== MAC协议 ========================
 
-_mac_client = None
-_mac_ex_client = None
+@demo('38', 'board_list(HY)        行业板块列表')
+def _(c):
+    show("c.board_list(BOARD_TYPE.HY)",
+         pd.DataFrame(c.board_list(BOARD_TYPE.HY)))
 
 
-def _get_mac():
-    global _mac_client
-    if _mac_client is None or not _mac_client.connected:
-        from opentdx.client import macQuotationClient
-        _mac_client = macQuotationClient()
-        _mac_client.connect()
-    return _mac_client
+@demo('39', 'board_list(DQ)        地区板块列表')
+def _(c):
+    show("c.board_list(BOARD_TYPE.DQ)",
+         pd.DataFrame(c.board_list(BOARD_TYPE.DQ)))
 
 
-def _get_mac_ex():
-    global _mac_ex_client
-    if _mac_ex_client is None or not _mac_ex_client.connected:
-        from opentdx.client import macExQuotationClient
-        _mac_ex_client = macExQuotationClient()
-        _mac_ex_client.connect()
-    return _mac_ex_client
+@demo('40', 'board_list(HK)        港股板块列表')
+def _(c):
+    show("c.board_list(EX_BOARD_TYPE.HK_ALL)",
+         pd.DataFrame(c.board_list(EX_BOARD_TYPE.HK_ALL)))
 
 
-@demo('38', 'get_board_list(HY)    行业板块列表')
-def _(_tdx=None):
-    client = _get_mac()
-    show("client.get_board_list(BOARD_TYPE.HY)",
-         pd.DataFrame(client.get_board_list(BOARD_TYPE.HY)))
+@demo('41', 'board_list(US)        美股板块列表')
+def _(c):
+    show("c.board_list(EX_BOARD_TYPE.US_ALL)",
+         pd.DataFrame(c.board_list(EX_BOARD_TYPE.US_ALL)))
 
 
-@demo('39', 'get_board_list(DQ)    地区板块列表')
-def _(_tdx=None):
-    client = _get_mac()
-    show("client.get_board_list(BOARD_TYPE.DQ)",
-         pd.DataFrame(client.get_board_list(BOARD_TYPE.DQ)))
+@demo('42', 'board_members         板块成员查询')
+def _(c):
+    show("c.board_members('880761')  # 锂矿板块",
+         pd.DataFrame(c.board_members('880761')))
 
 
-@demo('40', 'get_board_list(HK)    港股板块列表')
-def _(_tdx=None):
-    client = _get_mac_ex()
-    show("exClient.get_board_list(EX_BOARD_TYPE.HK_ALL)",
-         pd.DataFrame(client.get_board_list(EX_BOARD_TYPE.HK_ALL)))
+@demo('43', 'board_belong          股票所属板块')
+def _(c):
+    show("c.board_belong('000100', MARKET.SZ)",
+         pd.DataFrame(c.board_belong('000100', MARKET.SZ)))
 
 
-@demo('41', 'get_board_list(US)    美股板块列表')
-def _(_tdx=None):
-    client = _get_mac_ex()
-    show("exClient.get_board_list(EX_BOARD_TYPE.US_ALL)",
-         pd.DataFrame(client.get_board_list(EX_BOARD_TYPE.US_ALL)))
+@demo('44', 'symbol_bars(stock)    股票K线')
+def _(c):
+    show("c.symbol_bars(MARKET.SZ, '000100', PERIOD.DAILY, count=3, fq=ADJUST.HFQ)",
+         pd.DataFrame(c.symbol_bars(MARKET.SZ, '000100', PERIOD.DAILY, count=3, fq=ADJUST.HFQ)))
 
 
-@demo('42', 'get_board_members     板块成员查询')
-def _(_tdx=None):
-    client = _get_mac()
-    show("client.get_board_members('880761')  # 锂矿板块",
-         pd.DataFrame(client.get_board_members('880761')))
+@demo('45', 'symbol_bars(index)    指数K线')
+def _(c):
+    show("c.symbol_bars(MARKET.SH, '880310', PERIOD.DAILY, count=3, fq=ADJUST.QFQ)",
+         pd.DataFrame(c.symbol_bars(MARKET.SH, '880310', PERIOD.DAILY, count=3, fq=ADJUST.QFQ)))
 
 
-@demo('43', 'get_symbol_belong_board 股票所属板块')
-def _(_tdx=None):
-    client = _get_mac()
-    show("client.get_symbol_belong_board('000100', MARKET.SZ)",
-         pd.DataFrame(client.get_symbol_belong_board('000100', MARKET.SZ)))
+@demo('46', 'symbol_bars(hk)       港股K线')
+def _(c):
+    show("c.symbol_bars(EX_MARKET.HK_MAIN_BOARD, '00100', PERIOD.DAILY, count=3)",
+         pd.DataFrame(c.symbol_bars(EX_MARKET.HK_MAIN_BOARD, '00100', PERIOD.DAILY, count=3)))
 
 
-@demo('44', 'get_symbol_bars(stock)股票K线')
-def _(_tdx=None):
-    client = _get_mac()
-    show("client.get_symbol_bars(MARKET.SZ, '000100', PERIOD.DAILY, count=3, fq=ADJUST.HFQ)",
-         pd.DataFrame(client.get_symbol_bars(MARKET.SZ, '000100', PERIOD.DAILY, count=3, fq=ADJUST.HFQ)))
+@demo('47', 'symbol_bars(us)       美股K线')
+def _(c):
+    show("c.symbol_bars(EX_MARKET.US_STOCK, 'TSLA', PERIOD.WEEKLY, count=3)",
+         pd.DataFrame(c.symbol_bars(EX_MARKET.US_STOCK, 'TSLA', PERIOD.WEEKLY, count=3)))
 
 
-@demo('45', 'get_symbol_bars(index)指数K线')
-def _(_tdx=None):
-    client = _get_mac()
-    show("client.get_symbol_bars(MARKET.SH, '880310', PERIOD.DAILY, count=3, fq=ADJUST.QFQ)",
-         pd.DataFrame(client.get_symbol_bars(MARKET.SH, '880310', PERIOD.DAILY, count=3, fq=ADJUST.QFQ)))
+@demo('52', 'board_count           板块数量')
+def _(c):
+    show("c.board_count(BOARD_TYPE.HY)", c.board_count(BOARD_TYPE.HY), comment="行业板块数量")
+    show("c.board_count(BOARD_TYPE.GN)", c.board_count(BOARD_TYPE.GN), comment="概念板块数量")
+    show("c.board_count(EX_BOARD_TYPE.HK_ALL)", c.board_count(EX_BOARD_TYPE.HK_ALL), comment="港股板块数量")
 
 
-@demo('46', 'get_symbol_bars(hk)   港股K线')
-def _(_tdx=None):
-    client = _get_mac_ex()
-    show("exClient.get_symbol_bars(EX_MARKET.HK_MAIN_BOARD, '00100', PERIOD.DAILY, count=3)",
-         pd.DataFrame(client.get_symbol_bars(EX_MARKET.HK_MAIN_BOARD, '00100', PERIOD.DAILY, count=3)))
+@demo('53', 'board_members_quotes  板块成分报价')
+def _(c):
+    show("c.board_members_quotes('880761')  # 锂矿板块",
+         pd.DataFrame(c.board_members_quotes('880761')))
 
 
-@demo('47', 'get_symbol_bars(us)   美股K线')
-def _(_tdx=None):
-    client = _get_mac_ex()
-    show("exClient.get_symbol_bars(EX_MARKET.US_STOCK, 'TSLA', PERIOD.WEEKLY, count=3)",
-         pd.DataFrame(client.get_symbol_bars(EX_MARKET.US_STOCK, 'TSLA', PERIOD.WEEKLY, count=3)))
+@demo('54', 'mac_server_init       服务器初始化')
+def _(c):
+    show("c.mac_server_init()", c.mac_server_init(), comment="MAC协议服务器初始化")
+
+
+@demo('55', 'mac_stock_query       股票查询')
+def _(c):
+    show("c.mac_stock_query(MARKET.SZ, '000001')",
+         c.mac_stock_query(MARKET.SZ, '000001'),
+         comment="平安银行行情查询")
+
+
+@demo('56', 'mac_batch_stock_data  批量股票数据')
+def _(c):
+    show("c.mac_batch_stock_data(MARKET.SZ, '000001')",
+         c.mac_batch_stock_data(MARKET.SZ, '000001'),
+         comment="平安银行OHLCV")
+
+
+@demo('57', 'mac_stock_detail      分笔明细')
+def _(c):
+    show("c.mac_stock_detail(MARKET.SZ, '000001')",
+         pd.DataFrame(c.mac_stock_detail(MARKET.SZ, '000001')),
+         comment="平安银行分笔Tick")
+
+
+@demo('58', 'mac_stock_bar_count   K线柱数据')
+def _(c):
+    show("c.mac_stock_bar_count(MARKET.SZ, '000001', count=5)",
+         pd.DataFrame(c.mac_stock_bar_count(MARKET.SZ, '000001', count=5)),
+         comment="平安银行K线柱")
+
+
+@demo('59', 'mac_stock_small_info  分钟级数据')
+def _(c):
+    show("c.mac_stock_small_info(MARKET.SZ, '000001')",
+         pd.DataFrame(c.mac_stock_small_info(MARKET.SZ, '000001')),
+         comment="平安银行5分钟数据")
+
+
+@demo('60', 'mac_kline_offset      K线偏移表')
+def _(c):
+    show("c.mac_kline_offset(count=10)",
+         pd.DataFrame(c.mac_kline_offset(count=10)),
+         comment="K线偏移表(前10条)")
 
 
 # ======================== 底层客户端直调 ========================
@@ -531,13 +559,16 @@ MENU = """
 ║  31 goods_kline          32 goods_history_trans  33 商品分时(实时) ║
 ║  34 商品分时(历史)       35 商品分时缩略                              ║
 ╠════════════════════════════════════════════════════════════════════╣
-║  MAC协议 — 板块                                                    ║
+║  TdxClient — MAC协议 (板块/统一行情)                                ║
 ║  38 行业板块列表         39 地区板块列表         40 港股板块列表   ║
 ║  41 美股板块列表         42 板块成员查询         43 股票所属板块   ║
-╠════════════════════════════════════════════════════════════════════╣
-║  MAC协议 — 统一行情 get_symbol_bars                                 ║
 ║  44 股票K线              45 指数K线              46 港股K线         ║
-║  47 美股K线                                                        ║
+║  47 美股K线              52 板块数量             53 板块成分报价   ║
+╠════════════════════════════════════════════════════════════════════╣
+║  TdxClient — MAC协议 (行情查询)                                     ║
+║  54 服务器初始化         55 股票查询             56 批量股票数据   ║
+║  57 分笔明细             58 K线柱数据            59 分钟级数据     ║
+║  60 K线偏移表                                                       ║
 ╠════════════════════════════════════════════════════════════════════╣
 ║  底层客户端直调                                                    ║
 ║  48 QuotationClient 直调(心跳/公告)                                 ║
@@ -562,10 +593,6 @@ def main():
 
         if choice == '0':
             tdx.__exit__(None, None, None)
-            if _mac_client:
-                _mac_client.disconnect()
-            if _mac_ex_client:
-                _mac_ex_client.disconnect()
             print("退出。")
             break
 
