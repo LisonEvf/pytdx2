@@ -203,6 +203,7 @@ class CATEGORY(Enum):
     HGT = 0x2af9    #沪股通
     SGT = 0x2b01    #深股通
     FXJS = 0x2aff   #风险警示
+    ETF = 0x2afd   #ETF基金
     
     @property
     def code(self):
