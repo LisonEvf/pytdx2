@@ -203,6 +203,7 @@ class CATEGORY(Enum):
     HGT = 0x2af9    #沪股通
     SGT = 0x2b01    #深股通
     FXJS = 0x2aff   #风险警示
+    ETF = 0x2afd   #ETF基金
     
     @property
     def code(self):
@@ -418,8 +419,12 @@ class SORT_TYPE(Enum):
     # WATCHLIST_DATE = 0x0 # 自选日
     # WATCHLIST_PRICE = 0x0 # 自选价
     # WATCHLIST_RETURN_PCT = 0x0 # 自选收益率%
-    
 
+class SORT_ORDER(Enum):
+    ASC = 2             # 升序
+    DESC = 1            # 降序
+    NONE = 0            # 不排序
+    
 class BLOCK_FILE_TYPE(Enum):
     DEFAULT = 'block.dat'   # 一般板块
     ZS = 'block_zs.dat'     # 指数板块

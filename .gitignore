@@ -5,3 +5,4 @@ dist/
 *.pyc
 venv/
 pip_install.sh
+demo*.py
