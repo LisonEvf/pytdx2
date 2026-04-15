@@ -3,7 +3,7 @@ from typing import Union
 import pandas as pd
 
 from .baseStockClient import update_last_ack_time
-from opentdx.const import ADJUST, BOARD_TYPE, MARKET, PERIOD, EX_BOARD_TYPE, mac_hosts, mac_ex_hosts
+from opentdx.const import ADJUST, BOARD_TYPE, MARKET, PERIOD, EX_BOARD_TYPE, SORT_TYPE, SORT_ORDER, mac_hosts, mac_ex_hosts
 from opentdx.parser.mac_quotation import BoardCount, BoardList, BoardMembers, BoardMembersQuotes, SymbolBar, SymbolBelongBoard
 from opentdx.utils.log import log
 from functools import wraps
@@ -88,7 +88,7 @@ class CommonClientMixin:
 
     @require_sp_mode
     @update_last_ack_time
-    def get_board_members_quotes(self, board_symbol: str, count=10000, filter=0):
+    def get_board_members_quotes(self, board_symbol: str, count=10000, sort_type: SORT_TYPE = SORT_TYPE.CHANGE_PCT, sort_order=SORT_ORDER.DESC, filter=0):
         MAX_LIST_COUNT = 80
         security_list = []
         
@@ -97,7 +97,7 @@ class CommonClientMixin:
         
         for start in range(0, count, MAX_LIST_COUNT):
             current_count = min(MAX_LIST_COUNT, count - start)
-            rs = self.call(BoardMembersQuotes(board_symbol=board_symbol, start=start, page_size=current_count, filter=filter))
+            rs = self.call(BoardMembersQuotes(board_symbol=board_symbol, start=start, page_size=current_count, sort_type=sort_type, sort_order=sort_order, filter=filter))
             part = rs["stocks"]
             
             if len(part) > 0:
@@ -143,7 +143,7 @@ class CommonClientMixin:
     @update_last_ack_time
     def get_symbol_bars(
         self, market: MARKET, code: str, period: PERIOD, times: int = 1, start: int = 0, count: int = 800, fq: ADJUST = ADJUST.NONE
-    ) -> pd.DataFrame:
+    ):
         MAX_LIST_COUNT = 700
         page_size = min(count, MAX_LIST_COUNT)
         security_list = []

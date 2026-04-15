@@ -3,7 +3,7 @@ from typing import override
 
 from opentdx.parser.baseParser import BaseParser, register_parser
 from opentdx.utils.help import exchange_board_code
-from opentdx.const import MARKET,EX_MARKET, CATEGORY , EX_CATEGORY
+from opentdx.const import MARKET,EX_MARKET, CATEGORY , EX_CATEGORY, SORT_TYPE, SORT_ORDER
 from opentdx.utils.log import log
 
 # 定义字段位图映射 (根据 TDX 协议定义)
@@ -25,7 +25,7 @@ FIELD_BITMAP_MAP = {
     0x4: ("close", '<f', "收盘价"),
     0x5: ("vol", '<I', "成交量"),
     0x6: ("vol_ratio", '<f', "量比"),
-    0x7: ("total_amount", '<f', "总金额（单位：元，注意：港股单位不同）"),
+    0x7: ("amount", '<f', "总金额（单位：元，注意：港股单位不同）"),
     
     # 扩展字段（位0x8-0xF）
     0x8: ("inside_volume", '<I', "内盘"),  # ✅ 920627验证：CSV内盘=20999, bitmap=20999
@@ -265,31 +265,40 @@ class BoardMembersQuotes(BaseParser):
     def __init__(
         self,
         board_symbol: str | CATEGORY | EX_CATEGORY = "881001",
-        sort_type=0xe,
+        sort_type: int | SORT_TYPE = 0xe,
         start: int = 0,
         page_size: int = 80,
-        sort_order: bool = 1,
+        sort_order: SORT_ORDER = SORT_ORDER.NONE,
         filter: int = 0
     ):
         if isinstance(board_symbol, str):
             board_code = exchange_board_code(board_symbol)
         else:
             board_code = board_symbol.code
+            
+        if isinstance(sort_type, int):
+            sort_type_code = sort_type
+        else:
+            sort_type_code = sort_type.value
+              
 
         self.body = struct.pack("<I9x", board_code)
         # 基础参数
-        params = struct.pack("<HIBBBB", sort_type, start, page_size, 0, sort_order, 0)
+        params = struct.pack("<HIBBBB", sort_type_code, start, page_size, 0, sort_order.value, 0)
         # 额外参数, 会根据传入的值不同,返回值的数量不同. 例如只传0,则只会返回 symbol 和 symbol_name
         # 位图配置：20字节，每一位代表一个字段是否存在
         
         # filter = (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4)
 
-        # 根据 filter 参数生成位图
+        # 无法全传0, 只查板块的成员,通过 board_members 查询
         if filter == 0:
             # 默认位图：常用字段组合
             pkg = bytearray.fromhex('ff fce1 cc3f 0803 01 00 00 00 00 00 00 00 0000 0000 00')
         elif filter == -1:
             # 全字段模式（测试用）
+            pkg = bytearray.fromhex('ff ffff ffff ffff ff 00 00 00 00 00 00 00 0000 0000 00')
+        elif filter == -99:
+            # 全字段模式（验证新字段使用）
             pkg = bytearray.fromhex("ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff")
         else:
             # 根据 filter 整数值生成位图
