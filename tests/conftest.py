@@ -42,3 +42,10 @@ def mqc():
     client.connect()
     yield client
     client.disconnect()
+
+@pytest.fixture(scope="session")
+def sp_qc():
+    client = QuotationClient(True, True)
+    client.sp().connect().login()
+    yield client
+    client.disconnect()

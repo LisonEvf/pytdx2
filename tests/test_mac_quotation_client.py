@@ -7,6 +7,27 @@ class TestMacQuotationClientLogin:
     def test_connected(self, mqc):
         assert mqc.connected is True
 
+class TestMacQuotationClientMixin:
+    """SP模式"""
+
+    def test_mix_in(self, mqc, sp_qc):
+        """
+        测试 MacQuotationClient (mqc) 与 SP模式客户端 (sp_qc) 在获取板块列表时的一致性。
+        验证混合模式下的数据获取结果是否与纯SP模式一致。
+        """
+        result = mqc.get_board_list(BOARD_TYPE.HY, count=5)
+        result2 = sp_qc.get_board_list(BOARD_TYPE.HY, count=5)
+        assert result == result2
+        
+    def test_mqc_has_qc_method(self, mqc, qc):
+        """
+        测试 MacQuotationClient (mqc) 是否具备标准 QuotationClient (qc) 的行情获取能力。
+        验证通过 mqc 获取的个股行情数据与标准 qc 获取的数据一致。
+        """
+        mqc.login()
+        result = mqc.get_quotes(MARKET.SZ, '000001')
+        result2 = qc.get_quotes(MARKET.SZ, '000001')
+        assert result == result2
 
 class TestMacQuotationClientBoard:
     """板块 API"""
