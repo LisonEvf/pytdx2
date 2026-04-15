@@ -3,17 +3,17 @@ from __future__ import annotations
 from datetime import date
 from typing import Optional
 
-from opentdx.client.exQuotationClient import exQuotationClient
-from opentdx.client.macQuotationClient import macQuotationClient
+from opentdx.client.ExQuotationClient import ExQuotationClient
+from opentdx.client.MacQuotationClient import MacQuotationClient
 from opentdx.client.quotationClient import QuotationClient
 from opentdx.const import ADJUST, BLOCK_FILE_TYPE, BOARD_TYPE, CATEGORY, EX_BOARD_TYPE, EX_MARKET, FILTER_TYPE, MARKET, PERIOD, SORT_TYPE, mac_ex_hosts
 
 class TdxClient:
     def __init__(self):
         self.quotation_client = QuotationClient(multithread=True, heartbeat=True)
-        self.ex_quotation_client = exQuotationClient(multithread=True, heartbeat=True)
-        self.mac_client = macQuotationClient(multithread=True, heartbeat=True)
-        self.mac_ex_client = macQuotationClient(multithread=True, heartbeat=True, hosts=mac_ex_hosts)
+        self.ex_quotation_client = ExQuotationClient(multithread=True, heartbeat=True)
+        self.mac_client = MacQuotationClient(multithread=True, heartbeat=True)
+        self.mac_ex_client = MacQuotationClient(multithread=True, heartbeat=True, hosts=mac_ex_hosts)
 
     def __enter__(self):
         self.quotation_client.connect().login()
@@ -173,15 +173,15 @@ class TdxClient:
             adjust: ADJUST  - 复权类型
         Returns:
             List[Dict]: K线数据列表，每个元素包含：
-                - date_time: datetime   - 时间
+                - datetime: datetime    - 时间
                 - open: float           - 开盘价
                 - high: float           - 最高价
                 - low: float            - 最低价
                 - close: float          - 收盘价
                 - vol: int              - 成交量
                 - amount: int           - 成交额
-                - upCount?: int         - 上涨数（指数专有）
-                - downCount?: int       - 下跌数（指数专有）
+                - up_count?: int        - 上涨数（指数专有）
+                - down_count?: int      - 下跌数（指数专有）
         '''
         return self.q_client().get_kline(market, code, period, start, count, times, adjust)
 
@@ -272,16 +272,16 @@ class TdxClient:
         '''
         return self.q_client().get_stock_top_board(category)
 
-    def stock_quotes_list(self, category: CATEGORY, start: int = 0, count: int = 80, sortType: SORT_TYPE = SORT_TYPE.CODE, reverse: bool = False, filter: Optional[list[FILTER_TYPE]] = None) -> list[dict]:
+    def stock_quotes_list(self, category: CATEGORY, start: int = 0, count: int = 80, sort_type: SORT_TYPE = SORT_TYPE.CODE, reverse: bool = False, filter_types: Optional[list[FILTER_TYPE]] = None) -> list[dict]:
         '''
         获取各类股票行情列表
         Args:
             category: CATEGORY        - 市场分类（SH: 上证A, SZ: 深证A, A: A股, B: B股, KCB: 科创板, BJ: 北证A, CYB: 创业板）
             start: int                - 起始位置
             count: int                - 获取数量
-            sortType: SORT_TYPE       - 排序类型
+            sort_type: SORT_TYPE       - 排序类型
             reverse: bool             - 倒序排序
-            filter: list[FILTER_TYPE] - 过滤类型
+            filter_types: list[FILTER_TYPE] - 过滤类型
         Return:
             List[Dict]: 股票信息列表，每个元素包含：
                 - market: MARKET      - 市场类型
@@ -309,7 +309,7 @@ class TdxClient:
                 - depth: int          - 委比
                 - active: int         - 活跃度
         '''
-        return self.q_client().get_stock_quotes_list(category, start, count, sortType, reverse, filter)
+        return self.q_client().get_stock_quotes_list(category, start, count, sort_type, reverse, filter_types)
 
     def stock_quotes(self, code_list, code=None) -> list[dict]:
         '''
@@ -426,7 +426,7 @@ class TdxClient:
         '''
         return self.q_client().get_block_file(block_type)
 
-    # ── 扩展市场 (exQuotationClient) ──────────────────────
+    # ── 扩展市场 (ExQuotationClient) ──────────────────────
 
     def goods_count(self) -> int:
         '''
@@ -463,19 +463,19 @@ class TdxClient:
         '''
         return self.eq_client().get_list(start, count)
 
-    def goods_quotes_list(self, market: EX_MARKET, start: int = 0, count: int = 100, sortType: SORT_TYPE = SORT_TYPE.CODE, reverse: bool = False) -> list[dict]:
+    def goods_quotes_list(self, market: EX_MARKET, start: int = 0, count: int = 100, sort_type: SORT_TYPE = SORT_TYPE.CODE, reverse: bool = False) -> list[dict]:
         '''
         获取期货商品行情列表
         Args:
             market: EX_MARKET     - 扩展市场
             start: int            - 起始位置
             count: int            - 获取数量
-            sortType: SORT_TYPE   - 排序类型
+            sort_type: SORT_TYPE   - 排序类型
             reverse: bool         - 倒序排序
         Return:
             List[Dict]: 同 goods_quotes（含5档盘口）
         '''
-        return self.eq_client().get_quotes_list(market, start, count, sortType, reverse)
+        return self.eq_client().get_quotes_list(market, start, count, sort_type, reverse)
 
     def goods_quotes(self, code_list, code=None) -> list[dict]:
         '''
@@ -499,7 +499,7 @@ class TdxClient:
                 - add_position: int     - 平仓量
                 - hold_position: int    - 持仓量
                 - vol: int              - 总量
-                - curr_vol: int         - 现量
+                - cur_vol: int          - 现量
                 - amount: int           - 总金额
                 - in_vol: int           - 内盘
                 - out_vol: int          - 外盘
@@ -513,7 +513,7 @@ class TdxClient:
                 - pre_vol: int          - 昨总量
                 - day3_raise: float     - 3日涨幅
                 - date: date            - 日期
-                - raise_speed: float    - 涨速
+                - rise_speed: float     - 涨速
                 - active: int           - 活跃度
         '''
         return self.eq_client().get_quotes(code_list, code)
@@ -530,7 +530,7 @@ class TdxClient:
             times: int              - 多周期倍数，默认为1
         Returns:
             List[Dict]: K线数据列表，每个元素包含：
-                - date_time: datetime   - 时间
+                - datetime: datetime    - 时间
                 - open: float           - 开盘价
                 - high: float           - 最高价
                 - low: float            - 最低价
@@ -583,7 +583,7 @@ class TdxClient:
         '''
         return self.eq_client().get_chart_sampling(market, code)
 
-    # ── MAC协议 (macQuotationClient) ──────────────────────
+    # ── MAC协议 (MacQuotationClient) ──────────────────────
 
     def board_count(self, market: BOARD_TYPE | EX_BOARD_TYPE) -> int:
         '''
@@ -700,7 +700,7 @@ class TdxClient:
             flag: int      - 标志位
             unk: int       - 未知参数
         Return:
-            Dict: 股票行情 (market/code/name/last_close/open/high/low/close)
+            Dict: 股票行情 (market/code/name/pre_close/open/high/low/close)
         '''
         return self.mac_client().get_stock_query(market, code, flag, unk)
 
@@ -780,7 +780,7 @@ if __name__ == '__main__':
         print(pd.DataFrame(client.stock_tick_chart(MARKET.SZ, '000001', date(2026, 3, 16))))
         print(pd.DataFrame(client.stock_quotes_detail(MARKET.SZ, '000001')))
         print(pd.DataFrame(client.stock_top_board()))
-        print(pd.DataFrame(client.stock_quotes_list(CATEGORY.A, count = 0, sortType=SORT_TYPE.TOTAL_AMOUNT)))
+        print(pd.DataFrame(client.stock_quotes_list(CATEGORY.A, count = 0, sort_type=SORT_TYPE.TOTAL_AMOUNT)))
         print(pd.DataFrame(client.stock_quotes(MARKET.SZ, '000001')))
         print(pd.DataFrame(client.stock_unusual(MARKET.SZ)))
         print(pd.DataFrame(client.stock_auction(MARKET.SZ, '300308')))
@@ -793,7 +793,7 @@ if __name__ == '__main__':
         print(client.goods_count())
         print(pd.DataFrame(client.goods_category_list()))
         print(pd.DataFrame(client.goods_list()))
-        print(pd.DataFrame(client.goods_quotes_list(EX_MARKET.US_STOCK, sortType=SORT_TYPE.TOTAL_AMOUNT)))
+        print(pd.DataFrame(client.goods_quotes_list(EX_MARKET.US_STOCK, sort_type=SORT_TYPE.TOTAL_AMOUNT)))
         print(pd.DataFrame([client.goods_quotes(EX_MARKET.US_STOCK, 'TSLA')]))
         print(pd.DataFrame(client.goods_quotes([(EX_MARKET.US_STOCK, 'TSLA'), (EX_MARKET.HK_MAIN_BOARD, '09988')])))
         print(pd.DataFrame(client.goods_kline(EX_MARKET.US_STOCK, 'TSLA', PERIOD.DAILY)))

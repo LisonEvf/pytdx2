@@ -12,7 +12,7 @@ class BoardMembers(BaseParser):
         board_symbol: str = "881001",
         sort_type=14,
         start: int = 0,
-        page_size: int = 80,
+        count: int = 80,
         sort_order: bool = 1,
     ):
         # sort_order = 0 不排序,默认symbol, 不为0时候根据 sort_type 排序,sort_order = 1 升序, sort_order = 2 降序
@@ -21,7 +21,7 @@ class BoardMembers(BaseParser):
 
         self.body = struct.pack("<I9x", board_code)
         # 基础参数
-        params = struct.pack("<HIBBH", sort_type, start, page_size, 0, sort_order)
+        params = struct.pack("<HIBBH", sort_type, start, count, 0, sort_order)
         # 额外参数, 会根据传入的值不同,返回值的数量不同. 例如只传0,则只会返回 symbol 和 symbol_name
         # pkg = bytearray.fromhex('00ff fce1 cc3f 0803 0100 0000 0000 0000 0000 0000 00')
         pkg = bytearray.fromhex("00 0000 0000 0000 0000 0000 0000 0000 0000 0000 00")

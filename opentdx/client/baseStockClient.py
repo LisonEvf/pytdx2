@@ -204,12 +204,12 @@ class BaseStockClient():
 
         if self.heartbeat and not (self.heartbeat_thread and self.heartbeat_thread.is_alive()):
             self.stop_event = threading.Event()
-            self.heartbeat_thread = HeartBeatThread(self.client, self.stop_event, self.doHeartBeat)
+            self.heartbeat_thread = HeartBeatThread(self.client, self.stop_event, self.do_heartbeat)
             self.heartbeat_thread.daemon = True
             self.heartbeat_thread.start()
         return self
 
-    def doHeartBeat(self):
+    def do_heartbeat(self):
         """
         子类可以覆盖这个方法，实现自己的心跳包
         :return:

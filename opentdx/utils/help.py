@@ -141,8 +141,8 @@ def unpack_futures(data, code_len: int = 23):
     active, pre_close, open, high, low, close, open_position, add_position, vol, curr_vol, amount, in_vol, out_vol, u14, hold_position = struct.unpack(f'<I5f4If4I', data[1 + code_len: 61 + code_len])
     handicap_list = struct.unpack('<5f5I5f5I', data[61 + code_len: 141 + code_len])
     handicap = {
-        'bids': [{'price': handicap_list[i], 'vol': handicap_list[i + 5]} for i in range(5)],
-        'asks': [{'price': handicap_list[i], 'vol': handicap_list[i + 5]} for i in range(10, 15)]
+        'bid': [{'price': handicap_list[i], 'vol': handicap_list[i + 5]} for i in range(5)],
+        'ask': [{'price': handicap_list[i], 'vol': handicap_list[i + 5]} for i in range(10, 15)]
     }
     u1, settlement, u2, avg, pre_settlement, u3, u4, u5, u6, pre_close  = struct.unpack('<HfIffIIIIf', data[141 + code_len: 179 + code_len])
     s1, pre_vol, u7, s2, u8, day3_raise, s3, settlement2, date_raw, u9, raise_speed, u10, s4, u11, u12 = struct.unpack('<12sff12sff25sfIIff24sHB', data[179 + code_len: 291 + code_len])
@@ -166,7 +166,7 @@ def unpack_futures(data, code_len: int = 23):
             'open_position': open_position, 
             'add_position': add_position, 
             'vol': vol, 
-            'curr_vol': curr_vol, 
+            'cur_vol': curr_vol, 
             'amount': amount, 
             'in_vol': in_vol, 
             'out_vol': out_vol, 
@@ -181,7 +181,7 @@ def unpack_futures(data, code_len: int = 23):
             'day3_raise': day3_raise,
             'settlement2': settlement2,
             'date': date_obj,
-            'raise_speed': raise_speed,
+            'rise_speed': raise_speed,
             'u1': u1,
             'u2': u2,
             'u3': [u3, u4, u5, u6],

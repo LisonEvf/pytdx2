@@ -28,7 +28,7 @@ class QuotationClient(BaseStockClient):
             return False
 
     @override
-    def doHeartBeat(self):
+    def do_heartbeat(self):
         return self.call(quotation.HeartBeat())
 
     def quotes_adjustment(self, quotes_list: list[dict]) -> list[dict]:
@@ -168,11 +168,11 @@ class QuotationClient(BaseStockClient):
         return boards
 
     @update_last_ack_time
-    def get_stock_quotes_list(self, category: CATEGORY, start:int = 0, count: int = 80, sortType: SORT_TYPE = SORT_TYPE.CODE, reverse: bool = False, filter: Optional[list[FILTER_TYPE]] = None) -> list[dict]:
-        if filter is None:
-            filter = []
+    def get_stock_quotes_list(self, category: CATEGORY, start:int = 0, count: int = 80, sort_type: SORT_TYPE = SORT_TYPE.CODE, reverse: bool = False, filter_types: Optional[list[FILTER_TYPE]] = None) -> list[dict]:
+        if filter_types is None:
+            filter_types = []
         results = _paginate(
-            lambda s, c: self.call(quotation.QuotesList(category, s, c, sortType, reverse, filter)),
+            lambda s, c: self.call(quotation.QuotesList(category, s, c, sort_type, reverse, filter_types)),
             80, count, start,
         )
         return self._adjust_quotes_list(results)

@@ -81,8 +81,8 @@ class QuotesDetail(BaseParser):
                 'vol': vol,
                 'cur_vol': cur_vol,
                 'amount': amount,
-                's_vol': s_vol,
-                'b_vol': b_vol, # 外盘
+                'in_vol': s_vol,
+                'out_vol': b_vol,
                 's_amount': s_amount,
                 'open_amount': open_amount,# 开盘金额
                 'handicap': {

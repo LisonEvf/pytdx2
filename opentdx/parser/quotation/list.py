@@ -23,7 +23,7 @@ class List(BaseParser):
             # print(data[pos: pos + 37].hex())
             stocks.append({
                 'code': code.decode('gbk', errors='ignore').rstrip('\x00'),
-                'vol': vol,
+                'type': vol,
                 'name': name.decode('gbk', errors='ignore').rstrip('\x00'),
                 'decimal_point': decimal_point,
                 'pre_close': pre_close,

@@ -88,7 +88,7 @@ class f2487(BaseParser):
             'low': low, 
             
             'vol': vol, 
-            'curr_vol': curr_vol, 
+            'cur_vol': curr_vol, 
             'amount': amount, 
         }
 

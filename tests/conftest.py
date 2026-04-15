@@ -1,7 +1,7 @@
 import pytest
 
-from opentdx.client.exQuotationClient import exQuotationClient
-from opentdx.client.macQuotationClient import macQuotationClient
+from opentdx.client.ExQuotationClient import ExQuotationClient
+from opentdx.client.MacQuotationClient import MacQuotationClient
 from opentdx.client.quotationClient import QuotationClient
 from opentdx.tdxClient import TdxClient
 
@@ -10,7 +10,7 @@ from opentdx.tdxClient import TdxClient
 def tdx():
     client = TdxClient()
     client.quotation_client = QuotationClient(multithread=True, heartbeat=True)
-    client.ex_quotation_client = exQuotationClient(multithread=True, heartbeat=True)
+    client.ex_quotation_client = ExQuotationClient(multithread=True, heartbeat=True)
     client.quotation_client.connect().login()
     client.ex_quotation_client.connect().login()
     yield client
@@ -30,7 +30,7 @@ def qc():
 
 @pytest.fixture(scope="session")
 def eqc():
-    client = exQuotationClient(multithread=True, heartbeat=True)
+    client = ExQuotationClient(multithread=True, heartbeat=True)
     client.connect().login()
     yield client
     client.disconnect()
@@ -38,7 +38,7 @@ def eqc():
 
 @pytest.fixture(scope="session")
 def mqc():
-    client = macQuotationClient(multithread=True, heartbeat=True)
+    client = MacQuotationClient(multithread=True, heartbeat=True)
     client.connect()
     yield client
     client.disconnect()

@@ -15,7 +15,7 @@ class TestQuotationClientLogin:
         assert qc.connected is True
 
     def test_heartbeat(self, qc):
-        result = qc.doHeartBeat()
+        result = qc.do_heartbeat()
         assert result is not None
 
 

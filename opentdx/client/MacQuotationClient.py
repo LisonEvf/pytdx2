@@ -10,7 +10,7 @@ from opentdx.parser.mac_quotation import (
     StockDetail, StockBarCount, StockSmallInfo, KlineOffset,
 )
 
-class macQuotationClient(BaseStockClient):
+class MacQuotationClient(BaseStockClient):
 
     def __init__(self, multithread=False, heartbeat=False, auto_retry=False, raise_exception=False, hosts=None):
         super().__init__(multithread, heartbeat, auto_retry, raise_exception)
@@ -23,21 +23,21 @@ class macQuotationClient(BaseStockClient):
     @update_last_ack_time
     def get_board_list(self, market: Union[BOARD_TYPE, EX_BOARD_TYPE], count=10000):
         return _paginate(
-            lambda s, c: self.call(BoardList(board_type=market, start=s, page_size=c)),
+            lambda s, c: self.call(BoardList(board_type=market, start=s, count=c)),
             150, count,
         )
 
     @update_last_ack_time
     def get_board_members_quotes(self, board_symbol: str, count=10000):
         return _paginate(
-            lambda s, c: self.call(BoardMembersQuotes(board_symbol=board_symbol, start=s, page_size=c))["stocks"],
+            lambda s, c: self.call(BoardMembersQuotes(board_symbol=board_symbol, start=s, count=c))["stocks"],
             80, count,
         )
 
     @update_last_ack_time
     def get_board_members(self, board_symbol: str, count=10000):
         return _paginate(
-            lambda s, c: self.call(BoardMembers(board_symbol=board_symbol, start=s, page_size=c))["stocks"],
+            lambda s, c: self.call(BoardMembers(board_symbol=board_symbol, start=s, count=c))["stocks"],
             80, count,
         )
 

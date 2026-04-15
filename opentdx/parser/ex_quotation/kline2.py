@@ -21,7 +21,7 @@ class K_Line2(BaseParser):
             date_num, open, high, low, close, amount, vol, _ = struct.unpack('<IfffffII', data[42 + 32 * i: 42 + 32 * i + 32])
             
             results.append({
-                'time': to_datetime(date_num, minute_category),
+                'datetime': to_datetime(date_num, minute_category),
                 'open': open,
                 'high': high,
                 'low': low,

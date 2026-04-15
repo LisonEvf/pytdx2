@@ -36,7 +36,7 @@ class HistoryTransactionWithTrans(BaseParser):
                 'time': time(minutes // 60 % 24, minutes % 60),
                 'price': last_price,
                 'vol': vol,
-                'num': num,
+                'trans': num,
                 'action': ['BUY', 'SELL', 'NEUTRAL'][buy_sell],
             })
         return result

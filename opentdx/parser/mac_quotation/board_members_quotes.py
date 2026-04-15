@@ -37,7 +37,7 @@ def parse_row_data(row_data: bytes) -> dict:
     base_info = {
         "name": name,
         "market": market,
-        "symbol": code
+        "code": code
     }
     
     # ========== 2. 解析数据区 (128字节) ==========
@@ -69,31 +69,31 @@ def parse_row_data(row_data: bytes) -> dict:
         "low",
         "close",
         "vol",
-        "量比",
-        "成交额",
-        "总股本",
-        "流通股",
-        "收益",
-        "净资产收益率",
+        "vol_ratio",
+        "amount",
+        "total_shares",
+        "float_shares",
+        "earnings",
+        "roe",
         "uk13",
-        "市值",
-        "PE动",
-        "zero16", #港股才有数值
-        "zero17", #港股才有
-        "涨速",
-        "现量",
-        "换手率",
+        "market_cap",
+        "pe_dynamic",
+        "zero16",
+        "zero17",
+        "rise_speed",
+        "cur_vol",
+        "turnover",
         "uk21",
         "decimal_point",
-        "涨停价",
-        "跌停价",
+        "limit_up",
+        "limit_down",
         "uk25",
-        "每手股数",
-        "流通股/PE",
-        "涨速2",
+        "lot_size",
+        "float_pe",
+        "rise_speed2",
         "zero29",
-        "PE静",
-        "市盈率TTM",
+        "pe_static",
+        "pe_ttm",
         "uk31",
     ]
     
@@ -111,7 +111,7 @@ class BoardMembersQuotes(BaseParser):
         board_symbol: str = "881001",
         sort_type=14,
         start: int = 0,
-        page_size: int = 80,
+        count: int = 80,
         sort_order: bool = 1,
     ):
 
@@ -119,7 +119,7 @@ class BoardMembersQuotes(BaseParser):
 
         self.body = struct.pack("<I9x", board_code)
         # 基础参数
-        params = struct.pack("<HIBBB", sort_type, start, page_size, 0, sort_order)
+        params = struct.pack("<HIBBB", sort_type, start, count, 0, sort_order)
         # 额外参数, 会根据传入的值不同,返回值的数量不同. 例如只传0,则只会返回 symbol 和 symbol_name
         pkg = bytearray.fromhex("00ff fce1 cc3f 0803 01 00 0000 0000 0000 0000 0000 00")
         # pkg = bytearray.fromhex("00 0500 0000 0100 0000 00 0000 0000 0000 0000 0000 00")

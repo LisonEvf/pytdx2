@@ -7,8 +7,8 @@ from opentdx.parser.baseParser import BaseParser, register_parser
 
 @register_parser(0x53f)
 class TopBoard(BaseParser):
-    def __init__(self, category: CATEGORY, size: int = 20):
-        self.body = struct.pack('<BB7sB', category.value, 5, bytes.fromhex('000000000100'), size)
+    def __init__(self, category: CATEGORY, count: int = 20):
+        self.body = struct.pack('<BB7sB', category.value, 5, bytes.fromhex('000000000100'), count)
     @override
     def deserialize(self, data):
         size, = struct.unpack('<B', data[:1])

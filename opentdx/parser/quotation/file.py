@@ -25,7 +25,7 @@ class Meta(BaseParser):
         size, unknown1, hash_value, unknown2 = struct.unpack(u"<I1s32s1s", data)
         return {
             "size": size,
-            "hash_value" : hash_value,
+            "hash" : hash_value,
             "unknown1" : unknown1,
             "unknown2" : unknown2
         }

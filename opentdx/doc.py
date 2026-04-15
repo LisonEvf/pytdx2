@@ -152,11 +152,11 @@ def _(c):
 
 @demo('14', 'stock_quotes_list     行情列表(排序+过滤)')
 def _(c):
-    show("c.stock_quotes_list(CATEGORY.A, count=10, sortType=SORT_TYPE.TOTAL_AMOUNT, filter=[...])",
+    show("c.stock_quotes_list(CATEGORY.A, count=10, sort_type=SORT_TYPE.TOTAL_AMOUNT, filter_types=[...])",
          pd.DataFrame(c.stock_quotes_list(
              CATEGORY.A, count=10,
-             sortType=SORT_TYPE.TOTAL_AMOUNT,
-             filter=[FILTER_TYPE.BJ, FILTER_TYPE.ST, FILTER_TYPE.KC],
+             sort_type=SORT_TYPE.TOTAL_AMOUNT,
+             filter_types=[FILTER_TYPE.BJ, FILTER_TYPE.ST, FILTER_TYPE.KC],
          )),
          comment="A股按总金额排序，排除北证/ST/科创，取前10")
 
@@ -279,10 +279,10 @@ def _(c):
 
 @demo('30', 'goods_quotes_list     商品行情列表(排序)')
 def _(c):
-    show("c.goods_quotes_list(EX_MARKET.US_STOCK, count=10, sortType=SORT_TYPE.TOTAL_AMOUNT)",
+    show("c.goods_quotes_list(EX_MARKET.US_STOCK, count=10, sort_type=SORT_TYPE.TOTAL_AMOUNT)",
          pd.DataFrame(c.goods_quotes_list(
              EX_MARKET.US_STOCK, count=10,
-             sortType=SORT_TYPE.TOTAL_AMOUNT,
+             sort_type=SORT_TYPE.TOTAL_AMOUNT,
          )),
          comment="美股按总金额排序前10")
 
@@ -515,11 +515,11 @@ def _(_tdx=None):
     client.disconnect()
 
 
-@demo('51', 'exQuotationClient 直调 — server_info / table / download')
+@demo('51', 'ExQuotationClient 直调 — server_info / table / download')
 def _(_tdx=None):
-    from opentdx.client.exQuotationClient import exQuotationClient
+    from opentdx.client.ExQuotationClient import ExQuotationClient
 
-    client = exQuotationClient()
+    client = ExQuotationClient()
     if not client.connect().login():
         return
 
@@ -574,7 +574,7 @@ MENU = """
 ║  48 QuotationClient 直调(心跳/公告)                                 ║
 ║  49 QuotationClient 直调(文件/CSV/表格)                             ║
 ║  50 QuotationClient 直调(加密行情/F10)                              ║
-║  51 exQuotationClient 直调                                         ║
+║  51 ExQuotationClient 直调                                         ║
 ╠════════════════════════════════════════════════════════════════════╣
 ║  a 运行全部    0 退出    m 重新显示菜单                             ║
 ╚════════════════════════════════════════════════════════════════════╝

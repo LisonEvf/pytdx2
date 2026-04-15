@@ -21,14 +21,14 @@ class Login(BaseParser):
     def deserialize(self, data):
         _, _, year, month, day, minute, hour, ms, second, server_name, u1, u2, u3, u4, u5, desc, u6, u7, u8, ip = struct.unpack('<B52sHBBBBBB21sfBHHH151sBBB52s', data)
         # print({
-        #     'date_time': datetime(year, month, day, hour, minute, second).strftime('%Y-%m-%d %H:%M:%S'),
+        #     'datetime': datetime(year, month, day, hour, minute, second).strftime('%Y-%m-%d %H:%M:%S'),
         #     'server_name': server_name.decode('gbk').replace('\x00', ''),
         #     'desc': desc.decode('gbk').replace('\x00', ''),
         #     'ip': ip.decode('gbk').replace('\x00', ''),
         #     'unknown': [u1, u2, u3, u4, u5, u6, u7, u8]
         # })
         return {
-            'date_time': datetime(year, month, day, hour, minute, second).strftime('%Y-%m-%d %H:%M:%S'),
+            'datetime': datetime(year, month, day, hour, minute, second).strftime('%Y-%m-%d %H:%M:%S'),
             'server_name': server_name.decode('gbk').replace('\x00', ''),
             'desc': desc.decode('gbk').replace('\x00', ''),
             'ip': ip.decode('gbk').replace('\x00', ''),

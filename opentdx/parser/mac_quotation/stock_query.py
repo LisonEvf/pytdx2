@@ -36,7 +36,7 @@ class StockQuery(BaseParser):
             low, = struct.unpack_from('<f', data, float_start + 12)
             close, = struct.unpack_from('<f', data, float_start + 16)
             result.update({
-                'last_close': round(last_close, 2),
+                'pre_close': round(last_close, 2),
                 'open': round(open_price, 2),
                 'high': round(high, 2),
                 'low': round(low, 2),

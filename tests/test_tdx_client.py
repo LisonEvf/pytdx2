@@ -53,7 +53,7 @@ class TestTdxClientStock:
         assert len(result) > 0
 
     def test_stock_quotes_list_with_sort(self, tdx):
-        result = tdx.stock_quotes_list(CATEGORY.A, count=5, sortType=SORT_TYPE.TOTAL_AMOUNT)
+        result = tdx.stock_quotes_list(CATEGORY.A, count=5, sort_type=SORT_TYPE.TOTAL_AMOUNT)
         assert isinstance(result, list)
         assert len(result) > 0
 

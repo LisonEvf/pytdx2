@@ -122,7 +122,7 @@ class Login(BaseParser):
         # print(f"unknown1: {unknown1.hex()} unknown2: {unknown2.hex()} unknown3: {unknown3} unknown4: {unknown4} unknown5: {unknown5} unknown6: {unknown6.hex()}")
 
         info = {
-            "date_time": datetime(year, month, day, hour, minute, second).strftime('%Y-%m-%d %H:%M:%S'),
+            "datetime": datetime(year, month, day, hour, minute, second).strftime('%Y-%m-%d %H:%M:%S'),
             "server_name": server_name.decode('gbk').replace('\x00', ''),
             "web_site": web_site.decode('gbk').replace('\x00', ''),
             "category": category.decode('gbk').replace('\x00', ''),

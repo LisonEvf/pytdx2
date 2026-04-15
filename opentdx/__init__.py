@@ -1,7 +1,7 @@
 from .tdxClient import TdxClient
 from .client.quotationClient import QuotationClient
-from .client.exQuotationClient import exQuotationClient
-from .client.macQuotationClient import macQuotationClient
+from .client.ExQuotationClient import ExQuotationClient
+from .client.MacQuotationClient import MacQuotationClient
 from .const import (
     MARKET,
     CATEGORY,
@@ -18,8 +18,8 @@ from .const import (
 __all__ = [
     "TdxClient",
     "QuotationClient",
-    "exQuotationClient",
-    "macQuotationClient",
+    "ExQuotationClient",
+    "MacQuotationClient",
     "MARKET",
     "CATEGORY",
     "PERIOD",

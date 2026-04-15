@@ -6,7 +6,7 @@ from .baseStockClient import BaseStockClient, update_last_ack_time, _paginate, _
 from opentdx.const import EX_MARKET, PERIOD, SORT_TYPE, ex_hosts
 from opentdx.utils.log import log
 
-class exQuotationClient(BaseStockClient):
+class ExQuotationClient(BaseStockClient):
     def __init__(self, multithread=False, heartbeat=False, auto_retry=False, raise_exception=False):
         super().__init__(multithread, heartbeat, auto_retry, raise_exception)
         self.hosts = ex_hosts
@@ -42,9 +42,9 @@ class exQuotationClient(BaseStockClient):
         return self.call(ex_quotation.List(start, count))
 
     @update_last_ack_time
-    def get_quotes_list(self, market: EX_MARKET, start: int = 0, count: int = 100, sortType: SORT_TYPE = SORT_TYPE.CODE, reverse: bool = False) -> list[dict]:
+    def get_quotes_list(self, market: EX_MARKET, start: int = 0, count: int = 100, sort_type: SORT_TYPE = SORT_TYPE.CODE, reverse: bool = False) -> list[dict]:
         return _paginate(
-            lambda s, c: self.call(ex_quotation.QuotesList(market, s, c, sortType, reverse)),
+            lambda s, c: self.call(ex_quotation.QuotesList(market, s, c, sort_type, reverse)),
             100, count, start,
         )
 
