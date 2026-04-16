@@ -203,7 +203,9 @@ class CATEGORY(Enum):
     HGT = 0x2af9    #沪股通
     SGT = 0x2b01    #深股通
     FXJS = 0x2aff   #风险警示
-    ETF = 0x2afd   #ETF基金
+    ETF = 0x2afd    #ETF基金
+    ZS = 0x2b2c     #重点指数
+    
     
     @property
     def code(self):
@@ -212,10 +214,11 @@ class CATEGORY(Enum):
 
 # TODO 添加扩展类别
 class EX_CATEGORY(Enum):
-    HK = 0x001f    #香港主板
+    HK = 0x001f     #香港主板
     HK_GEM = 0x0030 #香港创业板
-    
     GGT = 0x0047    #港股通 , 扩展行情查询
+    
+    US = 0x004a     #美股, 所有美股
     
     HSI = 0x2ee1    #恒指成分股
     HSHC = 0x2ee2    #恒生红筹
