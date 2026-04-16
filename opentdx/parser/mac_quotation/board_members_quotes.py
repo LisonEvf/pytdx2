@@ -70,27 +70,27 @@ FIELD_BITMAP_MAP = {
     0x2a: ("unknown_36_amount_related", '<f', "未知字段36（与amount相关0.90，需验证）"),  # ⚠️ 中等相关
     0x2b: ("KCB_FLAG", '<I', "科创板标志 "), #688开头30101 #300开头50101
     0x2c: ("BJ_FLAG", '<I', "北交所标志"),
-    0x2d: ("unknown_39_vol_related", '<f', "未知字段39（与vol相关0.99，高度相关）"),  # ✅ 高相关
-    0x2e: ("unknown_40", '<f', "未知字段40"),
-    0x2f: ("unknown_41", '<f', "未知字段41"),
+    0x2d: ("unknown_field_39_vol_related", '<f', "未知字段39（与vol相关0.99，高度相关）"),  # ✅ 高相关
+    0x2e: ("unknown_field_40", '<f', "未知字段40"),
+    0x2f: ("unknown_field_41", '<f', "未知字段41"),
     
     0x30: ("pe_ttm", '<f', "市盈率TTM"),
     0x31: ("pe_static", '<f', "市盈率静"),
-    0x32: ("unknown_44", '<I', "未知字段44（"),
-    0x33: ("unknown_45", '<I', "未知字段45"),
-    0x34: ("unknown_46", '<I', "未知字段46"),
-    0x35: ("unknown_47", '<f', "未知字段47"),
-    0x36: ("unknown_48", '<f', "未知字段48"),
-    0x37: ("unknown_49", '<I', "未知字段49"),
+    0x32: ("unknown_field_44", '<f', "未知字段44（"),
+    0x33: ("unknown_field_45", '<f', "未知字段45"),
+    0x34: ("unknown_field_46", '<f', "未知字段46"),
+    0x35: ("unknown_field_47", '<f', "未知字段47"),
+    0x36: ("unknown_field_48", '<f', "未知字段48"),
+    0x37: ("unknown_field_49", '<f', "未知字段49"),
     
     0x38: ("unknown_close_price", '<f', "美股字段"), 
-    0x39: ("unknown_51", '<f', "未知字段51"),
-    0x3a: ("unknown_52", '<I', "未知字段52"),
+    0x39: ("unknown_field_51", '<f', "未知字段51"),
+    0x3a: ("unknown_field_52", '<I', "未知字段52"),
     0x3b: ("change_20d_pct", '<f', "20日涨幅%"),  # ✅ 920627验证：CSV=-12.55, bitmap=-12.55
     0x3c: ("ytd_pct", '<f', "年初至今%"),  # ✅ 920627验证：CSV=-3.8, bitmap=-3.8
-    0x3d: ("unknown_55", '<f', "未知字段55"),
-    0x3e: ("unknown_56", '<f', "未知字段56"),
-    0x3f: ("unknown_63", '<I', "未知字段63"),
+    0x3d: ("unknown_field_55", '<f', "未知字段55"),
+    0x3e: ("unknown_field_56", '<f', "未知字段56"),
+    0x3f: ("unknown_field_63", '<I', "未知字段63"),
     
     0x40: ("mtd_pct", '<f', "月初至今%"),  # ✅ 920627验证：CSV=6.11, bitmap=6.11
     0x41: ("change_1y_pct", '<f', "一年涨幅%"),  # ✅ 920627验证：CSV=-17.29, bitmap=-17.29
@@ -105,10 +105,10 @@ FIELD_BITMAP_MAP = {
     0x49: ("low_copy2", '<f', "最低价(备份)"), 
     0x4a: ("ah_code", '<I', "对应A/H股code,不足位数前面补0"), # 600876 对应 1108 /  06881 对应 601881
     0x4b: ("unknown_code", '<I', "少部分有数据,6位数字 123247"),
-    0x4c: ("unknown_76", '<f', "未知字段76（全部为0，未启用）"),
-    0x4d: ("unknown_77", '<f', "未知字段77（全部为0，未启用）"),
-    0x4e: ("unknown_78", '<f', "未知字段78（全部为0，未启用）"),
-    0x4f: ("unknown_79", '<f', "未知字段79（全部为0，未启用）"),
+    0x4c: ("unknown_field_76", '<f', "未知字段76（全部为0，未启用）"),
+    0x4d: ("unknown_field_77", '<f', "未知字段77（全部为0，未启用）"),
+    0x4e: ("unknown_field_78", '<f', "未知字段78（全部为0，未启用）"),
+    0x4f: ("unknown_field_79", '<f', "未知字段79（全部为0，未启用）"),
     
     # 新发现的扩展字段（位0x50-0x57）- 通过 000100 数据发现
     0x50: ("unknown_field_80", '<f', "未知字段80（待分析）"),
@@ -227,6 +227,25 @@ def parse_dynamic_fields(row_data: bytes, field_bitmap: bytes) -> dict:
             # 直接使用定义的格式字符串解析
             value = struct.unpack(field_format, raw_bytes)[0]
             
+            # 如果是 unknown_field 且按 float 解析后数值较小，尝试按 uint32 重新解析
+            if field_name.startswith("unknown_field") and field_format == '<f':
+                # 需求变更：不是要小于某个值，而是它的数值有比较多指数（即极小浮点数，通常是整数误解析为float的结果）
+                # 判断条件：绝对值极小（非正规数范围）或者科学计数法指数部分很小
+                # 检查是否为非零且绝对值极小（例如 < 1e-5），这通常意味着它是被误解析的整数
+                # 或者检查其科学计数法表示
+                if value != 0.0 and abs(value) < 1e-5:
+                    try:
+                        int_value = struct.unpack('<I', raw_bytes)[0]
+                        print(f"[DEBUG] 发现未知字段 {field_name} 位{bit_pos} : {value} (疑似误解析)， 重新解析为整数: {int_value}")
+                        value = int_value
+                    except Exception:
+                        pass
+                # 也可以保留一部分之前对于较小整数的判断，如果业务上认为某些正常浮点数不会落在 1e-5 到 1000 之间且为未知字段
+                # 但根据需求描述“比较多指数”，主要针对的是极小值（如 1.4e-45 这种）
+                # 如果还需要覆盖之前的小整数情况（比如 100 被解析成 1.4e-43 这种极端情况其实也被上面覆盖了）
+                # 如果指的是像 1.23456789 这种有很多小数位的，那通常不应该重解析。
+                # “比较多指数”通常指科学计数法 e-xx 很大。
+                
             data_dict[field_name] = value
             pos += 4
         else:
