@@ -188,6 +188,12 @@ class MARKET(Enum):
     SH = 1
     BJ = 2
 
+    
+#获取方式 tcpdump port 7709 or 7727 -X |grep 2c12 -C 10 |grep "000e"
+#页面点击获取数据 [沪股通]
+#0x0040:  f92a 0000 0000 0000 0000 0000 000e 0000
+#因为是小端数据, 所以把前4个字节复制 [f92a]下来,然后翻转 [2af9] 
+# TODO 类似 EX_CATEGORY 添加扩展属性
 class CATEGORY(Enum):
     SH = 0      # 上证A
     SZ = 2      # 深证A
@@ -196,41 +202,48 @@ class CATEGORY(Enum):
     KCB = 8     # 科创板
     BJ = 12     # 北证A
     CYB = 14    # 创业板
-    
-    #获取方式 tcpdump port 7709 or 7727 -X |grep 2c12 -C 10 |grep "000e"
-    #0x0040:  f92a 0000 0000 0000 0000 0000 000e 0000
-    #因为是小端数据, 所以把前4个字节复制 [f92a]下来,然后翻转 [2af9]
+
     HGT = 0x2af9    #沪股通
     SGT = 0x2b01    #深股通
     FXJS = 0x2aff   #风险警示
     ETF = 0x2afd   #ETF基金
+    LOF = 0x2b04   #LOF基金
+    
+    ZS = 0x2b2c   #沪深系列指数
     
     @property
     def code(self):
         """返回真实的数字code,预留,避免结构变化"""
         return self.value
 
-# TODO 添加扩展类别
+
 class EX_CATEGORY(Enum):
-    HK = 0x001f    #香港主板
-    HK_GEM = 0x0030 #香港创业板
+    HK =      (0x001f, "香港主板")
+    HK_GEM =  (0x0030, "香港创业板")
+    GGT =     (0x0047, "港股通")
+    US =      (0x004a, "美股")
+    # 完全兼容 EX_MARKET 的value
+    HSI =     (0x2ee1, "恒指成分股")
+    HSHC =    (0x2ee2, "恒生红筹")
+    HSGQ =    (0x2ee4, "恒生国企")
+    HSGZ =    (0x2ee7, "恒生国指")
+    HSKJ =    (0x2eec, "恒生科技")
+    USZGG =   (0x32c9, "美股中概股")
+    USZM =    (0x32ca, "知名美股")
     
-    GGT = 0x0047    #港股通 , 扩展行情查询
-    
-    HSI = 0x2ee1    #恒指成分股
-    HSHC = 0x2ee2    #恒生红筹
-    HSGQ = 0x2ee4    #恒生国企
-    HSGZ = 0x2ee7    #恒生国指
-    HSKJ = 0x2eec    #恒生科技
-   
-    USZGG = 0x32c9    #美股中概股
-    USZM = 0x32ca    #知名美股
-    
+    def __init__(self, code: int, display_name: str):
+        self._code = code
+        self._display_name = display_name
     
     @property
     def code(self):
-        """返回真实的数字code,预留,避免结构变化"""
-        return self.value
+        """返回真实的数字code"""
+        return self._code
+
+    @property
+    def display_name(self):
+        """返回显示名称"""
+        return self._display_name
 
     @classmethod
     def has_code(cls, code):
@@ -499,7 +512,7 @@ class EX_MARKET(Enum):
     RISK_CONTROL_INDEX = 68         # 风控指数
     HUAZHENG_INDEX = 69             # 华证指数
     EXTENDED_SECTOR_INDEX = 70      # 扩展板块指数
-    HK_STOCK = 71                   # 港股
+    HK_STOCK_GGT = 71               # 港股-港股通
     GE_STOCK = 73                   # 德国股票
     US_STOCK = 74                   # 美国股票
     SG_STOCK = 78                   # 新加坡股票

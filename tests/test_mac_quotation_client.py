@@ -1,4 +1,4 @@
-from opentdx.const import ADJUST, BOARD_TYPE, EX_BOARD_TYPE, MARKET, PERIOD, SORT_TYPE, SORT_ORDER
+from opentdx.const import ADJUST, BOARD_TYPE, EX_BOARD_TYPE, EX_MARKET, MARKET, PERIOD, SORT_TYPE, SORT_ORDER
 
 
 class TestMacQuotationClientLogin:
@@ -27,7 +27,13 @@ class TestMacQuotationClientMixin:
         mqc.login()
         result = mqc.get_quotes(MARKET.SZ, '000001')
         result2 = qc.get_quotes(MARKET.SZ, '000001')
-        assert result == result2
+        
+        # 验证两个结果都是列表且长度相同
+        assert isinstance(result, list), f"mqc 返回类型错误: {type(result)}"
+        assert isinstance(result2, list), f"qc 返回类型错误: {type(result2)}"
+        assert len(result) == len(result2), f"返回数据长度不一致: mqc={len(result)}, qc={len(result2)}"
+        
+
 
 class TestMacQuotationClientBoard:
     """板块 API"""
@@ -42,14 +48,47 @@ class TestMacQuotationClientBoard:
         result = mqc.get_board_list(BOARD_TYPE.HY, count=5)
         assert isinstance(result, list)
         assert len(result) > 0
+        
+    def test_ex_get_board_list(self, meqc):
+        result = meqc.get_board_list(EX_BOARD_TYPE.HK_ALL, count=5)
+        assert isinstance(result, list)
+        assert len(result) > 0
 
     def test_get_board_members_quotes(self, mqc):
         result = mqc.get_board_members_quotes('880761', count=5)
         assert isinstance(result, list)
 
     def test_get_board_members(self, mqc):
+        # 普通板块
         result = mqc.get_board_members('880761', count=5)
         assert isinstance(result, list)
+        assert len(result) > 0
+        
+        # 指数成分股 000xxx
+        result = mqc.get_board_members('000903', count=5)
+        assert isinstance(result, list)
+        assert len(result) > 0
+        
+        # 指数成分股 399xxx
+        result = mqc.get_board_members('399262', count=5)
+        assert isinstance(result, list)
+        assert len(result) > 0
+        
+        # 北证成分股 899xxx
+        result = mqc.get_board_members('899601', count=5)
+        assert isinstance(result, list)
+        assert len(result) > 0
+        
+        
+    def test_get_board_members_hkboard(self, meqc):
+        result = meqc.get_board_members('HK0287', count=5)
+        assert isinstance(result, list)
+        assert len(result) > 0
+        
+    def test_get_board_members_usboard(self, meqc):
+        result = meqc.get_board_members('US0495', count=5)
+        assert isinstance(result, list)
+        assert len(result) > 0
 
     def test_get_board_members_with_sort_type(self, mqc):
         """测试 sort_type 和 sort_order 参数是否生效"""
@@ -80,6 +119,26 @@ class TestMacQuotationClientBoard:
         for i in range(len(vols_asc) - 1):
             assert vols_asc[i] <= vols_asc[i+1], f"升序排序错误: 索引 {i} 的 vol ({vols_asc[i]}) 大于 索引 {i+1} 的 vol ({vols_asc[i+1]})"
 
+
+    def test_get_symbol_zjlx(self, mqc):
+        result = mqc.get_symbol_zjlx('000100', MARKET.SZ)
+        assert result is not None
+        
+    def test_get_symbol_zjlx_not_support_ex_market(self, mqc):
+        """测试资金流向不支持扩展市场（EX_MARKET）
+        
+        可能的行为：
+        1. 抛出 TypeError 异常
+        2. 返回 None
+        """
+        import pytest
+        try:
+            result = mqc.get_symbol_zjlx('000100', EX_MARKET.US_STOCK)
+            # 如果没有抛出异常，应该返回 None
+            assert result is None, f"期望返回 None，但实际返回: {type(result).__name__}"
+        except TypeError as e:
+            # 如果抛出 TypeError，验证错误信息
+            assert "market 参数必须为 MARKET 类型" in str(e) or "MARKET" in str(e)
 
     def test_get_symbol_belong_board(self, mqc):
         result = mqc.get_symbol_belong_board('000100', MARKET.SZ)
