@@ -60,10 +60,10 @@ FIELD_BITMAP_MAP = {
     0x21: ("sell_price_limit", '<f', "跌停价"), 
     0x22: ("unknown_34", '<I', "（港股通常为15）"),
     0x23: ("lot_size", '<I', "每手股数(港股)"),
-    0x24: ("unknown_36_float_shares", '<f', "未知流通股(单位元)"), # 有的是流通股,有的是PE静
+    0x24: ("pre_ipov", '<f', "昨IPOV)"), #ETF-昨日IPOV
     0x25: ("speed_pct", '<f', "涨速"), 
     0x26: ("avg_price", '<f', "均价"),  
-    0x27: ("unknown_39_float_shares2", '<f', "未知流通股2(单位万)"), # 有的是流通股,有的是0
+    0x27: ("ipov", '<f', "IPOV"),  #ETF-IPOV
     
     0x28: ("pe_ttm_vol_related", '<f', "市盈率TTM（与vol相关0.96，可能不是真正的PE TTM）"),  # ✅ 高相关
     0x29: ("ex_price_placeholder", '<f', "收盘价占位（与amount相关0.89，需验证）"),  # ⚠️ 中等相关
@@ -233,7 +233,7 @@ def parse_dynamic_fields(row_data: bytes, field_bitmap: bytes) -> dict:
                 # 判断条件：绝对值极小（非正规数范围）或者科学计数法指数部分很小
                 # 检查是否为非零且绝对值极小（例如 < 1e-5），这通常意味着它是被误解析的整数
                 # 或者检查其科学计数法表示
-                if value != 0.0 and abs(value) < 1e-5:
+                if value != 0.0 and abs(value) < 1e-6:
                     try:
                         int_value = struct.unpack('<I', raw_bytes)[0]
                         print(f"[DEBUG] 发现未知字段 {field_name} 位{bit_pos} : {value} (疑似误解析)， 重新解析为整数: {int_value}")
