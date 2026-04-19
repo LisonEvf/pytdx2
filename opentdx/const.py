@@ -435,19 +435,17 @@ class BLOCK_FILE_TYPE(Enum):
     GN = 'block_gn.dat'     # 概念板块
 
 class BOARD_TYPE(Enum):
-    HY = 0
-    HY2 = 1
-
-    GN = 3
-    FG = 4
-    DQ = 5
+    HY = 0              #127 通达信普通行业一级分类
+    HY2 = 1             #344 通达信普通行业二级分类
+    GN = 3              #269
+    FG = 4              #158
+    DQ = 5              #32
+    OTHER = 6           #其他 397个
     
-    UNKNOW = 6             #其他 397个
-    HY_OTHER = 7           #行业 30个
-    
-    OTHER11 = 8     #行业板块-其他     等同于0 可能是兼容
-    OTHER12 = 9     #行业板块-二级行业  等同于1 可能是兼容
-    ALL = 255       #全部板块
+    TDX_YJ_LEVEL1 = 7     #研究板一级分类 30个
+    TDX_YJ_LEVEL2 = 8     #研究板二级分类 127个
+    TDX_YJ_LEVEL3 = 9     #研究板三级分类 344个
+    ALL = 255       #全部板块 559个
 
 class EX_BOARD_TYPE(Enum):
     HK_ALL = 0  # 港股板块
