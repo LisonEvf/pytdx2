@@ -121,6 +121,10 @@ FIELD_BITMAP_MAP = {
     0x57: ("open_amount", '<f', "开盘金额（元）"),  # ✅ 000100验证：CSV=1322.18万, bitmap=13221810元
 
     0x59: ("active", '<I', "活跃度"), 
+    0x5c: ("CONSECUTIVE_UP_DAYS", '<i', "连涨天"), # 正数代表连涨，负数代表连跌 
+    
+    0x6a: ("SHORT_ACMOUNT", '<f', "2分钟金额"), 
+
 }
 
 
@@ -235,7 +239,7 @@ def parse_dynamic_fields(row_data: bytes, field_bitmap: bytes) -> dict:
                 # 或者检查其科学计数法表示
                 if value != 0.0 and abs(value) < 1e-6:
                     try:
-                        int_value = struct.unpack('<I', raw_bytes)[0]
+                        int_value = struct.unpack('<i', raw_bytes)[0]
                         print(f"[DEBUG] 发现未知字段 {field_name} 位{bit_pos} : {value} (疑似误解析)， 重新解析为整数: {int_value}")
                         value = int_value
                     except Exception:
