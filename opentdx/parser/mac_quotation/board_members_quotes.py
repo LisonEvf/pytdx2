@@ -51,8 +51,8 @@ FIELD_BITMAP_MAP = {
     0x19: ("ask_volume", '<I', "卖量"),
     0x1a: ("last_volume", '<I', "现量"), 
     0x1b: ("turnover", '<f', "换手"),
-    0x1c: ("block5", '<I', "行业分类代码（5位数字）- 行业板块内固定，地域/概念板块内多样"),
-    0x1d: ("block_ext_info", '<I', "行业唯一ID - 与block5对应，标识股票所属细分行业"),
+    0x1c: ("INDUSTRY", '<I', "行业"),#行业分类代码（5位数字）- 行业板块内固定，地域/概念板块内多样
+    0x1d: ("INDUSTRY_CHANGE_UP", '<f', "行业涨跌幅"), 
     0x1e: ("some_bitmap", '<I', "位图"),
     0x1f: ("decimal_point", '<I', "数据精度"),
     
