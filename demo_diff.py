@@ -19,7 +19,7 @@ if __name__ == "__main__":
 
     category = CATEGORY.CYB
     client = QuotationClient()
-    client.hosts = mixin_hosts
+    client.hosts = mac_hosts
     client.sp().connect().login()
     
     # for i in range(0,10):
@@ -39,11 +39,11 @@ if __name__ == "__main__":
     df = pd.DataFrame(rs)
     df.to_csv("etf.csv")
     
+    
     # 修正这一行
     if 'industry' in df.columns:  # 正确的检查列是否存在的方式
         df['board_symbol'] = df['industry'].apply(lambda x: industry_to_board_symbol(x))
-
-    df = df[['symbol','industry','board_symbol']]
+        df = df[['symbol','industry','board_symbol']]
     
     print(df)
     # print(df)

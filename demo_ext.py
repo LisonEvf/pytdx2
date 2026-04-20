@@ -7,6 +7,7 @@ from opentdx.const import ADJUST, BLOCK_FILE_TYPE, CATEGORY, EX_CATEGORY, EX_MAR
 from opentdx.const import mac_hosts , mac_ex_hosts
 from opentdx.parser.ex_quotation import file, goods
 from opentdx.parser.quotation import server, stock
+from opentdx.utils.help import industry_to_board_symbol, ah_code_to_symbol, lot_size_to_symbol
 
 
 if __name__ == "__main__":
@@ -15,8 +16,8 @@ if __name__ == "__main__":
     test_board = True
     
     
-    category = CATEGORY.FXJS
-    board_symbol = str(CATEGORY.FXJS.value)
+    category = CATEGORY.A
+    board_symbol = str(CATEGORY.A.value)
     client = QuotationClient()
     client.hosts = mac_hosts
     client.connect().login()
@@ -27,19 +28,15 @@ if __name__ == "__main__":
         print("启用sp模式,使用支持通用接口的ip")
         print(e)
         
-    
-
         
     print("使用get_stock_quotes_list查询板块股票")
     client.sp().connect().login()
-    rs = client.get_stock_quotes_list(category=category,count=10,sortType=SORT_TYPE.CHANGE_PCT)
-    df = pd.DataFrame(rs)
 
     
     # 测试资金流向
     print("\n***** 测试资金流向 get_symbol_zjlx *****")
-    symbol = '000100'
-    market = MARKET.SZ
+    symbol = '603019'
+    market = MARKET.SH
     try:
         df_zjlx = client.get_symbol_zjlx(symbol=symbol, market=market)
         if df_zjlx is not None and len(df_zjlx) > 0:
@@ -53,19 +50,50 @@ if __name__ == "__main__":
         traceback.print_exc()
     print("***** 资金流向测试结束 *****\n")
             
-    exit()
+            
+    active_stocks = client.top_board_members(board_symbol=category)
+    df_active = pd.DataFrame(active_stocks)
+    
+    
+    print(df_active)
+    
+
     
     print("启用get_board_members_quotes查询板块股票")
     rs = client.get_board_members_quotes(board_symbol=category,count=10)
     df = pd.DataFrame(rs)
     print(df)
             
-    print("支持自定义字段 ohlc , 增加ah_code , 查询881394板块")
-    ah_code_filter = (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) | (1 << 0x4a)
-    rs = client.get_board_members_quotes(board_symbol="881394",count=10, filter=ah_code_filter)
+    print("支持自定义字段 ohlc , 增加ah_code , 查询881394板块-券商板块")
+    # TODO bit 的方式,改造成传入 枚举LIST. 
+    ah_code_bit = 0x4a
+    lot_size_bit = 0x23
+    industry_bit = 0x1c
+    ah_code_filter = (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) | (1 << ah_code_bit) | (1 << lot_size_bit) | (1 << industry_bit)
+    rs = client.get_board_members_quotes(board_symbol="881394",count=100, filter=ah_code_filter)
     df = pd.DataFrame(rs)
-    print(df)
+    
+    if 'ah_code' in df.columns:  # 正确的检查列是否存在的方式
+        df['ah_code'] = df.apply(lambda row: ah_code_to_symbol(row['ah_code'], row['market']), axis=1)
 
+    if 'lot_size' in df.columns:  # 正确的检查列是否存在的方式
+        df['dq_symbol'] = df.apply(lambda row: lot_size_to_symbol(row['lot_size']), axis=1)
+        
+    print(df)
+    
+    print("支持自定义字段 ohlc , 增加ah_code , 查询880201板块-黑龙江板块")
+
+    industry_bit = 0x1c
+    ah_code_filter = (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) | (1 << industry_bit)
+    rs = client.get_board_members_quotes(board_symbol="880201",count=100, filter=ah_code_filter)
+    df = pd.DataFrame(rs)
+
+    if 'industry' in df.columns:  # 正确的检查列是否存在的方式
+        df['industry_symbol'] = df['industry'].apply(lambda x: industry_to_board_symbol(x))
+        
+    print(df)
+    
+    exit()
     
     print("支持自定义字段 ohlc")
     filter = (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4)

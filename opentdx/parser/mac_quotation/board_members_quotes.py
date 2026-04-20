@@ -44,7 +44,7 @@ FIELD_BITMAP_MAP = {
     0x13: ("server_update_date", '<I', "服务器更新日期 YYYYMMDD"),
     0x14: ("server_update_time", '<I', "服务器更新时间 HHMMSS"),
     0x15: ("lot_size_info", '<I', "未确定"), # 港股 格式为 240000500 ,美股味 550000001  , 24/55不确定 500和1代表lot_size
-    0x16: ("unknown_23", '<f', "未确定"),
+    # 0x16: ("unknown_23", '<f', "未确定"),
     0x17: ("DIVIDEND_YIELD", '<f', "股息"), 
     
     0x18: ("bid_volume", '<I', "买量"),
@@ -59,7 +59,7 @@ FIELD_BITMAP_MAP = {
     0x20: ("buy_price_limit", '<f', "涨停价"),  
     0x21: ("sell_price_limit", '<f', "跌停价"), 
     0x22: ("unknown_34", '<I', "（港股通常为15）"),
-    0x23: ("lot_size", '<I', "每手股数(港股)"),
+    0x23: ("lot_size", '<I', "每手股数(港股)"), # 国内股票为板块id, 1 => 880201 14=> 880214
     0x24: ("pre_ipov", '<f', "昨IPOV)"), #ETF-昨日IPOV
     0x25: ("speed_pct", '<f', "涨速"), 
     0x26: ("avg_price", '<f', "均价"),  
@@ -71,26 +71,18 @@ FIELD_BITMAP_MAP = {
     0x2b: ("KCB_FLAG", '<I', "科创板标志 "), #688开头30101 #300开头50101
     0x2c: ("BJ_FLAG", '<I', "北交所标志"),
     0x2d: ("unknown_field_39_vol_related", '<f', "未知字段39（与vol相关0.99，高度相关）"),  # ✅ 高相关
-    0x2e: ("unknown_field_40", '<f', "未知字段40"),
-    0x2f: ("unknown_field_41", '<f', "未知字段41"),
+
     
     0x30: ("pe_ttm", '<f', "市盈率TTM"),
     0x31: ("pe_static", '<f', "市盈率静"),
-    0x32: ("unknown_field_44", '<f', "未知字段44（"),
-    0x33: ("unknown_field_45", '<f', "未知字段45"),
-    0x34: ("unknown_field_46", '<f', "未知字段46"),
-    0x35: ("unknown_field_47", '<f', "未知字段47"),
-    0x36: ("unknown_field_48", '<f', "未知字段48"),
-    0x37: ("unknown_field_49", '<f', "未知字段49"),
+
     
     0x38: ("unknown_close_price", '<f', "美股字段"), 
-    0x39: ("unknown_field_51", '<f', "未知字段51"),
-    0x3a: ("unknown_field_52", '<I', "未知字段52"),
+
+    
     0x3b: ("change_20d_pct", '<f', "20日涨幅%"),  # ✅ 920627验证：CSV=-12.55, bitmap=-12.55
     0x3c: ("ytd_pct", '<f', "年初至今%"),  # ✅ 920627验证：CSV=-3.8, bitmap=-3.8
-    0x3d: ("unknown_field_55", '<f', "未知字段55"),
-    0x3e: ("unknown_field_56", '<f', "未知字段56"),
-    0x3f: ("unknown_field_63", '<I', "未知字段63"),
+
     
     0x40: ("mtd_pct", '<f', "月初至今%"),  # ✅ 920627验证：CSV=6.11, bitmap=6.11
     0x41: ("change_1y_pct", '<f', "一年涨幅%"),  # ✅ 920627验证：CSV=-17.29, bitmap=-17.29
@@ -99,31 +91,21 @@ FIELD_BITMAP_MAP = {
     0x44: ("change_60d_pct", '<f', "60日涨幅%"),  # ✅ 920627验证：CSV=-15.37, bitmap=-15.37
     0x45: ("change_5d_pct", '<f', "5日涨幅%"),  # ✅ 920627验证：CSV=6.44, bitmap=6.44
     0x46: ("change_10d_pct", '<f', "10日涨幅%"),  # ✅ 920627验证：CSV=1.64, bitmap=1.64
-    0x47: ("unknown_71", '<f', "未知字段71（待分析）"),
     
     0x48: ("low_copy", '<f', "最低价(备份)"),  
     0x49: ("low_copy2", '<f', "最低价(备份)"), 
     0x4a: ("ah_code", '<I', "对应A/H股code,不足位数前面补0"), # 600876 对应 1108 /  06881 对应 601881
     0x4b: ("unknown_code", '<I', "少部分有数据,6位数字 123247"),
-    0x4c: ("unknown_field_76", '<f', "未知字段76（全部为0，未启用）"),
-    0x4d: ("unknown_field_77", '<f', "未知字段77（全部为0，未启用）"),
-    0x4e: ("unknown_field_78", '<f', "未知字段78（全部为0，未启用）"),
-    0x4f: ("unknown_field_79", '<f', "未知字段79（全部为0，未启用）"),
+
     
     # 新发现的扩展字段（位0x50-0x57）- 通过 000100 数据发现
-    0x50: ("unknown_field_80", '<f', "未知字段80（待分析）"),
-    0x51: ("unknown_field_81", '<f', "未知字段81（待分析）"),
-    0x52: ("unknown_field_82", '<f', "未知字段82（待分析）"),
-    0x53: ("unknown_field_83", '<f', "未知字段83（待分析）"),
-    0x54: ("unknown_field_84", '<f', "未知字段84（待分析）"),
-    0x55: ("unknown_field_85", '<f', "未知字段85（待分析）"),
-    0x56: ("unknown_field_86", '<f', "未知字段86（待分析）"),
+
     0x57: ("open_amount", '<f', "开盘金额（元）"),  # ✅ 000100验证：CSV=1322.18万, bitmap=13221810元
 
-    0x59: ("active", '<I', "活跃度"), 
+    0x59: ("ACTIVITY", '<I', "活跃度"), 
     0x5c: ("CONSECUTIVE_UP_DAYS", '<i', "连涨天"), # 正数代表连涨，负数代表连跌 
     
-    0x6a: ("SHORT_ACMOUNT", '<f', "2分钟金额"), 
+    0x6a: ("ACMOUNT_2M", '<f', "2分钟金额"), 
 
 }
 
@@ -408,19 +390,6 @@ class BoardMembersQuotes(BaseParser):
             # print(f"16进制 >>> :{len(row_data)}   {row_data.hex()} ")
             # 传入位图，进行动态解析
             stock_dict = parse_row_data(row_data, field_bitmap=field_bitmap)
-            
-            # 特殊字段处理：格式化 ah_code
-            if stock_dict.get("ah_code"):
-                market = stock_dict.get("market")
-                ah_code_raw = stock_dict.get("ah_code")
-                
-                # 判断当前股票的市场类型
-                if market in [MARKET.SZ, MARKET.SH, MARKET.BJ]:
-                    # 国内市场（A股）：ah_code 对应的是港股，需要格式化为5位，不足前面补0
-                    stock_dict["ah_code"] = str(ah_code_raw).zfill(5)
-                else:
-                    # 港股市场：ah_code 对应的是A股，需要格式化为6位，不足前面补0
-                    stock_dict["ah_code"] = str(ah_code_raw).zfill(6)
             
             
             stocks.append(stock_dict)

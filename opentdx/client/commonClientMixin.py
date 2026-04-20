@@ -181,7 +181,45 @@ class CommonClientMixin:
                 log.debug(f"{msg} 数据量不足，获取结束")
                 break
                 
+                
         return security_list
+
+    @require_sp_mode
+    @update_last_ack_time
+    def top_board_members(self, board_symbol: str | CATEGORY | EX_CATEGORY = "881001", count=20):
+        """
+        获取板块活跃成分股排行榜(简单示例:如何使用filter或许自己需要的数据)
+        
+        分页获取指定板块成分股的实时行情数据，并自动在 filter 中启用 ACTIVITY（活跃度）字段。
+        支持按任意字段排序，默认按活跃度降序排列，适合获取最活跃的股票列表。
+        内部会自动处理分页逻辑，每次最多获取80条记录。
+        
+        Args:
+            board_symbol: 板块代码，如 "881001"（全部A股）
+                - 行业板块: 880xxx（如 "880761" 半导体）
+                - 概念板块: 880xxx（如 "880521" 人工智能）
+                - 地区板块: 880xxx
+                - 美股板块: HKxxxx （如"HK0287" 港股-药明系）
+                - 美股板块: USxxxx （如"US0495" 美股-加密货币）
+            count: 需要获取的最大记录数，默认20
+                
+
+        """
+        # ACTIVITY 字段的位位置是 0x59 (89)
+        ACTIVITY_BIT = 0x59
+        FLOAT_SHARES= 0xb
+        # 在用户提供的 filter 基础上，启用 ACTIVITY 字段
+        enhanced_filter = (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) | (1 << ACTIVITY_BIT) | (1 << FLOAT_SHARES)
+
+        
+        
+        return self.get_board_members_quotes(
+            board_symbol=board_symbol,
+            count=count,
+            sort_type=SORT_TYPE.ACTIVITY,
+            sort_order=SORT_ORDER.DESC,
+            filter=enhanced_filter
+        )
 
     @require_sp_mode
     @update_last_ack_time

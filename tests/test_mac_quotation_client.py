@@ -1,5 +1,6 @@
 from opentdx.const import ADJUST, BOARD_TYPE, EX_BOARD_TYPE, EX_MARKET, MARKET, PERIOD, SORT_TYPE, SORT_ORDER
-
+import pandas as pd
+from opentdx.utils.help import industry_to_board_symbol, ah_code_to_symbol, lot_size_to_symbol
 
 class TestMacQuotationClientLogin:
     """登录"""
@@ -157,3 +158,85 @@ class TestMacQuotationClientBoard:
     def test_get_board_list_ex_board_type(self, mqc):
         result = mqc.get_board_list(EX_BOARD_TYPE.HK_ALL, count=5)
         assert result is None or isinstance(result, list)
+
+
+class TestMacQuotationClientExchange:
+    """板块 API 通过help转换 symbol"""
+
+    def test_exchange_ah_code(self, mqc):
+        
+        print("支持自定义字段 ohlc , 增加ah_code , 查询881394板块")
+        ah_code_bit = 0x4a
+        lot_size_bit = 0x23
+        ah_code_filter = (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) | (1 << ah_code_bit) | (1 << lot_size_bit)
+        rs = mqc.get_board_members_quotes(board_symbol="881394",count=100, filter=ah_code_filter)
+        df = pd.DataFrame(rs)
+        
+        if 'ah_code' in df.columns:  # 正确的检查列是否存在的方式
+            df['ah_code'] = df.apply(lambda row: ah_code_to_symbol(row['ah_code'], row['market']), axis=1)
+
+
+        # 新增验证逻辑
+        assert df is not None and not df.empty, "获取的数据为空"
+        
+        # 筛选 symbol 为 601066 的行
+        # 注意：symbol 在 DataFrame 中可能是 int 或 string 类型，这里假设是 int，如果是 string 请改为 '601066'
+        ah_df = df[df['symbol'] == 601066]
+        
+        # 确保找到了该股票
+        assert not ah_df.empty, "未找到 symbol 为 601066 的股票数据"
+        
+        # 获取第一行的 ah_code 并验证
+        target_ah_code = ah_df.iloc[0]['ah_code']
+        assert target_ah_code == '06066', f"期望 ah_code 为 '06066'，实际为 '{target_ah_code}'"
+        
+
+    def test_exchange_dq_symbol(self, mqc):
+        
+        print("支持自定义字段 ohlc , 增加ah_code , 查询881394板块")
+        ah_code_bit = 0x4a
+        lot_size_bit = 0x23
+        ah_code_filter = (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) | (1 << ah_code_bit) | (1 << lot_size_bit)
+        rs = mqc.get_board_members_quotes(board_symbol="881394", count=100, filter=ah_code_filter)
+        df = pd.DataFrame(rs)
+        
+
+        if 'lot_size' in df.columns:  # 正确的检查列是否存在的方式
+            df['dq_symbol'] = df.apply(lambda row: lot_size_to_symbol(row['lot_size']), axis=1)
+            
+        # 新增验证逻辑
+        assert df is not None and not df.empty, "获取的数据为空"
+        
+        # 验证 000166 的 dq_symbol
+        df_000166 = df[df['symbol'] == '000166']
+        assert not df_000166.empty, "未找到 symbol 为 000166 的股票数据"
+        target_dq_symbol_166 = df_000166.iloc[0]['dq_symbol']
+        assert target_dq_symbol_166 == '880202', f"期望 000166 的 dq_symbol 为 '880202'，实际为 '{target_dq_symbol_166}'"
+
+        # 验证 600999 的 dq_symbol
+        df_600999 = df[df['symbol'] == '600999']
+        assert not df_600999.empty, "未找到 symbol 为 600999 的股票数据"
+        target_dq_symbol_999 = df_600999.iloc[0]['dq_symbol']
+        assert target_dq_symbol_999 == '880218', f"期望 600999 的 dq_symbol 为 '880218'，实际为 '{target_dq_symbol_999}'"
+        
+
+    def test_exchange_industry_symbol(self, mqc):
+
+        print("支持自定义字段 ohlc , 增加ah_code , 查询880201板块-黑龙江板块")
+
+        industry_bit = 0x1c
+        ah_code_filter =  (1 << industry_bit)
+        rs = mqc.get_board_members_quotes(board_symbol="880201",count=100, filter=ah_code_filter)
+        df = pd.DataFrame(rs)
+
+        if 'industry' in df.columns:  # 正确的检查列是否存在的方式
+            df['industry_symbol'] = df['industry'].apply(lambda x: industry_to_board_symbol(x))
+        
+        # 新增验证逻辑
+        assert df is not None and not df.empty, "获取的数据为空"
+        
+        # 验证 000166 的 dq_symbol
+        df_300900 = df[df['symbol'] == '300900']
+        assert not df_300900.empty, "未找到 symbol 为 300900 的股票数据"
+        target = df_300900.iloc[0]['industry_symbol']
+        assert target == '881288', f"期望 300900 的 dq_symbol 为 '881288'，实际为 '{target}'"
