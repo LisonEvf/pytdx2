@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, List,  Optional
 
 import pandas as pd
 
@@ -6,6 +6,7 @@ from .baseStockClient import update_last_ack_time
 from opentdx.const import ADJUST, BOARD_TYPE, CATEGORY, EX_CATEGORY, MARKET, PERIOD, EX_BOARD_TYPE, SORT_TYPE, SORT_ORDER, mac_hosts, mac_ex_hosts
 from opentdx.parser.mac_quotation import BoardCount, BoardList, BoardMembers, BoardMembersQuotes, SymbolBar, SymbolBelongBoard, SymbolZJLX
 from opentdx.utils.log import log
+from opentdx.utils.bitmap import fields_to_filter
 from functools import wraps
 
 
@@ -88,7 +89,11 @@ class CommonClientMixin:
 
     @require_sp_mode
     @update_last_ack_time
-    def get_board_members_quotes(self, board_symbol: str | CATEGORY | EX_CATEGORY = "881001", count=100000, sort_type: SORT_TYPE = SORT_TYPE.CHANGE_PCT, sort_order=SORT_ORDER.DESC, filter=0):
+    def get_board_members_quotes(self, board_symbol: str | CATEGORY | EX_CATEGORY = "881001", count=100000, 
+                                 sort_type: SORT_TYPE = SORT_TYPE.CHANGE_PCT, 
+                                 sort_order=SORT_ORDER.DESC, 
+                                 fields: Optional[Union[str, List[str]]] = None,   # 新增：友好字段选择
+                                 filter=0):
         """
         获取板块成分股的实时行情报价
         
@@ -169,9 +174,20 @@ class CommonClientMixin:
         msg = f"TDX 板块成分报价：{board_symbol} 查询总量{count}"
         log.debug(msg)
         
+        if fields is not None:
+            filter_val = fields_to_filter(fields)
+        else:
+            filter_val = filter
+            
+        # 生成20字节位图
+        if filter_val == 0:
+            # 默认使用 basic 字段集（基础五档+成交量）
+            filter_val = fields_to_filter("basic")
+            
+        
         for start in range(0, count, MAX_LIST_COUNT):
             current_count = min(MAX_LIST_COUNT, count - start)
-            rs = self.call(BoardMembersQuotes(board_symbol=board_symbol, start=start, page_size=current_count, sort_type=sort_type, sort_order=sort_order, filter=filter))
+            rs = self.call(BoardMembersQuotes(board_symbol=board_symbol, start=start, page_size=current_count, sort_type=sort_type, sort_order=sort_order, filter=filter_val))
             part = rs["stocks"]
             
             if len(part) > 0:

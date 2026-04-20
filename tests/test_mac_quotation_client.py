@@ -1,6 +1,7 @@
 from opentdx.const import ADJUST, BOARD_TYPE, EX_BOARD_TYPE, EX_MARKET, MARKET, PERIOD, SORT_TYPE, SORT_ORDER
 import pandas as pd
 from opentdx.utils.help import industry_to_board_symbol, ah_code_to_symbol, lot_size_to_symbol
+from opentdx.utils.bitmap import PRESET_FIELDS
 
 class TestMacQuotationClientLogin:
     """登录"""
@@ -160,6 +161,30 @@ class TestMacQuotationClientBoard:
         assert result is None or isinstance(result, list)
 
 
+class TestMacQuotationClientBoardFields:
+    """板块 API f"""
+
+    def test_base_info(self, mqc):
+        
+        print("支持自定义字段 ohlc")
+
+        rs = mqc.get_board_members_quotes(board_symbol="881394",count=300, fields='basic')
+        df = pd.DataFrame(rs)
+  
+        for field in PRESET_FIELDS['basic']:
+            assert field in df.columns, f"字段 {field} 不在返回数据中"
+            
+    def test_list_fields(self, mqc):
+        
+        print("支持自定义字段 ohlc")
+        fields = ['open','high','low','close','vol','amount','ah_code','lot_size','industry']
+        rs = mqc.get_board_members_quotes(board_symbol="881394",count=300, fields=fields)
+        df = pd.DataFrame(rs)
+  
+        for field in fields:
+            assert field in df.columns, f"字段 {field} 不在返回数据中"
+
+
 class TestMacQuotationClientExchange:
     """板块 API 通过help转换 symbol"""
 
@@ -169,7 +194,7 @@ class TestMacQuotationClientExchange:
         ah_code_bit = 0x4a
         lot_size_bit = 0x23
         ah_code_filter = (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) | (1 << ah_code_bit) | (1 << lot_size_bit)
-        rs = mqc.get_board_members_quotes(board_symbol="881394",count=100, filter=ah_code_filter)
+        rs = mqc.get_board_members_quotes(board_symbol="881394",count=300, filter=ah_code_filter)
         df = pd.DataFrame(rs)
         
         if 'ah_code' in df.columns:  # 正确的检查列是否存在的方式
@@ -181,7 +206,7 @@ class TestMacQuotationClientExchange:
         
         # 筛选 symbol 为 601066 的行
         # 注意：symbol 在 DataFrame 中可能是 int 或 string 类型，这里假设是 int，如果是 string 请改为 '601066'
-        ah_df = df[df['symbol'] == 601066]
+        ah_df = df[df['symbol'] == '601066']
         
         # 确保找到了该股票
         assert not ah_df.empty, "未找到 symbol 为 601066 的股票数据"

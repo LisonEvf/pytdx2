@@ -1,10 +1,5 @@
 # coding=utf-8
-
-from datetime import date, datetime
-import struct
-
-from opentdx.const import EX_MARKET, MARKET
-from opentdx.enums import IndustryCode
+from typing import Union, List
 from opentdx.utils.log import log
 
 
@@ -110,6 +105,126 @@ FIELD_BITMAP_MAP = {
     0x6a: ("ACMOUNT_2M", '<f', "2分钟金额"), 
 
 }
+
+
+
+# 字段名到位位置的映射（从 FIELD_BITMAP_MAP 反向生成）
+FIELD_NAME_TO_BIT = {
+    "pre_close": 0x0,
+    "open": 0x1,
+    "high": 0x2,
+    "low": 0x3,
+    "close": 0x4,
+    "vol": 0x5,
+    "vol_ratio": 0x6,
+    "amount": 0x7,
+    "inside_volume": 0x8,
+    "outside_volume": 0x9,
+    "total_shares": 0xa,
+    "float_shares": 0xb,
+    "EPS": 0xc,
+    "net_assets": 0xd,
+    "unkonw_action_price": 0xe,
+    "total_market_cap_ab": 0xf,
+    "pe_dynamic": 0x10,
+    "bid": 0x11,
+    "ask": 0x12,
+    "server_update_date": 0x13,
+    "server_update_time": 0x14,
+    "lot_size_info": 0x15,
+    "DIVIDEND_YIELD": 0x17,
+    "bid_volume": 0x18,
+    "ask_volume": 0x19,
+    "last_volume": 0x1a,
+    "turnover": 0x1b,
+    "industry": 0x1c,
+    "industry_change_up": 0x1d,
+    "some_bitmap": 0x1e,
+    "decimal_point": 0x1f,
+    "buy_price_limit": 0x20,
+    "sell_price_limit": 0x21,
+    "unknown_34": 0x22,
+    "lot_size": 0x23,
+    "pre_ipov": 0x24,
+    "speed_pct": 0x25,
+    "avg_price": 0x26,
+    "ipov": 0x27,
+    "pe_ttm_vol_related": 0x28,
+    "ex_price_placeholder": 0x29,
+    "unknown_36_amount_related": 0x2a,
+    "KCB_FLAG": 0x2b,
+    "BJ_FLAG": 0x2c,
+    "unknown_field_39_vol_related": 0x2d,
+    "pe_ttm": 0x30,
+    "pe_static": 0x31,
+    "unknown_close_price": 0x38,
+    "change_20d_pct": 0x3b,
+    "ytd_pct": 0x3c,
+    "mtd_pct": 0x40,
+    "change_1y_pct": 0x41,
+    "prev_change_pct": 0x42,
+    "change_3d_pct": 0x43,
+    "change_60d_pct": 0x44,
+    "change_5d_pct": 0x45,
+    "change_10d_pct": 0x46,
+    "low_copy": 0x48,
+    "low_copy2": 0x49,
+    "ah_code": 0x4a,
+    "unknown_code": 0x4b,
+    "open_amount": 0x57,
+    "ACTIVITY": 0x59,
+    "CONSECUTIVE_UP_DAYS": 0x5c,
+    "ACMOUNT_2M": 0x6a,
+}
+
+# 预定义字段集合（快捷方式）
+PRESET_FIELDS = {
+    "basic": ["pre_close", "open", "high", "low", "close", "vol"],          # 基础行情
+    "quote": ["bid", "ask", "bid_volume", "ask_volume", "last_volume"],     # 盘口
+    "volume": ["vol", "amount", "turnover", "vol_ratio"],                   # 量能
+    "fundamental": ["total_shares", "float_shares", "EPS", "net_assets"],   # 基本面
+    "valuation": ["pe_ttm", "pe_static", "total_market_cap_ab"],            # 估值
+    "change": ["change_5d_pct", "change_10d_pct", "change_20d_pct", "change_60d_pct", "ytd_pct", "mtd_pct", "prev_change_pct"],
+    "limit": ["buy_price_limit", "sell_price_limit"],                       # 涨跌停
+    "all": list(FIELD_NAME_TO_BIT.keys()),                                  # 全部字段（注意：可能请求过多数据）
+}
+
+def fields_to_filter(field_names: Union[str, List[str]]) -> int:
+    """
+    将字段名列表（或预定义集合名）转换为 filter 整数位掩码
+    
+    Args:
+        field_names: 可以是字段名列表，或预定义集合的键（如 'basic'），
+                     或使用 '+' 连接的组合字符串，如 'basic+quote'
+    
+    Returns:
+        整数位掩码，每一位代表一个字段位位置
+    """
+    if isinstance(field_names, str):
+        if '+' in field_names:
+            parts = field_names.split('+')
+            names = []
+            for part in parts:
+                if part in PRESET_FIELDS:
+                    names.extend(PRESET_FIELDS[part])
+                else:
+                    names.append(part)
+        elif field_names in PRESET_FIELDS:
+            names = PRESET_FIELDS[field_names]
+        else:
+            names = [field_names]
+    else:
+        names = field_names
+    
+    filter_val = 0
+    for name in names:
+        if name in FIELD_NAME_TO_BIT:
+            bit_pos = FIELD_NAME_TO_BIT[name]
+            filter_val |= (1 << bit_pos)
+        else:
+            log.warning(f"未知字段名: {name}，已忽略")
+    return filter_val
+
 
 def get_active_fields_from_bitmap(bitmap_bytes: bytes) -> list[int]:
     bitmap_int = int.from_bytes(bitmap_bytes, 'little')
