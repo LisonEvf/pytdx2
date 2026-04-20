@@ -56,6 +56,7 @@ if __name__ == "__main__":
     
     
     print(df_active)
+    exit()
     
 
     
