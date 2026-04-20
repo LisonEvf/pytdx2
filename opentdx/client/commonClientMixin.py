@@ -4,7 +4,7 @@ import pandas as pd
 
 from .baseStockClient import update_last_ack_time
 from opentdx.const import ADJUST, BOARD_TYPE, CATEGORY, EX_CATEGORY, MARKET, PERIOD, EX_BOARD_TYPE, SORT_TYPE, SORT_ORDER, mac_hosts, mac_ex_hosts
-from opentdx.parser.mac_quotation import BoardCount, BoardList, BoardMembers, BoardMembersQuotes, SymbolBar, SymbolBelongBoard
+from opentdx.parser.mac_quotation import BoardCount, BoardList, BoardMembers, BoardMembersQuotes, SymbolBar, SymbolBelongBoard, SymbolZJLX
 from opentdx.utils.log import log
 from functools import wraps
 
@@ -89,6 +89,80 @@ class CommonClientMixin:
     @require_sp_mode
     @update_last_ack_time
     def get_board_members_quotes(self, board_symbol: str | CATEGORY | EX_CATEGORY = "881001", count=100000, sort_type: SORT_TYPE = SORT_TYPE.CHANGE_PCT, sort_order=SORT_ORDER.DESC, filter=0):
+        """
+        获取板块成分股的实时行情报价
+        
+        分页获取指定板块成分股的实时行情数据，支持按涨跌幅、成交量等字段排序。
+        与 get_board_members 不同的是，此方法返回的是带有实时行情数据的成分股列表。
+        内部会自动处理分页逻辑，每次最多获取80条记录。
+        
+        Args:
+            board_symbol: 板块代码，如 "881001"（全部A股）
+                - 行业板块: 880xxx（如 "880761" 半导体）
+                - 概念板块: 880xxx（如 "880521" 人工智能）
+                - 地区板块: 880xxx
+                - 美股板块: HKxxxx （如"HK0287" 港股-药明系）
+                - 美股板块: USxxxx （如"US0495" 美股-加密货币）
+            count: 需要获取的最大记录数，默认100000
+            sort_type: 排序类型，默认按涨跌幅排序（SORT_TYPE.CHANGE_PCT）
+                - SORT_TYPE.CHANGE_PCT: 按涨跌幅排序（最常用）
+                - SORT_TYPE.VOLUME: 按成交量排序
+                - SORT_TYPE.AMOUNT: 按成交额排序
+                - SORT_TYPE.CODE: 按股票代码排序
+                - SORT_TYPE.PRICE: 按价格排序
+                - 其他排序类型参见 SORT_TYPE 枚举
+            sort_order: 排序顺序，默认降序（SORT_ORDER.DESC）
+                - SORT_ORDER.ASC: 升序（从小到大）
+                - SORT_ORDER.DESC: 降序（从大到小，如涨幅排行榜）
+                - SORT_ORDER.NONE: 不排序
+            filter: 过滤条件，默认0（不过滤）
+                - 0: 不过滤
+                - 1: 过滤停牌股票
+                
+        Returns:
+            list: 包含板块成分股实时行情的列表，每个元素为一个字典，包含：
+                - code: 股票代码（如 "000001"）
+                - name: 股票名称（如 "平安银行"）
+                - price: 当前价格
+                - open: 开盘价
+                - high: 最高价
+                - low: 最低价
+                - pre_close: 昨收价
+                - change: 涨跌额
+                - change_pct: 涨跌幅（百分比）
+                - vol: 成交量（手）
+                - amount: 成交额（元）
+                - buy_price: 买一价
+                - sell_price: 卖一价
+                - 等其他实时行情字段
+                
+        Example:
+            >>> # 获取板块涨幅排行（默认按涨跌幅降序）
+            >>> top_stocks = client.get_board_members_quotes('880761', count=10)
+            >>> for stock in top_stocks:
+            ...     print(f"{stock['name']}: {stock['change_pct']:.2f}%")
+            >>> 
+            >>> # 获取板块成交量排行（按成交量降序）
+            >>> volume_stocks = client.get_board_members_quotes('880761', count=20,
+            ...                                                  sort_type=SORT_TYPE.VOLUME,
+            ...                                                  sort_order=SORT_ORDER.DESC)
+            >>> 
+            >>> # 获取板块跌幅排行（按涨跌幅升序）
+            >>> drop_stocks = client.get_board_members_quotes('880761', count=10,
+            ...                                                sort_type=SORT_TYPE.CHANGE_PCT,
+            ...                                                sort_order=SORT_ORDER.ASC)
+            
+        Note:
+            - 此方法需要在 SP 模式下使用
+            - 内部会自动处理分页，每次请求最多80条记录
+            - 当返回的数据量小于请求数量时，会自动停止分页
+            - 默认按涨跌幅降序排序，适合获取涨幅排行榜
+            - 返回的是实时行情数据，价格会随市场变化
+            - 如果板块不存在或无成分股，返回空列表
+            - 与 get_board_members 的区别：
+                * get_board_members: 返回基本信息列表
+                * get_board_members_quotes: 返回带实时行情的完整数据
+        """
         MAX_LIST_COUNT = 80
         security_list = []
         
@@ -110,8 +184,52 @@ class CommonClientMixin:
         return security_list
 
     @require_sp_mode
-    # @update_last_ack_time
-    def get_board_members(self, board_symbol: str, count=100000):
+    @update_last_ack_time
+    def get_board_members(self, board_symbol: str | CATEGORY | EX_CATEGORY = "881001", count=100000, sort_type: SORT_TYPE = SORT_TYPE.CODE, sort_order=SORT_ORDER.NONE, filter=0):
+        """
+        获取板块成分股列表
+        
+        分页获取指定板块的成分股信息，支持排序和过滤。
+        内部会自动处理分页逻辑，每次最多获取80条记录。
+        
+        Args:
+            board_symbol: 板块代码，如 "881001"（全部A股）
+                - 行业板块: 880xxx
+                - 概念板块: 880xxx  
+                - 地区板块: 880xxx
+            count: 需要获取的最大记录数，默认100000
+            sort_type: 排序类型，默认按代码排序（SORT_TYPE.CODE）
+                - SORT_TYPE.CODE: 按股票代码排序
+                - SORT_TYPE.VOLUME: 按成交量排序
+                - SORT_TYPE.AMOUNT: 按成交额排序
+                - 其他排序类型参见 SORT_TYPE 枚举
+            sort_order: 排序顺序，默认不排序（SORT_ORDER.NONE）
+                - SORT_ORDER.ASC: 升序
+                - SORT_ORDER.DESC: 降序
+                - SORT_ORDER.NONE: 不排序
+            filter: 过滤条件，默认0（不过滤）
+                
+        Returns:
+            list: 包含板块成分股信息的列表，每个元素为一个字典，包含：
+                - code: 股票代码
+                - name: 股票名称
+                
+        Example:
+            >>> # 获取行业板块成分股
+            >>> members = client.get_board_members('880761', count=50)
+            >>> print(f"共获取 {len(members)} 只股票")
+            >>> 
+            >>> # 按成交量降序获取板块成分股
+            >>> members = client.get_board_members('880761', count=20, 
+            ...                                    sort_type=SORT_TYPE.VOLUME,
+            ...                                    sort_order=SORT_ORDER.DESC)
+            
+        Note:
+            - 此方法需要在 SP 模式下使用
+            - 内部会自动处理分页，每次请求最多80条记录
+            - 当返回的数据量小于请求数量时，会自动停止分页
+            - 如果板块不存在或无成分股，返回空列表
+        """
         MAX_LIST_COUNT = 80
         security_list = []
         
@@ -120,7 +238,7 @@ class CommonClientMixin:
         
         for start in range(0, count, MAX_LIST_COUNT):
             current_count = min(MAX_LIST_COUNT, count - start)
-            rs = self.call(BoardMembers(board_symbol=board_symbol, start=start, page_size=current_count))
+            rs = self.call(BoardMembers(board_symbol=board_symbol, start=start, page_size=current_count, sort_type=sort_type, sort_order=sort_order, filter=filter))
             part = rs["stocks"]
             
             if len(part) > 0:
@@ -129,8 +247,20 @@ class CommonClientMixin:
             if len(part) < current_count:
                 log.debug(f"{msg} 数据量不足，获取结束")
                 break
-                
+
         return security_list
+    
+    @require_sp_mode
+    @update_last_ack_time
+    def count_board_members(self, board_symbol: str | CATEGORY | EX_CATEGORY = "881001", count=1, sort_type: SORT_TYPE = SORT_TYPE.CODE, sort_order=SORT_ORDER.NONE, filter=0):
+
+        msg = f"TDX 板块成员：{board_symbol} 查询总量{count}"
+        log.debug(msg)
+        
+        rs = self.call(BoardMembers(board_symbol=board_symbol, start=0, page_size=count, sort_type=sort_type, sort_order=sort_order, filter=filter))
+        # total = rs["total"]
+
+        return rs
     
     @require_sp_mode
     @update_last_ack_time
@@ -139,6 +269,45 @@ class CommonClientMixin:
         df = self.call(parser)
         return df
     
+    @require_sp_mode
+    @update_last_ack_time
+    def get_symbol_zjlx(self, symbol: str, market: MARKET) -> pd.DataFrame:
+        """
+        获取股票资金流向数据
+        
+        Args:
+            symbol: 股票代码
+            market: 市场类型（仅支持 MARKET 类型，不支持 EX_MARKET）
+            
+        Returns:
+            DataFrame: 包含资金流向信息的DataFrame，包含以下列：
+                - 今日主力流入: 今日主力资金流入金额
+                - 今日主力流出: 今日主力资金流出金额
+                - 今日散户流入: 今日散户资金流入金额
+                - 今日散户流出: 今日散户资金流出金额
+                - 5日主买: 5日主力买入金额
+                - 5日主卖: 5日主力卖出金额
+                - 5日超大单净额: 5日超大单净流入金额
+                - 5日大单净额: 5日大单净流入金额
+                - 5日中单净额: 5日中单净流入金额
+                - 5日小单净额: 5日小单净流入金额
+                
+                衍生指标：
+                - 今日主力净流入: 今日主力流入 - 今日主力流出
+                - 今日散户净流入: 今日散户流入 - 今日散户流出
+                - 5日主力净流入: 5日主买 - 5日主卖
+                
+        Raises:
+            TypeError: 当 market 参数不是 MARKET 类型时抛出
+        """
+        # 仅支持 MARKET 类型（A股市场），不支持 EX_MARKET（扩展市场）
+        if not isinstance(market, MARKET):
+            raise TypeError(f"market 参数必须为 MARKET 类型，当前类型: {type(market).__name__}")
+            
+        parser = SymbolZJLX(symbol=symbol, market=market)
+        df = self.call(parser)
+        return df
+
     @require_sp_mode    
     @update_last_ack_time
     def get_symbol_bars(

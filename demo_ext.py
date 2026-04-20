@@ -3,7 +3,7 @@ from datetime import date
 import pandas as pd
 # from opentdx.client import macQuotationClient as QuotationClient, macExQuotationClient as exQuotationClient
 from opentdx.client import exQuotationClient , QuotationClient 
-from opentdx.const import ADJUST, BLOCK_FILE_TYPE, CATEGORY, EX_CATEGORY, FILTER_TYPE, MARKET, PERIOD, EX_BOARD_TYPE, BOARD_TYPE, SORT_TYPE
+from opentdx.const import ADJUST, BLOCK_FILE_TYPE, CATEGORY, EX_CATEGORY, EX_MARKET, FILTER_TYPE, MARKET, PERIOD, EX_BOARD_TYPE, BOARD_TYPE, SORT_TYPE
 from opentdx.const import mac_hosts , mac_ex_hosts
 from opentdx.parser.ex_quotation import file, goods
 from opentdx.parser.quotation import server, stock
@@ -27,13 +27,33 @@ if __name__ == "__main__":
         print("启用sp模式,使用支持通用接口的ip")
         print(e)
         
+    
+
         
     print("使用get_stock_quotes_list查询板块股票")
     client.sp().connect().login()
     rs = client.get_stock_quotes_list(category=category,count=10,sortType=SORT_TYPE.CHANGE_PCT)
     df = pd.DataFrame(rs)
-    print(df)
+
     
+    # 测试资金流向
+    print("\n***** 测试资金流向 get_symbol_zjlx *****")
+    symbol = '000100'
+    market = MARKET.SZ
+    try:
+        df_zjlx = client.get_symbol_zjlx(symbol=symbol, market=market)
+        if df_zjlx is not None and len(df_zjlx) > 0:
+            print(f"股票 {market} {symbol} 资金流向数据:")
+            print(df_zjlx.iloc[0])
+        else:
+            print(f"股票 {market} {symbol} 暂无资金流向数据")
+    except Exception as e:
+        print(f"获取资金流向数据失败: {e}")
+        import traceback
+        traceback.print_exc()
+    print("***** 资金流向测试结束 *****\n")
+            
+    exit()
     
     print("启用get_board_members_quotes查询板块股票")
     rs = client.get_board_members_quotes(board_symbol=category,count=10)
@@ -179,7 +199,8 @@ if __name__ == "__main__":
         df = client.get_symbol_belong_board(symbol=symbol, market=market)
         print(f"股票 {market} {symbol} 所属板块: {len(df)} 展示部分:")
         print(df[:3])
-                
+        
+ 
                 
         # symbol = '00700'
         # market = EX_CATEGORY.HK_MAIN_BOARD
@@ -193,7 +214,6 @@ if __name__ == "__main__":
         # df = exClient.get_symbol_belong_board(symbol=symbol, market=market)
         # print(f"美股 {market} {symbol} 所属板块 返回结果与股票不太一致,未解析")
         # print(df[:3])
-    
     
 
     if test_symbol_bars :
